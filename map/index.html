@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.6.1 - Time-Series Chart Title Customization Added -->
+<!-- Geo Mapper v2.7.0 - Chart Restore Fix + School-Friendly Security Updates -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.6.1</title>
+    <title>Geo Mapper v2.7.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
@@ -958,7 +958,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.6.1</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.0</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2226,7 +2226,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     // Visibility settings
                     titleVisibility: document.getElementById('titleVisibility')?.value || '100',
                     pointsVisibility: document.getElementById('pointsVisibility')?.value || '100',
-                    // Chart configuration
+                    // Chart configuration (old Chart.js system - kept for compatibility)
                     enablePopupChart: document.getElementById('enablePopupChart')?.checked || false,
                     chartType: document.getElementById('chartType')?.value || 'line',
                     chartGroupField: document.getElementById('chartGroupField')?.value || '',
@@ -2234,7 +2234,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     chartYField: document.getElementById('chartYField')?.value || '',
                     chartTitle: document.getElementById('chartTitle')?.value || '',
                     chartWidth: document.getElementById('chartWidth')?.value || '400',
-                    chartHeight: document.getElementById('chartHeight')?.value || '300'
+                    chartHeight: document.getElementById('chartHeight')?.value || '300',
+                    // NEW: Simple chart system (v2.6+)
+                    simpleChartType: document.getElementById('chartType')?.value || 'bar',
+                    chartFieldSelect: document.getElementById('chartFieldSelect')?.value || '',
+                    showChartComparison: document.getElementById('showChartComparison')?.checked !== false,
+                    chartTitleCustom: document.getElementById('chartTitleCustom')?.value || '',
+                    chartThisValueLabel: document.getElementById('chartThisValueLabel')?.value || '',
+                    chartPositiveLabel: document.getElementById('chartPositiveLabel')?.value || '',
+                    chartNegativeLabel: document.getElementById('chartNegativeLabel')?.value || '',
+                    timeFieldSelect: document.getElementById('timeFieldSelect')?.value || '',
+                    timeSeriesValueField: document.getElementById('timeSeriesValueField')?.value || '',
+                    timeSeriesChartTitle: document.getElementById('timeSeriesChartTitle')?.value || ''
                 }
             };
         }
@@ -7552,12 +7563,28 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         async function loadTectonicBoundariesLayer() {
             if (!tectonicPlatesData) {
                 try {
-                    const response = await fetch('https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json');
-                    tectonicPlatesData = await response.json();
-                } catch (error) {
-                    console.error('Error loading tectonic plates:', error);
-                    alert('Failed to load tectonic plates data. Please check your internet connection.');
-                    return null;
+                    // Try loading from local file first (for school firewalls)
+                    console.log('Attempting to load tectonic plates from local file...');
+                    const localResponse = await fetch('PB2002_boundaries.json');
+                    if (localResponse.ok) {
+                        tectonicPlatesData = await localResponse.json();
+                        console.log('✅ Tectonic plates loaded from local file');
+                    } else {
+                        throw new Error('Local file not found');
+                    }
+                } catch (localError) {
+                    console.log('Local file not available, trying GitHub...');
+                    try {
+                        // Fallback to GitHub if local file doesn't exist
+                        const response = await fetch('https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json');
+                        if (!response.ok) throw new Error('GitHub fetch failed');
+                        tectonicPlatesData = await response.json();
+                        console.log('✅ Tectonic plates loaded from GitHub');
+                    } catch (error) {
+                        console.error('Error loading tectonic plates from all sources:', error);
+                        alert('⚠️ Failed to load tectonic plates data.\n\nThis may be blocked by your network firewall.\nContact your IT administrator to whitelist:\n• navigatio.earth (for local file)\n• raw.githubusercontent.com (for fallback)\n\nSee IT Manager Guide for details.');
+                        return null;
+                    }
                 }
             }
             
@@ -9620,7 +9647,7 @@ Press OK to copy full config to console.`;
                             }, 1200);
                         }
                         
-                        // Restore chart configuration
+                        // Restore chart configuration (old Chart.js system)
                         if (s.enablePopupChart !== undefined) {
                             document.getElementById('enablePopupChart').checked = s.enablePopupChart;
                             popupChartEnabled = s.enablePopupChart;
@@ -9636,6 +9663,55 @@ Press OK to copy full config to console.`;
                                 saveChartConfig(); // Update chartConfig object
                             }
                         }
+                        
+                        // Restore NEW simple chart settings (v2.6+)
+                        // Must happen AFTER populateChartFieldDropdowns() is called
+                        setTimeout(() => {
+                            if (s.simpleChartType) {
+                                const chartTypeElem = document.getElementById('chartType');
+                                if (chartTypeElem) {
+                                    chartTypeElem.value = s.simpleChartType;
+                                    toggleChartTypeSettings(); // Show correct settings panel
+                                }
+                            }
+                            if (s.chartFieldSelect) {
+                                const elem = document.getElementById('chartFieldSelect');
+                                if (elem) elem.value = s.chartFieldSelect;
+                            }
+                            if (s.showChartComparison !== undefined) {
+                                const elem = document.getElementById('showChartComparison');
+                                if (elem) elem.checked = s.showChartComparison;
+                            }
+                            if (s.chartTitleCustom) {
+                                const elem = document.getElementById('chartTitleCustom');
+                                if (elem) elem.value = s.chartTitleCustom;
+                            }
+                            if (s.chartThisValueLabel) {
+                                const elem = document.getElementById('chartThisValueLabel');
+                                if (elem) elem.value = s.chartThisValueLabel;
+                            }
+                            if (s.chartPositiveLabel) {
+                                const elem = document.getElementById('chartPositiveLabel');
+                                if (elem) elem.value = s.chartPositiveLabel;
+                            }
+                            if (s.chartNegativeLabel) {
+                                const elem = document.getElementById('chartNegativeLabel');
+                                if (elem) elem.value = s.chartNegativeLabel;
+                            }
+                            if (s.timeFieldSelect) {
+                                const elem = document.getElementById('timeFieldSelect');
+                                if (elem) elem.value = s.timeFieldSelect;
+                            }
+                            if (s.timeSeriesValueField) {
+                                const elem = document.getElementById('timeSeriesValueField');
+                                if (elem) elem.value = s.timeSeriesValueField;
+                            }
+                            if (s.timeSeriesChartTitle) {
+                                const elem = document.getElementById('timeSeriesChartTitle');
+                                if (elem) elem.value = s.timeSeriesChartTitle;
+                            }
+                            console.log('Simple chart settings restored');
+                        }, 500); // Delay to ensure dropdowns are populated
                         
                         // Plot the points
                         plotPoints();
@@ -9673,9 +9749,10 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.6.1 READY ===', 'success');
-                addDiagnostic('✅ Time-series chart titles now customizable!');
-                addDiagnostic('✅ All chart features working perfectly!');
+                addDiagnostic('=== GEO MAPPER v2.7.0 READY ===', 'success');
+                addDiagnostic('✅ FIXED: Chart settings now restore properly!');
+                addDiagnostic('✅ FIXED: School-friendly security (local tectonic plates)');
+                addDiagnostic('🔒 Security: Ready for school firewalls');
                 document.getElementById('diagnosticSection').style.display = 'block';
             }, 500);
             
@@ -9709,4 +9786,3 @@ Press OK to copy full config to console.`;
     </script>
 </body>
 </html>
-
