@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.7.2 - CRITICAL: Fixed saveChartConfig crash + Load Config button -->
+<!-- Geo Mapper v2.7.3 - CRITICAL: Fixed null chart elements crash in restore -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.7.2</title>
+    <title>Geo Mapper v2.7.3</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
@@ -958,7 +958,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.2</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.3</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -9663,17 +9663,32 @@ Press OK to copy full config to console.`;
                         
                         // Restore chart configuration (old Chart.js system)
                         if (s.enablePopupChart !== undefined) {
-                            document.getElementById('enablePopupChart').checked = s.enablePopupChart;
-                            popupChartEnabled = s.enablePopupChart;
+                            const enablePopupChartElem = document.getElementById('enablePopupChart');
+                            if (enablePopupChartElem) {
+                                enablePopupChartElem.checked = s.enablePopupChart;
+                                popupChartEnabled = s.enablePopupChart;
+                            }
                             if (s.enablePopupChart) {
-                                document.getElementById('chartSettingsPanel').style.display = 'block';
-                                if (s.chartType) document.getElementById('chartType').value = s.chartType;
-                                if (s.chartGroupField) document.getElementById('chartGroupField').value = s.chartGroupField;
-                                if (s.chartXField) document.getElementById('chartXField').value = s.chartXField;
-                                if (s.chartYField) document.getElementById('chartYField').value = s.chartYField;
-                                if (s.chartTitle) document.getElementById('chartTitle').value = s.chartTitle;
-                                if (s.chartWidth) document.getElementById('chartWidth').value = s.chartWidth;
-                                if (s.chartHeight) document.getElementById('chartHeight').value = s.chartHeight;
+                                const chartSettingsPanelElem = document.getElementById('chartSettingsPanel');
+                                if (chartSettingsPanelElem) chartSettingsPanelElem.style.display = 'block';
+                                
+                                // Safe null checks for old Chart.js elements
+                                const chartTypeElem = document.getElementById('chartType');
+                                const chartGroupFieldElem = document.getElementById('chartGroupField');
+                                const chartXFieldElem = document.getElementById('chartXField');
+                                const chartYFieldElem = document.getElementById('chartYField');
+                                const chartTitleElem = document.getElementById('chartTitle');
+                                const chartWidthElem = document.getElementById('chartWidth');
+                                const chartHeightElem = document.getElementById('chartHeight');
+                                
+                                if (s.chartType && chartTypeElem) chartTypeElem.value = s.chartType;
+                                if (s.chartGroupField && chartGroupFieldElem) chartGroupFieldElem.value = s.chartGroupField;
+                                if (s.chartXField && chartXFieldElem) chartXFieldElem.value = s.chartXField;
+                                if (s.chartYField && chartYFieldElem) chartYFieldElem.value = s.chartYField;
+                                if (s.chartTitle && chartTitleElem) chartTitleElem.value = s.chartTitle;
+                                if (s.chartWidth && chartWidthElem) chartWidthElem.value = s.chartWidth;
+                                if (s.chartHeight && chartHeightElem) chartHeightElem.value = s.chartHeight;
+                                
                                 saveChartConfig(); // Update chartConfig object
                             }
                         }
@@ -9793,10 +9808,10 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.7.2 READY ===', 'success');
-                addDiagnostic('✅ CRITICAL FIX: saveChartConfig crash resolved!');
-                addDiagnostic('✅ Load Config button now works!');
-                addDiagnostic('✅ Chart restore with debug logging');
+                addDiagnostic('=== GEO MAPPER v2.7.3 READY ===', 'success');
+                addDiagnostic('✅ CRITICAL: Fixed chart restore crash!');
+                addDiagnostic('✅ Charts now restore properly!');
+                addDiagnostic('✅ Load Config button works');
                 addDiagnostic('✅ School-friendly tectonic plates');
                 document.getElementById('diagnosticSection').style.display = 'block';
             }, 500);
