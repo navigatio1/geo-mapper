@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.7.0 - Chart Restore Fix + School-Friendly Security Updates -->
+<!-- Geo Mapper v2.7.2 - CRITICAL: Fixed saveChartConfig crash + Load Config button -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.7.0</title>
+    <title>Geo Mapper v2.7.2</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
@@ -958,7 +958,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.0</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.2</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2499,13 +2499,22 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
         
         function saveChartConfig() {
-            chartConfig.type = document.getElementById('chartType').value;
-            chartConfig.groupField = document.getElementById('chartGroupField').value;
-            chartConfig.xField = document.getElementById('chartXField').value;
-            chartConfig.yField = document.getElementById('chartYField').value;
-            chartConfig.title = document.getElementById('chartTitle').value;
-            chartConfig.width = parseInt(document.getElementById('chartWidth').value);
-            chartConfig.height = parseInt(document.getElementById('chartHeight').value);
+            // Only save if elements exist (backward compatibility with old Chart.js system)
+            const chartTypeElem = document.getElementById('chartType');
+            const chartGroupFieldElem = document.getElementById('chartGroupField');
+            const chartXFieldElem = document.getElementById('chartXField');
+            const chartYFieldElem = document.getElementById('chartYField');
+            const chartTitleElem = document.getElementById('chartTitle');
+            const chartWidthElem = document.getElementById('chartWidth');
+            const chartHeightElem = document.getElementById('chartHeight');
+            
+            if (chartTypeElem) chartConfig.type = chartTypeElem.value;
+            if (chartGroupFieldElem) chartConfig.groupField = chartGroupFieldElem.value;
+            if (chartXFieldElem) chartConfig.xField = chartXFieldElem.value;
+            if (chartYFieldElem) chartConfig.yField = chartYFieldElem.value;
+            if (chartTitleElem) chartConfig.title = chartTitleElem.value;
+            if (chartWidthElem) chartConfig.width = parseInt(chartWidthElem.value);
+            if (chartHeightElem) chartConfig.height = parseInt(chartHeightElem.value);
         }
 
         // Initialize map
@@ -9071,6 +9080,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             markerLayer.clearLayers();
         }
 
+        function loadMapConfiguration() {
+            // Trigger the hidden file input
+            document.getElementById('configInput').click();
+        }
+
         function checkAutoSaveStatus() {
             try {
                 const saved = localStorage.getItem('geoMapper_autoSave');
@@ -9666,18 +9680,38 @@ Press OK to copy full config to console.`;
                         
                         // Restore NEW simple chart settings (v2.6+)
                         // Must happen AFTER populateChartFieldDropdowns() is called
+                        console.log('[Chart Restore] Scheduling chart settings restore...');
+                        console.log('[Chart Restore] Saved settings:', {
+                            simpleChartType: s.simpleChartType,
+                            chartFieldSelect: s.chartFieldSelect,
+                            timeFieldSelect: s.timeFieldSelect,
+                            timeSeriesValueField: s.timeSeriesValueField
+                        });
+                        
                         setTimeout(() => {
+                            console.log('[Chart Restore] Starting chart settings restore (1000ms delay)...');
+                            
                             if (s.simpleChartType) {
                                 const chartTypeElem = document.getElementById('chartType');
                                 if (chartTypeElem) {
+                                    console.log('[Chart Restore] Setting chart type to:', s.simpleChartType);
                                     chartTypeElem.value = s.simpleChartType;
                                     toggleChartTypeSettings(); // Show correct settings panel
+                                } else {
+                                    console.warn('[Chart Restore] chartType element not found!');
                                 }
                             }
+                            
                             if (s.chartFieldSelect) {
                                 const elem = document.getElementById('chartFieldSelect');
-                                if (elem) elem.value = s.chartFieldSelect;
+                                if (elem) {
+                                    console.log('[Chart Restore] Setting chartFieldSelect to:', s.chartFieldSelect);
+                                    elem.value = s.chartFieldSelect;
+                                } else {
+                                    console.warn('[Chart Restore] chartFieldSelect element not found!');
+                                }
                             }
+                            
                             if (s.showChartComparison !== undefined) {
                                 const elem = document.getElementById('showChartComparison');
                                 if (elem) elem.checked = s.showChartComparison;
@@ -9700,18 +9734,28 @@ Press OK to copy full config to console.`;
                             }
                             if (s.timeFieldSelect) {
                                 const elem = document.getElementById('timeFieldSelect');
-                                if (elem) elem.value = s.timeFieldSelect;
+                                if (elem) {
+                                    console.log('[Chart Restore] Setting timeFieldSelect to:', s.timeFieldSelect);
+                                    elem.value = s.timeFieldSelect;
+                                } else {
+                                    console.warn('[Chart Restore] timeFieldSelect element not found!');
+                                }
                             }
                             if (s.timeSeriesValueField) {
                                 const elem = document.getElementById('timeSeriesValueField');
-                                if (elem) elem.value = s.timeSeriesValueField;
+                                if (elem) {
+                                    console.log('[Chart Restore] Setting timeSeriesValueField to:', s.timeSeriesValueField);
+                                    elem.value = s.timeSeriesValueField;
+                                } else {
+                                    console.warn('[Chart Restore] timeSeriesValueField element not found!');
+                                }
                             }
                             if (s.timeSeriesChartTitle) {
                                 const elem = document.getElementById('timeSeriesChartTitle');
                                 if (elem) elem.value = s.timeSeriesChartTitle;
                             }
-                            console.log('Simple chart settings restored');
-                        }, 500); // Delay to ensure dropdowns are populated
+                            console.log('[Chart Restore] ✅ Simple chart settings restored');
+                        }, 1000); // Increased from 500ms to 1000ms for reliability
                         
                         // Plot the points
                         plotPoints();
@@ -9749,10 +9793,11 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.7.0 READY ===', 'success');
-                addDiagnostic('✅ FIXED: Chart settings now restore properly!');
-                addDiagnostic('✅ FIXED: School-friendly security (local tectonic plates)');
-                addDiagnostic('🔒 Security: Ready for school firewalls');
+                addDiagnostic('=== GEO MAPPER v2.7.2 READY ===', 'success');
+                addDiagnostic('✅ CRITICAL FIX: saveChartConfig crash resolved!');
+                addDiagnostic('✅ Load Config button now works!');
+                addDiagnostic('✅ Chart restore with debug logging');
+                addDiagnostic('✅ School-friendly tectonic plates');
                 document.getElementById('diagnosticSection').style.display = 'block';
             }, 500);
             
