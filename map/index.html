@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.7.4 - FINAL: Charts now restore and work automatically! -->
+<!-- Geo Mapper v2.8.12 - POPUP SCROLL FIX: Enable scrolling for overflow text -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.7.4</title>
+    <title>Geo Mapper v2.8.12</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
@@ -247,10 +247,26 @@
             font-size: 0.85rem;
         }
         
+        .legend-item-proportional {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            font-size: 0.75rem;
+            text-align: left;
+        }
+        
         .legend-symbol {
             width: 24px;
             height: 24px;
             flex-shrink: 0;
+        }
+        
+        .legend-symbol-proportional {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 0.75rem;
         }
 
         .sidebar-toggle::after {
@@ -476,6 +492,10 @@
         .popup-content td {
             padding: 0.25rem 0;
             vertical-align: top;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 250px;  /* Prevent cells from getting too wide */
         }
 
         .popup-content td:first-child {
@@ -487,6 +507,18 @@
 
         .popup-content td:last-child {
             color: #2c3e50;
+            line-height: 1.4;
+        }
+        
+        /* Dynamically adjust font size for very long text */
+        .popup-content td.long-text {
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+        
+        .popup-content td.very-long-text {
+            font-size: 0.7rem;
+            line-height: 1.25;
         }
 
         .popup-template-content {
@@ -533,6 +565,68 @@
         .popup-content {
             max-height: inherit;
             overflow-y: auto;
+            padding: 0.5rem;  /* Add breathing room */
+        }
+        
+        /* Popup Tabs - Compact & Subtle */
+        .popup-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .popup-tab {
+            padding: 0.25rem 0.75rem;
+            background: transparent;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #666;
+            transition: all 0.15s;
+        }
+        
+        .popup-tab:hover {
+            background: #f5f5f5;
+            border-color: #999;
+            color: #333;
+        }
+        
+        .popup-tab.active {
+            background: #3498db;
+            border-color: #3498db;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .popup-tab-content {
+            display: none;
+            animation: fadeIn 0.15s;
+        }
+        
+        .popup-tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Constrain popup sizes for better positioning */
+        .leaflet-popup-content-wrapper {
+            max-height: 400px;
+            padding: 0.75rem;  /* More comfortable padding */
+            overflow: auto;  /* Allow scrolling if content exceeds height */
+        }
+        
+        .leaflet-popup-content {
+            margin: 0;
+            max-height: 400px;
+            overflow: visible;  /* Changed from hidden to visible */
         }
 
         .sample-data-btn {
@@ -958,7 +1052,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.7.4</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.8.12</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1137,6 +1231,31 @@
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="range" id="titleVisibility" min="0" max="100" value="100" style="flex: 1;" oninput="updateTitleVisibility(); document.getElementById('titleVisibilityValue').textContent = this.value">
                         <span id="titleVisibilityValue" style="min-width: 35px; text-align: right;">100</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="titleFontSize">Title Font Size (px)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="titleFontSize" min="12" max="48" value="20" style="flex: 1;" oninput="updateTitleStyle(); document.getElementById('titleFontSizeValue').textContent = this.value">
+                        <span id="titleFontSizeValue" style="min-width: 35px; text-align: right;">20</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="titleFontColor">Title Font Color</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="color" id="titleFontColor" value="#2c3e50" style="width: 50px; height: 35px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" oninput="updateTitleStyle()">
+                        <span style="font-size: 0.8rem; color: #7f8c8d;">Text color</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="titleBgColor">Title Background Color</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="color" id="titleBgColor" value="#ffffff" style="width: 50px; height: 35px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" oninput="updateTitleStyle()">
+                        <input type="range" id="titleBgOpacity" min="0" max="100" value="95" style="flex: 1;" oninput="updateTitleStyle(); document.getElementById('titleBgOpacityValue').textContent = this.value">
+                        <span id="titleBgOpacityValue" style="min-width: 35px; text-align: right;">95</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem;">
+                        Background color and opacity
                     </div>
                 </div>
                 </div>
@@ -1550,6 +1669,23 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                     <div class="info-text">
                         ℹ️ Type your text and use {fieldname} with curly brackets to insert column data. Fields marked as "Image Fields" below will display as images when using {fieldname}.
+                    </div>
+                    
+                    <div class="form-group" style="background: #f0f8ff; padding: 0.75rem; border-radius: 4px; border: 1px solid #b3d9ff; margin-top: 1rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🔢 Tab Labels</label>
+                        <div class="info-text" style="margin-bottom: 0.5rem;">
+                            ℹ️ When charts or multiple images are shown, tabs separate content. Customize tab names here (default: "1" and "2")
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div>
+                                <label for="popupTab1Label" style="font-size: 0.8rem; color: #666;">Tab 1 (Info):</label>
+                                <input type="text" id="popupTab1Label" value="1" placeholder="e.g., Data & photo" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                            </div>
+                            <div>
+                                <label for="popupTab2Label" style="font-size: 0.8rem; color: #666;">Tab 2 (Chart):</label>
+                                <input type="text" id="popupTab2Label" value="2" placeholder="e.g., Long profile" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2460,6 +2596,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         // Live preview function - updates map as you change settings
+        // Debounce helper to prevent excessive redraws during slider/color adjustments
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
         function setupLivePreview() {
             // Helper function to safely add event listener
             const safeAddListener = (id, event, handler) => {
@@ -2471,22 +2620,25 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
             };
             
-            // Style changes - preserve zoom during live preview
-            safeAddListener('markerColor', 'input', () => plotPoints(false));
-            safeAddListener('markerSize', 'input', () => plotPoints(false));
-            safeAddListener('strokeColor', 'input', () => plotPoints(false));
-            safeAddListener('strokeWidth', 'input', () => plotPoints(false));
-            safeAddListener('markerSize2', 'input', () => plotPoints(false));
-            safeAddListener('markerShape', 'change', () => plotPoints(false));
+            // Create debounced plotPoints for smooth interaction (250ms delay)
+            const debouncedPlotPoints = debounce(() => plotPoints(false), 250);
             
-            // Rotation changes - preserve zoom
-            safeAddListener('rotationField', 'change', () => plotPoints(false));
-            safeAddListener('fixedRotation', 'input', () => plotPoints(false));
+            // Style changes - debounced for smooth slider/color picker interaction
+            safeAddListener('markerColor', 'input', debouncedPlotPoints);
+            safeAddListener('markerSize', 'input', debouncedPlotPoints);
+            safeAddListener('strokeColor', 'input', debouncedPlotPoints);
+            safeAddListener('strokeWidth', 'input', debouncedPlotPoints);
+            safeAddListener('markerSize2', 'input', debouncedPlotPoints);
+            safeAddListener('markerShape', 'change', () => plotPoints(false)); // Immediate for dropdown
             
-            // Size by field changes - preserve zoom
-            safeAddListener('sizeByField', 'change', () => plotPoints(false));
-            safeAddListener('minSymbolSize', 'input', () => plotPoints(false));
-            safeAddListener('maxSymbolSize', 'input', () => plotPoints(false));
+            // Rotation changes
+            safeAddListener('rotationField', 'change', () => plotPoints(false)); // Immediate for dropdown
+            safeAddListener('fixedRotation', 'input', debouncedPlotPoints);
+            
+            // Size by field changes
+            safeAddListener('sizeByField', 'change', () => plotPoints(false)); // Immediate for dropdown
+            safeAddListener('minSymbolSize', 'input', debouncedPlotPoints);
+            safeAddListener('maxSymbolSize', 'input', debouncedPlotPoints);
             
             // Chart configuration changes (may not exist)
             safeAddListener('chartType', 'change', saveChartConfig);
@@ -2586,6 +2738,24 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const visibility = parseInt(document.getElementById('titleVisibility').value);
             const overlay = document.getElementById('mapTitleOverlay');
             overlay.style.opacity = visibility / 100;
+        }
+        
+        function updateTitleStyle() {
+            const overlay = document.getElementById('mapTitleOverlay');
+            const fontSize = document.getElementById('titleFontSize').value;
+            const fontColor = document.getElementById('titleFontColor').value;
+            const bgColor = document.getElementById('titleBgColor').value;
+            const bgOpacity = parseInt(document.getElementById('titleBgOpacity').value) / 100;
+            
+            // Apply styles
+            overlay.style.fontSize = fontSize + 'px';
+            overlay.style.color = fontColor;
+            
+            // Convert hex to rgba for background with opacity
+            const r = parseInt(bgColor.substr(1, 2), 16);
+            const g = parseInt(bgColor.substr(3, 2), 16);
+            const b = parseInt(bgColor.substr(5, 2), 16);
+            overlay.style.background = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
         }
         
         function updatePointsVisibility() {
@@ -4253,6 +4423,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const popupTemplate = document.getElementById('popupTemplate').value;
             const titleTemplate = document.getElementById('popupTitle').value.trim();
             let popupContent;
+            let hasChart = false;
+            let chartHTML = '';
             
             // Process title template
             let popupTitleText = 'Point Data';
@@ -4260,17 +4432,24 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 popupTitleText = titleTemplate;
                 columns.forEach(col => {
                     const value = row[col] !== null && row[col] !== undefined ? row[col] : '';
-                    // Escape special regex characters in column name
                     const escapedCol = col.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const regex = new RegExp(`\\{${escapedCol}\\}`, 'gi');
                     popupTitleText = popupTitleText.replace(regex, value);
                 });
             }
             
+            // Generate chart if enabled
+            if (popupChartEnabled) {
+                chartHTML = generateSimpleChart(row);
+                hasChart = !!chartHTML;
+            }
+            
+            // Build data content
+            let dataContent = '';
+            
             if (useTemplate) {
                 // Use custom template mode
                 if (popupTemplate.trim()) {
-                    // Template has content - use it
                     let templateContent = popupTemplate;
                     
                     // Replace field placeholders with values
@@ -4282,66 +4461,90 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             value = `<img src="${value}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
                         }
                         
-                        // Escape special regex characters in column name
                         const escapedCol = col.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        
-                        // Case-insensitive replacement to handle {FieldName}, {fieldname}, {FIELDNAME}, etc.
                         const regex = new RegExp(`\\{${escapedCol}\\}`, 'gi');
                         templateContent = templateContent.replace(regex, value);
                     });
                     
-                    popupContent = `<div class="popup-content"><h3>${popupTitleText}</h3><div class="popup-template-content">${templateContent}</div></div>`;
+                    dataContent = `<div class="popup-template-content">${templateContent}</div>`;
                 } else {
-                    // Template is empty - show only title or truly blank
-                    if (popupTitleText) {
-                        popupContent = `<div class="popup-content"><h3>${popupTitleText}</h3></div>`;
-                    } else {
-                        popupContent = `<div class="popup-content" style="padding: 0.5rem;">Click to close</div>`;
-                    }
+                    dataContent = `<p style="color: #7f8c8d; font-style: italic;">No template content</p>`;
                 }
             } else {
                 // Use table mode with selected fields
                 const showHeadings = document.getElementById('showColumnHeadings').checked;
                 
-                popupContent = `<div class="popup-content"><h3>${popupTitleText}</h3><table>`;
+                dataContent = '<table>';
                 columns.forEach(col => {
                     if (selectedFields.has(col) && row[col] !== null && row[col] !== undefined && row[col] !== '') {
                         // Check if this field should display as an image
                         if (imageFields.has(col)) {
                             const url = row[col];
-                            // Check if it looks like a URL
                             if (typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
                                 if (showHeadings) {
-                                    popupContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
+                                    dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
                                 } else {
-                                    popupContent += `<tr><td colspan="2"><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
+                                    dataContent += `<tr><td colspan="2"><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
                                 }
                             } else {
+                                // Determine text length class
+                                const textLength = String(row[col]).length;
+                                const textClass = textLength > 200 ? 'very-long-text' : (textLength > 100 ? 'long-text' : '');
+                                
                                 if (showHeadings) {
-                                    popupContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td>${row[col]}</td></tr>`;
+                                    dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td class="${textClass}">${row[col]}</td></tr>`;
                                 } else {
-                                    popupContent += `<tr><td colspan="2">${row[col]}</td></tr>`;
+                                    dataContent += `<tr><td colspan="2" class="${textClass}">${row[col]}</td></tr>`;
                                 }
                             }
                         } else {
+                            // Determine text length class
+                            const textLength = String(row[col]).length;
+                            const textClass = textLength > 200 ? 'very-long-text' : (textLength > 100 ? 'long-text' : '');
+                            
                             if (showHeadings) {
-                                popupContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td>${row[col]}</td></tr>`;
+                                dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td class="${textClass}">${row[col]}</td></tr>`;
                             } else {
-                                popupContent += `<tr><td colspan="2">${row[col]}</td></tr>`;
+                                dataContent += `<tr><td colspan="2" class="${textClass}">${row[col]}</td></tr>`;
                             }
                         }
                     }
                 });
-                popupContent += '</table></div>';
+                dataContent += '</table>';
             }
             
-            // Add chart if enabled
-            // Add chart if enabled
-            if (popupChartEnabled) {
-                const chartHTML = generateSimpleChart(row);
-                if (chartHTML) {
-                    popupContent += chartHTML;
-                }
+            // Build final popup with or without tabs
+            if (hasChart) {
+                // Get custom tab labels (default to "1" and "2")
+                const tab1Label = document.getElementById('popupTab1Label')?.value || '1';
+                const tab2Label = document.getElementById('popupTab2Label')?.value || '2';
+                
+                // Use tabbed layout
+                popupContent = `
+                    <div class="popup-content">
+                        <h3>${popupTitleText}</h3>
+                        <div class="popup-tabs">
+                            <button class="popup-tab active" onclick="showPopupTab(event, 'info')">${tab1Label}</button>
+                            <button class="popup-tab" onclick="showPopupTab(event, 'chart')">${tab2Label}</button>
+                        </div>
+                        <div id="popup-info" class="popup-tab-content active" style="max-height: 300px; overflow-y: auto;">
+                            ${dataContent}
+                        </div>
+                        <div id="popup-chart" class="popup-tab-content" style="max-height: 300px; overflow-y: auto;">
+                            ${chartHTML}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Simple layout without tabs
+                popupContent = `
+                    <div class="popup-content">
+                        <h3>${popupTitleText}</h3>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            ${dataContent}
+                        </div>
+                    </div>
+                `;
             }
             
             return popupContent;
@@ -4368,6 +4571,27 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             return popupOptions;
         }
+        
+        // Global function for popup tab switching
+        window.showPopupTab = function(event, tabId) {
+            const popup = event.target.closest('.leaflet-popup-content');
+            if (!popup) return;
+            
+            // Hide all tab contents in this popup
+            const tabContents = popup.querySelectorAll('.popup-tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs in this popup
+            const tabs = popup.querySelectorAll('.popup-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            const selectedContent = popup.querySelector(`#popup-${tabId}`);
+            if (selectedContent) selectedContent.classList.add('active');
+            
+            // Mark tab as active
+            event.target.classList.add('active');
+        };
 
         function findReplace() {
             const findText = document.getElementById('findText').value;
@@ -4606,7 +4830,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (sizeByField) {
                 const value = parseFloat(row[sizeByField]);
                 if (!isNaN(value)) {
-                    // Use the same proportional sizing logic as plotPoints
                     // Need to calculate min/max from all animation data
                     let minValue = Infinity;
                     let maxValue = -Infinity;
@@ -4622,7 +4845,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     const minSymbolSize = parseInt(document.getElementById('minSymbolSize').value);
                     const maxSymbolSize = parseInt(document.getElementById('maxSymbolSize').value);
                     
-                    if (maxValue > minValue) {
+                    // Check if using classified sizing
+                    if (sizeClassification && sizeClassification.method === 'classified') {
+                        // Use classified sizing (same as plotPoints)
+                        const classifiedSize = getClassifiedSize(value);
+                        markerSize = classifiedSize || minSymbolSize;
+                    } else if (maxValue > minValue) {
+                        // Continuous proportional scaling
                         const proportion = (value - minValue) / (maxValue - minValue);
                         markerSize = minSymbolSize + (proportion * (maxSymbolSize - minSymbolSize));
                     } else {
@@ -4668,54 +4897,69 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     const popupElement = popup._container;
                     if (!popupElement) return;
                     
-                    const popupHeight = popupElement.offsetHeight;
+                    // Popup dimensions (constrained by CSS)
+                    const popupHeight = Math.min(popupElement.offsetHeight, 400);
                     const popupWidth = popupElement.offsetWidth;
                     
+                    // Marker position and map dimensions
                     const markerPoint = map.latLngToContainerPoint(markerLatLng);
                     const mapContainer = map.getContainer();
                     const mapHeight = mapContainer.offsetHeight;
                     const mapWidth = mapContainer.offsetWidth;
                     
+                    // Safety margins
+                    const margin = 20;
                     const headerHeight = 60;
-                    const spaceAbove = markerPoint.y - headerHeight;
-                    const spaceBelow = mapHeight - markerPoint.y;
-                    const spaceLeft = markerPoint.x;
-                    const spaceRight = mapWidth - markerPoint.x;
+                    const markerRadius = Math.round(markerSize) / 2 || 10;
                     
-                    let anchorPosition = 'bottom';
+                    // Available space in each direction
+                    const spaceAbove = markerPoint.y - headerHeight - markerRadius;
+                    const spaceBelow = mapHeight - markerPoint.y - markerRadius;
+                    const spaceLeft = markerPoint.x - markerRadius;
+                    const spaceRight = mapWidth - markerPoint.x - markerRadius;
+                    
                     let offsetX = 0;
-                    let offsetY = 0;
+                    let offsetY = -markerRadius - 10; // Default: above marker
+                    let position = 'above';
                     
-                    if (spaceAbove < popupHeight + 20) {
-                        if (spaceBelow > popupHeight + 20) {
-                            anchorPosition = 'top';
-                            offsetY = 10;
-                        } else {
-                            if (spaceRight > spaceLeft) {
-                                anchorPosition = 'left';
-                                offsetX = 10;
-                                offsetY = -popupHeight / 2;
+                    // Vertical positioning: try above, then below, then sides
+                    if (spaceAbove < popupHeight + margin) {
+                        if (spaceBelow >= popupHeight + margin) {
+                            // Place below
+                            offsetY = markerRadius + 10;
+                            position = 'below';
+                        } else if (spaceRight >= popupWidth + margin || spaceLeft >= popupWidth + margin) {
+                            // Place to side - use small offset, not full centering
+                            offsetY = -markerRadius - 10; // Just clear the marker top
+                            if (spaceRight >= popupWidth + margin) {
+                                offsetX = markerRadius + 10;
+                                position = 'right';
                             } else {
-                                anchorPosition = 'right';
-                                offsetX = -popupWidth - 10;
-                                offsetY = -popupHeight / 2;
+                                offsetX = -popupWidth - markerRadius - 10;
+                                position = 'left';
                             }
+                        } else {
+                            // Tight fit - keep above with adjustment
+                            offsetY = -markerRadius - 10;
+                            position = 'above-tight';
                         }
-                    } else {
-                        offsetY = -10;
                     }
                     
-                    if (anchorPosition === 'bottom' || anchorPosition === 'top') {
-                        const popupLeft = markerPoint.x - (popupWidth / 2) + offsetX;
-                        const popupRight = markerPoint.x + (popupWidth / 2) + offsetX;
+                    // Horizontal centering adjustment (for above/below positions)
+                    if (position === 'above' || position === 'below' || position === 'above-tight') {
+                        const popupHalfWidth = popupWidth / 2;
+                        const popupLeft = markerPoint.x - popupHalfWidth;
+                        const popupRight = markerPoint.x + popupHalfWidth;
                         
-                        if (popupLeft < 10) {
-                            offsetX = -(markerPoint.x - 10 - popupWidth / 2);
-                        } else if (popupRight > mapWidth - 10) {
-                            offsetX = (mapWidth - 10 - markerPoint.x - popupWidth / 2);
+                        // Shift to stay within bounds
+                        if (popupLeft < margin) {
+                            offsetX = margin - popupLeft;
+                        } else if (popupRight > mapWidth - margin) {
+                            offsetX = (mapWidth - margin) - popupRight;
                         }
                     }
                     
+                    // Apply offset
                     popup.options.offset = L.point(offsetX, offsetY);
                     popup.update();
                 }, 50);
@@ -6029,10 +6273,29 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 shapeStyleSection.style.display = 'block';
             }
             updateIconSizeVisibility();
+            
+            // Update legend if data is plotted
+            if (csvData && csvData.length > 0) {
+                buildLegend();
+            }
         });
         
         // Also listen to sizeByField changes
         document.getElementById('sizeByField').addEventListener('change', updateIconSizeVisibility);
+        
+        // Update legend when marker style changes
+        const markerStyleControls = ['markerColor', 'strokeColor', 'strokeWidth'];
+        markerStyleControls.forEach(controlId => {
+            const control = document.getElementById(controlId);
+            if (control) {
+                control.addEventListener('change', function() {
+                    // Update legend if data is plotted
+                    if (csvData && csvData.length > 0) {
+                        buildLegend();
+                    }
+                });
+            }
+        });
 
         iconUpload.addEventListener('click', () => iconInput.click());
         iconInput.addEventListener('change', handleIconSelect);
@@ -7361,29 +7624,70 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     const sizes = sizeClassification.sizes;
                     const dp = parseInt(document.getElementById('classDecimalPlaces')?.value || 1);
                     
+                    // Get current symbol settings
+                    const shape = document.getElementById('markerShape').value;
+                    const color = document.getElementById('markerColor').value;
+                    const strokeColor = document.getElementById('strokeColor').value;
+                    const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                    
+                    // Vertical stacking - each category on its own line
+                    html += '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
+                    
                     for (let i = 0; i < breaks.length - 1; i++) {
                         const lower = breaks[i].toFixed(dp);
                         const upper = breaks[i + 1].toFixed(dp);
-                        const circleSize = sizes[i];
-                        html += `<div class="legend-item">
-                            <div style="width: ${circleSize}px; height: ${circleSize}px; background: #3498db; border-radius: 50%; flex-shrink: 0;"></div>
-                            <span style="font-size: 0.8rem;">${lower} to ${upper}</span>
+                        const symbolSize = sizes[i];
+                        
+                        // Use actual symbol without rotation (natural orientation)
+                        const icon = getMarkerIcon(shape, color, symbolSize, strokeColor, strokeWidth, 0);
+                        const iconHtml = icon.options.html;
+                        
+                        html += `<div class="legend-item-proportional">
+                            <div class="legend-symbol-proportional" style="width: ${symbolSize * 2}px; height: ${symbolSize}px;">
+                                ${iconHtml}
+                            </div>
+                            <span style="font-size: 0.7rem; white-space: nowrap;">${lower} to ${upper}</span>
                         </div>`;
                     }
+                    
+                    html += '</div>'; // Close flex container
                 } else {
                     // Show continuous legend
                     const minSize = parseInt(document.getElementById('minSymbolSize').value);
                     const maxSize = parseInt(document.getElementById('maxSymbolSize').value);
                     
-                    html += '<div style="font-size: 0.8rem; color: #7f8c8d;">Symbol size represents data values</div>';
-                    html += `<div class="legend-item">
-                        <div style="width: ${minSize}px; height: ${minSize}px; background: #3498db; border-radius: 50%; flex-shrink: 0;"></div>
-                        <span>Minimum</span>
+                    // Get current symbol settings
+                    const shape = document.getElementById('markerShape').value;
+                    const color = document.getElementById('markerColor').value;
+                    const strokeColor = document.getElementById('strokeColor').value;
+                    const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                    
+                    html += '<div style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 0.5rem;">Symbol size represents data values</div>';
+                    
+                    // Use horizontal flex container for min/max symbols
+                    html += '<div style="display: flex; gap: 1.5rem; justify-content: flex-start;">';
+                    
+                    // Min symbol - no rotation (natural orientation)
+                    const minIcon = getMarkerIcon(shape, color, minSize, strokeColor, strokeWidth, 0);
+                    const minIconHtml = minIcon.options.html;
+                    html += `<div class="legend-item-proportional">
+                        <div class="legend-symbol-proportional" style="width: ${minSize * 2}px; height: ${minSize}px;">
+                            ${minIconHtml}
+                        </div>
+                        <span style="font-size: 0.7rem;">Minimum</span>
                     </div>`;
-                    html += `<div class="legend-item">
-                        <div style="width: ${maxSize}px; height: ${maxSize}px; background: #3498db; border-radius: 50%; flex-shrink: 0;"></div>
-                        <span>Maximum</span>
+                    
+                    // Max symbol - no rotation (natural orientation)
+                    const maxIcon = getMarkerIcon(shape, color, maxSize, strokeColor, strokeWidth, 0);
+                    const maxIconHtml = maxIcon.options.html;
+                    html += `<div class="legend-item-proportional">
+                        <div class="legend-symbol-proportional" style="width: ${maxSize * 2}px; height: ${maxSize}px;">
+                            ${maxIconHtml}
+                        </div>
+                        <span style="font-size: 0.7rem;">Maximum</span>
                     </div>`;
+                    
+                    html += '</div>'; // Close flex container
                 }
                 html += '</div>';
             }
@@ -8941,71 +9245,74 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             const popupElement = popup._container;
                             if (!popupElement) return;
                             
-                            const popupHeight = popupElement.offsetHeight;
+                            // Popup dimensions
+                            const popupHeight = Math.min(popupElement.offsetHeight, 400); // Constrained by CSS
                             const popupWidth = popupElement.offsetWidth;
                             
-                            // Get marker position in pixels relative to map container
+                            // Marker position and map dimensions
                             const markerPoint = map.latLngToContainerPoint(markerLatLng);
                             const mapContainer = map.getContainer();
                             const mapHeight = mapContainer.offsetHeight;
                             const mapWidth = mapContainer.offsetWidth;
                             
-                            // Calculate available space in all directions (accounting for header = 60px)
+                            // Safety margins
+                            const margin = 20;
                             const headerHeight = 60;
-                            const spaceAbove = markerPoint.y - headerHeight;
-                            const spaceBelow = mapHeight - markerPoint.y;
-                            const spaceLeft = markerPoint.x;
-                            const spaceRight = mapWidth - markerPoint.x;
+                            const markerRadius = Math.round(markerSize) / 2 || 10;
                             
-                            // Determine best position based on available space
-                            let anchorPosition = 'bottom'; // Default: popup above marker
+                            // Available space in each direction
+                            const spaceAbove = markerPoint.y - headerHeight - markerRadius;
+                            const spaceBelow = mapHeight - markerPoint.y - markerRadius;
+                            const spaceLeft = markerPoint.x - markerRadius;
+                            const spaceRight = mapWidth - markerPoint.x - markerRadius;
+                            
                             let offsetX = 0;
-                            let offsetY = 0;
+                            let offsetY = -markerRadius - 10; // Default: above marker
+                            let position = 'above';
                             
-                            // Vertical positioning
-                            if (spaceAbove < popupHeight + 20) {
-                                // Not enough space above
-                                if (spaceBelow > popupHeight + 20) {
-                                    // Enough space below - show popup below marker
-                                    anchorPosition = 'top';
-                                    offsetY = 10;
-                                } else {
-                                    // Not enough space above or below - position to side
-                                    if (spaceRight > spaceLeft) {
-                                        anchorPosition = 'left';
-                                        offsetX = 10;
-                                        offsetY = -popupHeight / 2;
+                            // Vertical positioning: try above, then below, then sides
+                            if (spaceAbove < popupHeight + margin) {
+                                if (spaceBelow >= popupHeight + margin) {
+                                    // Place below
+                                    offsetY = markerRadius + 10;
+                                    position = 'below';
+                                } else if (spaceRight >= popupWidth + margin || spaceLeft >= popupWidth + margin) {
+                                    // Place to side - use small offset, not full centering
+                                    offsetY = -markerRadius - 10; // Just clear the marker top
+                                    if (spaceRight >= popupWidth + margin) {
+                                        offsetX = markerRadius + 10;
+                                        position = 'right';
                                     } else {
-                                        anchorPosition = 'right';
-                                        offsetX = -popupWidth - 10;
-                                        offsetY = -popupHeight / 2;
+                                        offsetX = -popupWidth - markerRadius - 10;
+                                        position = 'left';
                                     }
+                                } else {
+                                    // Tight fit - keep above with adjustment
+                                    offsetY = -markerRadius - 10;
+                                    position = 'above-tight';
                                 }
-                            } else {
-                                // Enough space above (default)
-                                offsetY = -10;
                             }
                             
-                            // Horizontal adjustment to keep popup in view
-                            if (anchorPosition === 'bottom' || anchorPosition === 'top') {
-                                const popupLeft = markerPoint.x - (popupWidth / 2) + offsetX;
-                                const popupRight = markerPoint.x + (popupWidth / 2) + offsetX;
+                            // Horizontal centering adjustment (for above/below positions)
+                            if (position === 'above' || position === 'below' || position === 'above-tight') {
+                                const popupHalfWidth = popupWidth / 2;
+                                const popupLeft = markerPoint.x - popupHalfWidth;
+                                const popupRight = markerPoint.x + popupHalfWidth;
                                 
-                                if (popupLeft < 10) {
-                                    // Too far left
-                                    offsetX = -(markerPoint.x - 10 - popupWidth / 2);
-                                } else if (popupRight > mapWidth - 10) {
-                                    // Too far right
-                                    offsetX = (mapWidth - 10 - markerPoint.x - popupWidth / 2);
+                                // Shift to stay within bounds
+                                if (popupLeft < margin) {
+                                    offsetX = margin - popupLeft;
+                                } else if (popupRight > mapWidth - margin) {
+                                    offsetX = (mapWidth - margin) - popupRight;
                                 }
                             }
                             
-                            // Apply the calculated offset
+                            // Apply offset
                             popup.options.offset = L.point(offsetX, offsetY);
                             popup.update();
                             
-                            console.log(`Popup positioned: ${anchorPosition}, offset: [${offsetX}, ${offsetY}], spaces: above=${spaceAbove}, below=${spaceBelow}, left=${spaceLeft}, right=${spaceRight}`);
-                        }, 50); // Increased timeout for better rendering
+                            console.log(`Popup positioned ${position}: offset=[${offsetX.toFixed(1)}, ${offsetY.toFixed(1)}], spaces: above=${spaceAbove.toFixed(0)}, below=${spaceBelow.toFixed(0)}, left=${spaceLeft.toFixed(0)}, right=${spaceRight.toFixed(0)}`);
+                        }, 50);
                     });
                     
                     marker.addTo(markerLayer);
@@ -9776,6 +10083,13 @@ Press OK to copy full config to console.`;
                                 if (elem) elem.value = s.timeSeriesChartTitle;
                             }
                             console.log('[Chart Restore] ✅ Simple chart settings restored');
+                            
+                            // CRITICAL: Refresh markers with chart settings
+                            console.log('[Chart Restore] Refreshing markers to activate charts...');
+                            setTimeout(() => {
+                                plotPoints();
+                                console.log('[Chart Restore] ✅ Markers refreshed - charts now active!');
+                            }, 100); // Small delay to ensure change events complete
                         }, 1000); // Increased from 500ms to 1000ms for reliability
                         
                         // Plot the points
@@ -9814,10 +10128,9 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.7.4 READY ===', 'success');
-                addDiagnostic('✅ FINAL FIX: Charts restore automatically!');
-                addDiagnostic('✅ No manual dropdown changes needed!');
-                addDiagnostic('✅ All settings restore perfectly!');
+                addDiagnostic('=== GEO MAPPER v2.8.12 READY ===', 'success');
+                addDiagnostic('✅ Charts work automatically!');
+                addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
             }, 500);
             
