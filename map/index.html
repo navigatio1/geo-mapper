@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.8.12 - POPUP SCROLL FIX: Enable scrolling for overflow text -->
+<!-- Geo Mapper v2.8.35 - UX: Arrows now STAY VISIBLE during edit mode and update in real-time. Aggressive cleanup (100px, both layers) prevents orphans. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.8.12</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
-    <script src="https://unpkg.com/leaflet-geometryutil@0.10.3/src/leaflet.geometryutil.js"></script>
+    <title>Geo Mapper v2.8.35</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1052,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.8.12</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.8.35</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1953,6 +1951,44 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         <button class="btn btn-secondary" onclick="cancelDrawing()" style="background: #e74c3c;">❌ Cancel</button>
                     </div>
                 </div>
+                
+                <!-- POST-DRAWING CONFIGURATION PANEL (shows after double-click, before save) -->
+                <div id="postDrawConfig" style="display: none; margin-top: 1rem; padding: 1rem; background: #fff3cd; border: 2px solid #ffc107; border-radius: 4px;">
+                    <div style="font-weight: 600; margin-bottom: 0.75rem; color: #856404;">⚙️ Configure Your Line</div>
+                    
+                    <div class="form-group">
+                        <label for="postDrawColor">Color</label>
+                        <input type="color" id="postDrawColor" value="#3498db" onchange="updatePostDrawPreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postDrawWidth">Width</label>
+                        <input type="number" id="postDrawWidth" value="3" min="1" max="10" onchange="updatePostDrawPreview()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postDrawLineStyle">Line Style</label>
+                        <select id="postDrawLineStyle" onchange="updatePostDrawPreview()">
+                            <option value="solid">Solid ━━━</option>
+                            <option value="dashed">Dashed ╌╌╌</option>
+                            <option value="dotted">Dotted ┈┈┈</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postDrawArrow">Add Arrow(s)</label>
+                        <select id="postDrawArrow" onchange="updatePostDrawPreview()">
+                            <option value="none">No Arrow</option>
+                            <option value="end">End ━━▶</option>
+                            <option value="start">Start ◀━━</option>
+                            <option value="both">Both ◀━━▶</option>
+                        </select>
+                    </div>
+                    
+                    <div class="info-text" style="margin-top: 0.5rem; font-size: 0.8rem;">
+                        ℹ️ Preview updates as you change settings. Click Save when ready!
+                    </div>
+                </div>
 
                 <div id="drawingStyleSettings">
                     <div class="section-title" style="font-size: 0.9rem; margin-top: 1rem;">Drawing Style</div>
@@ -1977,18 +2013,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <option value="dotted">Dotted ┈┈┈</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="drawArrowStyle">Arrows (for line drawing only)</label>
-                        <select id="drawArrowStyle">
-                            <option value="none">No Arrow</option>
-                            <option value="end">End ━━▶</option>
-                            <option value="start">Start ◀━━</option>
-                            <option value="both">Both ◀━━▶</option>
-                        </select>
-                        <div class="info-text">
-                            ℹ️ Add arrows to any line style
-                        </div>
-                    </div>
+                    
                     <div class="form-group">
                         <label for="drawLineOpacity">Line Visibility</label>
                         <input type="range" id="drawLineOpacity" value="100" min="10" max="100" oninput="document.getElementById('lineOpacityValue').textContent = this.value">
@@ -2164,7 +2189,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         // Paste your GitHub Personal Access Token here (with 'gist' permission)
         // Get token at: https://github.com/settings/tokens
         // Required permission: 'gist' only
-        const GITHUB_TOKEN = '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'; // Paste your token between the quotes: 'ghp_yourtoken...'
+        const GITHUB_TOKEN = ''; // Paste your token between the quotes: 'ghp_yourtoken...'
         const GIST_DESCRIPTION_PREFIX = 'Geo Mapper Configuration';
         const USE_PRIVATE_GISTS = true; // true = only people with link can access, false = public
         
@@ -5356,7 +5381,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const fillOpacity = parseInt(document.getElementById('drawOpacity').value) / 100;
             const lineOpacity = parseInt(document.getElementById('drawLineOpacity').value) / 100;
             const lineStyle = document.getElementById('drawLineStyle').value;
-            const arrowStyle = document.getElementById('drawArrowStyle').value;
+            // Arrow style removed - arrows added post-draw via buttons
             
             // Convert line style to dashArray
             let dashArray;
@@ -5394,77 +5419,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     
                     tempDrawingLayer = L.polyline(drawingPoints, options).addTo(map);
                     
-                    // Add arrow decorators to temporary line
-                    if (arrowStyle && arrowStyle !== 'none' && drawingPoints.length > 1) {
-                        try {
-                            if (typeof L.Symbol !== 'undefined' && typeof L.Symbol.arrowHead !== 'undefined') {
-                                // Calculate arrow size based on line width
-                                const arrowSize = Math.max(12, width * 2.5);
-                                const arrowAnchorX = arrowSize * (2/12);
-                                const arrowAnchorY = arrowSize / 2;
-                                
-                                const arrowPatterns = [];
-                                
-                                // End arrow (points forward) - WORKING PERFECTLY
-                                if (arrowStyle === 'end' || arrowStyle === 'both') {
-                                    arrowPatterns.push({
-                                        offset: '100%',
-                                        repeat: 0,
-                                        symbol: L.Symbol.marker({
-                                            rotate: true,
-                                            markerOptions: {
-                                                icon: L.divIcon({
-                                                    className: 'arrow-icon',
-                                                    html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                                    iconSize: [arrowSize, arrowSize],
-                                                    iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                                })
-                                            }
-                                        })
-                                    });
-                                }
-                                
-                                // NEW: Start arrow using reversed polyline
-                                if (arrowStyle === 'start' || arrowStyle === 'both') {
-                                    const reversedPoints = [...drawingPoints].reverse();
-                                    const reversedLine = L.polyline(reversedPoints, {
-                                        weight: 0,
-                                        opacity: 0
-                                    }).addTo(map);
-                                    
-                                    const startDecorator = L.polylineDecorator(reversedLine, {
-                                        patterns: [{
-                                            offset: '100%',
-                                            repeat: 0,
-                                            symbol: L.Symbol.marker({
-                                                rotate: true,
-                                                markerOptions: {
-                                                    icon: L.divIcon({
-                                                        className: 'arrow-icon',
-                                                        html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                                        iconSize: [arrowSize, arrowSize],
-                                                        iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                                    })
-                                                }
-                                            })
-                                        }]
-                                    }).addTo(map);
-                                    
-                                    tempDrawingLayer.reversedLine = reversedLine;
-                                    tempDrawingLayer.startDecorator = startDecorator;
-                                }
-                                
-                                // Add end arrow decorator if patterns exist
-                                if (arrowPatterns.length > 0) {
-                                    tempDrawingLayer.decorator = L.polylineDecorator(tempDrawingLayer, {
-                                        patterns: arrowPatterns
-                                    }).addTo(map);
-                                }
-                            }
-                        } catch (error) {
-                            console.error('Error adding temp arrows:', error);
-                        }
-                    }
+                    // Removed arrow decorator code - arrows will be added AFTER drawing completes
                 } else if (drawingMode === 'polygon' && drawingPoints.length > 1) {
                     const options = {
                         color: color,
@@ -5502,8 +5457,164 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Show save/cancel buttons
             updateDrawingButtons(false);
             
+            // Show post-drawing configuration panel (NEW!)
+            if (drawingMode === 'line' || drawingMode === 'freehand') {
+                document.getElementById('postDrawConfig').style.display = 'block';
+                // Initialize config values from current drawing style
+                document.getElementById('postDrawColor').value = document.getElementById('drawColor').value;
+                document.getElementById('postDrawWidth').value = document.getElementById('drawWidth').value;
+                document.getElementById('postDrawLineStyle').value = document.getElementById('drawLineStyle').value;
+                document.getElementById('postDrawArrow').value = 'none'; // Default to no arrow
+            }
+            
             // Final preview with current style
             updateTempDrawing();
+        }
+        
+        // Update preview when post-draw config changes
+        function updatePostDrawPreview() {
+            if (!tempDrawingLayer || !drawingPoints.length) return;
+            
+            // Remove current preview (including any arrow helpers)
+            if (tempDrawingLayer._startArrowLine) {
+                map.removeLayer(tempDrawingLayer._startArrowLine);
+            }
+            // CRITICAL: Remove old arrow markers before removing the layer
+            if (tempDrawingLayer._endArrow) {
+                map.removeLayer(tempDrawingLayer._endArrow);
+                tempDrawingLayer._endArrow = null;
+            }
+            if (tempDrawingLayer._startArrow) {
+                map.removeLayer(tempDrawingLayer._startArrow);
+                tempDrawingLayer._startArrow = null;
+            }
+            map.removeLayer(tempDrawingLayer);
+            
+            // Get config values
+            const color = document.getElementById('postDrawColor').value;
+            const width = parseInt(document.getElementById('postDrawWidth').value);
+            const lineStyle = document.getElementById('postDrawLineStyle').value;
+            const arrowStyle = document.getElementById('postDrawArrow').value;
+            
+            // Convert line style to dashArray
+            let dashArray;
+            switch(lineStyle) {
+                case 'dashed': dashArray = '10, 10'; break;
+                case 'dotted': dashArray = '2, 8'; break;
+                default: dashArray = null;
+            }
+            
+            // Create new preview with updated style
+            const options = {
+                color: color,
+                weight: width,
+                opacity: 0.7
+            };
+            if (dashArray) options.dashArray = dashArray;
+            
+            tempDrawingLayer = L.polyline(drawingPoints, options).addTo(map);
+            
+            // Add arrow PREVIEW (pixel-based for accuracy)
+            if (arrowStyle && arrowStyle !== 'none') {
+                const arrowSize = Math.max(24, width * 6);
+                
+                // Helper function to calculate VISUAL angle based on screen pixels
+                function calculatePixelAngle(from, to) {
+                    const fromPixel = map.latLngToLayerPoint(from);
+                    const toPixel = map.latLngToLayerPoint(to);
+                    const dx = toPixel.x - fromPixel.x;
+                    const dy = toPixel.y - fromPixel.y;
+                    const angleRad = Math.atan2(dy, dx);
+                    return angleRad * 180 / Math.PI;
+                }
+                
+                // Add END arrow preview
+                if (arrowStyle === 'end' || arrowStyle === 'both') {
+                    const lastIdx = drawingPoints.length - 1;
+                    const endPoint = drawingPoints[lastIdx];
+                    
+                    // Find a reference point at least 30 pixels away
+                    const endPixel = map.latLngToLayerPoint(endPoint);
+                    let prevPoint = drawingPoints[Math.max(0, lastIdx - 1)];
+                    
+                    for (let i = lastIdx - 1; i >= 0; i--) {
+                        const testPixel = map.latLngToLayerPoint(drawingPoints[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(endPixel.x - testPixel.x, 2) + 
+                            Math.pow(endPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            prevPoint = drawingPoints[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(prevPoint, endPoint);
+                    
+                    const endArrow = L.marker(endPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="
+                                transform: rotate(${angle}deg);
+                                font-size: ${arrowSize}px;
+                                color: ${color};
+                                line-height: 1;
+                                opacity: 0.7;
+                                text-shadow: 0 0 2px white;
+                            ">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
+                    }).addTo(map);
+                    
+                    tempDrawingLayer._endArrow = endArrow;
+                }
+                
+                // Add START arrow preview
+                if (arrowStyle === 'start' || arrowStyle === 'both') {
+                    const startPoint = drawingPoints[0];
+                    
+                    // Find a reference point at least 30 pixels away
+                    const startPixel = map.latLngToLayerPoint(startPoint);
+                    let nextPoint = drawingPoints[Math.min(1, drawingPoints.length - 1)];
+                    
+                    for (let i = 1; i < drawingPoints.length; i++) {
+                        const testPixel = map.latLngToLayerPoint(drawingPoints[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(startPixel.x - testPixel.x, 2) + 
+                            Math.pow(startPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            nextPoint = drawingPoints[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(startPoint, nextPoint) + 180;
+                    
+                    const startArrow = L.marker(startPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="
+                                transform: rotate(${angle}deg);
+                                font-size: ${arrowSize}px;
+                                color: ${color};
+                                line-height: 1;
+                                opacity: 0.7;
+                                text-shadow: 0 0 2px white;
+                            ">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
+                    }).addTo(map);
+                    
+                    tempDrawingLayer._startArrow = startArrow;
+                }
+            }
+            
+            console.log('Post-draw preview updated:', { color, width, lineStyle, arrowStyle });
         }
 
         function saveDrawing() {
@@ -5517,12 +5628,26 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 tempDrawingLayer = null;
             }
             
-            const color = document.getElementById('drawColor').value;
-            const width = parseInt(document.getElementById('drawWidth').value);
+            // Check if post-draw config panel is being used
+            const usePostConfig = document.getElementById('postDrawConfig').style.display !== 'none';
+            
+            // Get style values from appropriate source
+            let color, width, lineStyle, arrowStyle;
+            if (usePostConfig) {
+                color = document.getElementById('postDrawColor').value;
+                width = parseInt(document.getElementById('postDrawWidth').value);
+                lineStyle = document.getElementById('postDrawLineStyle').value;
+                arrowStyle = document.getElementById('postDrawArrow').value;
+            } else {
+                color = document.getElementById('drawColor').value;
+                width = parseInt(document.getElementById('drawWidth').value);
+                lineStyle = document.getElementById('drawLineStyle').value;
+                arrowStyle = document.getElementById('drawArrowStyle')?.value || 'none';
+            }
+            
             const fillColor = document.getElementById('drawFillColor').value;
             const fillOpacity = parseInt(document.getElementById('drawOpacity').value) / 100;
             const lineOpacity = parseInt(document.getElementById('drawLineOpacity').value) / 100;
-            const lineStyle = document.getElementById('drawLineStyle').value;
             
             // Convert line style to dashArray
             let dashArray;
@@ -5565,95 +5690,119 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 };
                 if (dashArray) lineOptions.dashArray = dashArray;
                 
+                // Draw the line
                 feature = L.polyline(drawingPoints, lineOptions).addTo(drawnFeaturesLayer);
                 
-                // Add arrow decorators based on arrow style selector
-                const arrowStyle = document.getElementById('drawArrowStyle').value;
-                console.log('Arrow style selected:', arrowStyle);
-                
+                // Add arrows using PIXEL-BASED angle calculation (accurate for all projections!)
                 if (arrowStyle && arrowStyle !== 'none') {
-                    try {
-                        // Check if L.Symbol is available
-                        if (typeof L.Symbol === 'undefined' || typeof L.Symbol.arrowHead === 'undefined') {
-                            console.error('L.Symbol.arrowHead not available - Leaflet Polyline Decorator may not be loaded');
-                            alert('Arrow feature requires Leaflet Polyline Decorator library. Please reload the page.');
-                            return;
+                    console.log('Adding arrows with pixel-based angle:', arrowStyle);
+                    
+                    // Calculate arrow size based on line width
+                    const arrowSize = Math.max(24, width * 6);
+                    
+                    // Helper function to calculate VISUAL angle based on screen pixels
+                    function calculatePixelAngle(from, to) {
+                        // Convert lat/lng to pixel coordinates
+                        const fromPixel = map.latLngToLayerPoint(from);
+                        const toPixel = map.latLngToLayerPoint(to);
+                        
+                        // Calculate angle using screen coordinates
+                        const dx = toPixel.x - fromPixel.x;
+                        const dy = toPixel.y - fromPixel.y;
+                        
+                        // atan2 returns angle in radians, convert to degrees
+                        // Note: y-axis is inverted in screen coordinates (down is positive)
+                        const angleRad = Math.atan2(dy, dx);
+                        const angleDeg = angleRad * 180 / Math.PI;
+                        
+                        return angleDeg; // No need to normalize - CSS handles any angle
+                    }
+                    
+                    // Add END arrow
+                    if (arrowStyle === 'end' || arrowStyle === 'both') {
+                        const lastIdx = drawingPoints.length - 1;
+                        const endPoint = drawingPoints[lastIdx];
+                        
+                        // Find a reference point at least 30 pixels away (important for freehand!)
+                        const endPixel = map.latLngToLayerPoint(endPoint);
+                        let prevPoint = drawingPoints[Math.max(0, lastIdx - 1)];
+                        
+                        // Walk backwards to find a point at least 30 pixels away
+                        for (let i = lastIdx - 1; i >= 0; i--) {
+                            const testPixel = map.latLngToLayerPoint(drawingPoints[i]);
+                            const distance = Math.sqrt(
+                                Math.pow(endPixel.x - testPixel.x, 2) + 
+                                Math.pow(endPixel.y - testPixel.y, 2)
+                            );
+                            if (distance >= 30) {
+                                prevPoint = drawingPoints[i];
+                                break;
+                            }
                         }
                         
-                        // Calculate arrow size based on line width (minimum 12px, scales with width)
-                        const arrowSize = Math.max(12, width * 2.5);
-                        // Anchor at tail of arrow (left side of triangle at x=2 in viewBox 0-12)
-                        const arrowAnchorX = arrowSize * (2/12); // Scale the x=2 position
-                        const arrowAnchorY = arrowSize / 2;      // Center vertically
+                        const angle = calculatePixelAngle(prevPoint, endPoint);
                         
-                        const arrowPatterns = [];
+                        const endArrow = L.marker(endPoint, {
+                            icon: L.divIcon({
+                                className: '', // Remove default styling
+                                html: `<div style="
+                                    transform: rotate(${angle}deg);
+                                    font-size: ${arrowSize}px;
+                                    color: ${color};
+                                    line-height: 1;
+                                    text-shadow: 0 0 2px white;
+                                ">▶</div>`,
+                                iconSize: [arrowSize, arrowSize],
+                                iconAnchor: [arrowSize/2, arrowSize/2]
+                            }),
+                            interactive: false
+                        }).addTo(drawnFeaturesLayer);
                         
-                        // End arrow (points forward along line direction) - WORKING PERFECTLY
-                        if (arrowStyle === 'end' || arrowStyle === 'both') {
-                            arrowPatterns.push({
-                                offset: '100%',
-                                repeat: 0,
-                                symbol: L.Symbol.marker({
-                                    rotate: true,
-                                    markerOptions: {
-                                        icon: L.divIcon({
-                                            className: 'arrow-icon',
-                                            html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                            iconSize: [arrowSize, arrowSize],
-                                            iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                        })
-                                    }
-                                })
-                            });
+                        feature._endArrow = endArrow;
+                        console.log('End arrow added at pixel angle:', angle);
+                    }
+                    
+                    // Add START arrow  
+                    if (arrowStyle === 'start' || arrowStyle === 'both') {
+                        const startPoint = drawingPoints[0];
+                        
+                        // Find a reference point at least 30 pixels away (important for freehand!)
+                        const startPixel = map.latLngToLayerPoint(startPoint);
+                        let nextPoint = drawingPoints[Math.min(1, drawingPoints.length - 1)];
+                        
+                        // Walk forwards to find a point at least 30 pixels away
+                        for (let i = 1; i < drawingPoints.length; i++) {
+                            const testPixel = map.latLngToLayerPoint(drawingPoints[i]);
+                            const distance = Math.sqrt(
+                                Math.pow(startPixel.x - testPixel.x, 2) + 
+                                Math.pow(startPixel.y - testPixel.y, 2)
+                            );
+                            if (distance >= 30) {
+                                nextPoint = drawingPoints[i];
+                                break;
+                            }
                         }
                         
-                        // NEW APPROACH: Start arrow using reversed polyline
-                        if (arrowStyle === 'start' || arrowStyle === 'both') {
-                            // Create invisible reversed polyline for start arrow
-                            const reversedPoints = [...drawingPoints].reverse();
-                            const reversedLine = L.polyline(reversedPoints, {
-                                weight: 0,  // Invisible
-                                opacity: 0
-                            }).addTo(drawnFeaturesLayer);
-                            
-                            // Add arrow at END of reversed line (which is START of original)
-                            const startDecorator = L.polylineDecorator(reversedLine, {
-                                patterns: [{
-                                    offset: '100%',
-                                    repeat: 0,
-                                    symbol: L.Symbol.marker({
-                                        rotate: true,
-                                        markerOptions: {
-                                            icon: L.divIcon({
-                                                className: 'arrow-icon',  // Use same class as end arrow
-                                                html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                                iconSize: [arrowSize, arrowSize],
-                                                iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                            })
-                                        }
-                                    })
-                                }]
-                            }).addTo(drawnFeaturesLayer);
-                            
-                            // Store reference for cleanup
-                            feature.reversedLine = reversedLine;
-                            feature.startDecorator = startDecorator;
-                        }
+                        const angle = calculatePixelAngle(startPoint, nextPoint) + 180; // Reverse direction
                         
-                        // Create end arrow decorator if patterns exist
-                        if (arrowPatterns.length > 0) {
-                            console.log('Creating decorator with', arrowPatterns.length, 'patterns');
-                            const decorator = L.polylineDecorator(feature, {
-                                patterns: arrowPatterns
-                            }).addTo(drawnFeaturesLayer);
-                            
-                            // Store decorator reference for removal
-                            feature.decorator = decorator;
-                            console.log('Arrow decorator added successfully');
-                        }
-                    } catch (error) {
-                        console.error('Error adding arrows:', error);
-                        alert('Error adding arrows: ' + error.message);
+                        const startArrow = L.marker(startPoint, {
+                            icon: L.divIcon({
+                                className: '',
+                                html: `<div style="
+                                    transform: rotate(${angle}deg);
+                                    font-size: ${arrowSize}px;
+                                    color: ${color};
+                                    line-height: 1;
+                                    text-shadow: 0 0 2px white;
+                                ">▶</div>`,
+                                iconSize: [arrowSize, arrowSize],
+                                iconAnchor: [arrowSize/2, arrowSize/2]
+                            }),
+                            interactive: false
+                        }).addTo(drawnFeaturesLayer);
+                        
+                        feature._startArrow = startArrow;
+                        console.log('Start arrow added at pixel angle:', angle);
                     }
                 }
                 
@@ -5714,6 +5863,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.removeEventListener('keydown', handleDrawingKeyboard);
             updateDrawingButtons(null);
             
+            // Hide post-draw config panel
+            document.getElementById('postDrawConfig').style.display = 'none';
+            
             // Re-enable double-click zoom
             map.doubleClickZoom.enable();
         }
@@ -5730,6 +5882,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 // Remove decorator if it exists
                 if (tempDrawingLayer.decorator) {
                     map.removeLayer(tempDrawingLayer.decorator);
+                }
+                // Remove preview arrows if they exist
+                if (tempDrawingLayer._endArrow) {
+                    map.removeLayer(tempDrawingLayer._endArrow);
+                }
+                if (tempDrawingLayer._startArrow) {
+                    map.removeLayer(tempDrawingLayer._startArrow);
                 }
                 map.removeLayer(tempDrawingLayer);
                 tempDrawingLayer = null;
@@ -5755,10 +5914,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             updateDrawingButtons(null);
             
+            // Hide post-draw config panel
+            document.getElementById('postDrawConfig').style.display = 'none';
+            
             // Re-enable double-click zoom
             map.doubleClickZoom.enable();
         }
 
+        // NEW: Direct marker arrows (no polyline decorator needed)
+        // Arrows are now added during saveDrawing() as regular markers
+        
         function stopDrawing() {
             // Only remove event listeners, don't delete the drawing
             map.off('click', onDrawClick);
@@ -5814,8 +5979,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const icon = feature.type === 'marker' ? '📍' : feature.type === 'line' ? '📏' : '⬟';
                 const label = feature.label ? `: "${feature.label}"` : '';
                 
-                // Add arrow style dropdown for lines
+                // Add arrow style dropdown for lines and edit buttons
                 let arrowControl = '';
+                let editButton = '';
                 if (feature.type === 'line' || feature.type === 'freehand') {
                     const currentArrowStyle = feature.arrowStyle || 'none';
                     arrowControl = `
@@ -5828,12 +5994,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <option value="both" ${currentArrowStyle === 'both' ? 'selected' : ''}>Both ⬌</option>
                         </select>
                     `;
+                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit nodes">🔧</button>`;
+                } else if (feature.type === 'polygon') {
+                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit nodes">🔧</button>`;
+                } else if (feature.type === 'marker') {
+                    editButton = `<button onclick="enterPointEditMode(${index})" style="background: #e67e22; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Move & color">📍</button>`;
                 }
                 
                 html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; margin-bottom: 0.5rem;">
                     <span style="flex: 1;">${icon} ${feature.type.charAt(0).toUpperCase() + feature.type.slice(1)} ${index + 1}${label}</span>
                     <div style="display: flex; gap: 0.25rem; align-items: center;">
                         ${arrowControl}
+                        ${editButton}
                         <button onclick="editFeatureLabel(${index})" style="background: #3498db; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit label">✏️</button>
                         <button onclick="deleteDrawnFeature(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Delete">🗑️</button>
                     </div>
@@ -5846,92 +6018,116 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const feature = drawnFeatures[index];
             if (!feature || (feature.type !== 'line' && feature.type !== 'freehand')) return;
             
-            // Remove old decorators and reversed lines if they exist
-            if (feature.layer.decorator) {
-                map.removeLayer(feature.layer.decorator);
-                feature.layer.decorator = null;
+            // Remove old arrows if they exist
+            if (feature.layer._endArrow) {
+                drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                feature.layer._endArrow = null;
             }
-            if (feature.layer.startDecorator) {
-                map.removeLayer(feature.layer.startDecorator);
-                feature.layer.startDecorator = null;
-            }
-            if (feature.layer.reversedLine) {
-                drawnFeaturesLayer.removeLayer(feature.layer.reversedLine);
-                feature.layer.reversedLine = null;
+            if (feature.layer._startArrow) {
+                drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                feature.layer._startArrow = null;
             }
             
             // Update stored arrow style
             feature.arrowStyle = newArrowStyle;
             
-            // Create new decorator if needed
+            // Create new arrows if needed
             if (newArrowStyle !== 'none') {
-                const color = feature.color;
-                const lineOpacity = feature.opacity;
+                const color = feature.color || (feature.style ? feature.style.color : '#3498db');
                 const width = feature.style ? (feature.style.width || 2) : 2;
+                const arrowSize = Math.max(24, width * 6);
                 
-                // Calculate arrow size based on line width
-                const arrowSize = Math.max(12, width * 2.5);
-                const arrowAnchorX = arrowSize * (2/12);
-                const arrowAnchorY = arrowSize / 2;
+                // Helper function to calculate VISUAL angle based on screen pixels
+                function calculatePixelAngle(from, to) {
+                    const fromPixel = map.latLngToLayerPoint(from);
+                    const toPixel = map.latLngToLayerPoint(to);
+                    const dx = toPixel.x - fromPixel.x;
+                    const dy = toPixel.y - fromPixel.y;
+                    const angleRad = Math.atan2(dy, dx);
+                    return angleRad * 180 / Math.PI;
+                }
                 
-                const arrowPatterns = [];
-                
-                // End arrow (points forward) - WORKING PERFECTLY
+                // Add END arrow
                 if (newArrowStyle === 'end' || newArrowStyle === 'both') {
-                    arrowPatterns.push({
-                        offset: '100%',
-                        repeat: 0,
-                        symbol: L.Symbol.marker({
-                            rotate: true,
-                            markerOptions: {
-                                icon: L.divIcon({
-                                    className: 'arrow-icon',
-                                    html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                    iconSize: [arrowSize, arrowSize],
-                                    iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                })
-                            }
-                        })
-                    });
+                    const lastIdx = feature.latlngs.length - 1;
+                    const endPoint = feature.latlngs[lastIdx];
+                    
+                    // Find a reference point at least 30 pixels away
+                    const endPixel = map.latLngToLayerPoint(endPoint);
+                    let prevPoint = feature.latlngs[Math.max(0, lastIdx - 1)];
+                    
+                    for (let i = lastIdx - 1; i >= 0; i--) {
+                        const testPixel = map.latLngToLayerPoint(feature.latlngs[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(endPixel.x - testPixel.x, 2) + 
+                            Math.pow(endPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            prevPoint = feature.latlngs[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(prevPoint, endPoint);
+                    
+                    const endArrow = L.marker(endPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="
+                                transform: rotate(${angle}deg);
+                                font-size: ${arrowSize}px;
+                                color: ${color};
+                                line-height: 1;
+                                text-shadow: 0 0 2px white;
+                            ">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
+                    }).addTo(drawnFeaturesLayer);
+                    
+                    feature.layer._endArrow = endArrow;
                 }
                 
-                // NEW: Start arrow using reversed polyline
+                // Add START arrow
                 if (newArrowStyle === 'start' || newArrowStyle === 'both') {
-                    const reversedPoints = [...feature.latlngs].reverse();
-                    const reversedLine = L.polyline(reversedPoints, {
-                        weight: 0,
-                        opacity: 0
+                    const startPoint = feature.latlngs[0];
+                    
+                    // Find a reference point at least 30 pixels away
+                    const startPixel = map.latLngToLayerPoint(startPoint);
+                    let nextPoint = feature.latlngs[Math.min(1, feature.latlngs.length - 1)];
+                    
+                    for (let i = 1; i < feature.latlngs.length; i++) {
+                        const testPixel = map.latLngToLayerPoint(feature.latlngs[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(startPixel.x - testPixel.x, 2) + 
+                            Math.pow(startPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            nextPoint = feature.latlngs[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(startPoint, nextPoint) + 180;
+                    
+                    const startArrow = L.marker(startPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="
+                                transform: rotate(${angle}deg);
+                                font-size: ${arrowSize}px;
+                                color: ${color};
+                                line-height: 1;
+                                text-shadow: 0 0 2px white;
+                            ">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
                     }).addTo(drawnFeaturesLayer);
                     
-                    const startDecorator = L.polylineDecorator(reversedLine, {
-                        patterns: [{
-                            offset: '100%',
-                            repeat: 0,
-                            symbol: L.Symbol.marker({
-                                rotate: true,
-                                markerOptions: {
-                                    icon: L.divIcon({
-                                        className: 'arrow-icon',
-                                        html: `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12"><path d="M 2,6 L 10,2 L 10,10 Z" fill="${color}" opacity="${lineOpacity}" stroke="none"/></svg>`,
-                                        iconSize: [arrowSize, arrowSize],
-                                        iconAnchor: [arrowAnchorX, arrowAnchorY]
-                                    })
-                                }
-                            })
-                        }]
-                    }).addTo(drawnFeaturesLayer);
-                    
-                    feature.layer.reversedLine = reversedLine;
-                    feature.layer.startDecorator = startDecorator;
-                }
-                
-                // Create and add end arrow decorator if patterns exist
-                if (arrowPatterns.length > 0) {
-                    const decorator = L.polylineDecorator(feature.layer, {
-                        patterns: arrowPatterns
-                    }).addTo(drawnFeaturesLayer);
-                    
-                    feature.layer.decorator = decorator;
+                    feature.layer._startArrow = startArrow;
                 }
             }
         }
@@ -5939,37 +6135,141 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function editFeatureLabel(index) {
             const feature = drawnFeatures[index];
             const currentLabel = feature.label || '';
-            const newLabel = prompt('Edit label for this feature:', currentLabel);
+            const currentShowOnMap = feature.showLabelOnMap !== false; // Default true
             
-            if (newLabel !== null) { // User didn't cancel
-                // Update feature
-                feature.label = newLabel.trim();
+            // Create custom dialog
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                min-width: 300px;
+            `;
+            
+            dialog.innerHTML = `
+                <h3 style="margin-top: 0;">Edit Feature Label</h3>
+                <div style="margin: 15px 0;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Label text:</label>
+                    <input type="text" id="featureLabelInput" value="${currentLabel}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                </div>
+                <div style="margin: 15px 0;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="showOnMapCheckbox" ${currentShowOnMap ? 'checked' : ''} style="margin-right: 8px;">
+                        <span>Show label on map always (uncheck for popup only)</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button id="labelCancelBtn" style="padding: 8px 16px; background: #e0e0e0; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button id="labelSaveBtn" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+                </div>
+            `;
+            
+            // Add overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(dialog);
+            
+            // Focus input
+            const input = document.getElementById('featureLabelInput');
+            input.focus();
+            input.select();
+            
+            // Handle save
+            document.getElementById('labelSaveBtn').onclick = () => {
+                const newLabel = input.value.trim();
+                const showOnMap = document.getElementById('showOnMapCheckbox').checked;
                 
-                // Update tooltip on map
+                // Update feature
+                feature.label = newLabel;
+                feature.showLabelOnMap = showOnMap;
+                
+                // Update display on map
                 if (feature.layer) {
-                    if (newLabel.trim()) {
-                        // Add or update tooltip
-                        feature.layer.bindTooltip(newLabel.trim(), {
-                            permanent: true,
-                            direction: 'center',
-                            className: 'feature-label-tooltip'
-                        });
-                    } else {
-                        // Remove tooltip if label is empty
-                        feature.layer.unbindTooltip();
+                    // Remove old tooltip/popup
+                    feature.layer.unbindTooltip();
+                    feature.layer.unbindPopup();
+                    
+                    if (newLabel) {
+                        if (showOnMap) {
+                            // Show as permanent tooltip
+                            feature.layer.bindTooltip(newLabel, {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'feature-label-tooltip'
+                            });
+                        } else {
+                            // Show only in popup
+                            feature.layer.bindPopup(newLabel);
+                        }
                     }
                 }
                 
                 // Update list
                 updateDrawnFeaturesList();
-            }
+                
+                // Close dialog
+                document.body.removeChild(overlay);
+                document.body.removeChild(dialog);
+            };
+            
+            // Handle cancel
+            const cancelDialog = () => {
+                document.body.removeChild(overlay);
+                document.body.removeChild(dialog);
+            };
+            
+            document.getElementById('labelCancelBtn').onclick = cancelDialog;
+            overlay.onclick = cancelDialog;
+            
+            // Handle Enter key
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('labelSaveBtn').click();
+                }
+            });
         }
 
         function deleteDrawnFeature(index) {
             if (confirm('Delete this feature?')) {
                 const feature = drawnFeatures[index];
                 
-                // Remove all arrow decorators and reversed lines
+                // Remove arrow markers (new system)
+                if (feature.layer._endArrow) {
+                    try {
+                        drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                    } catch (e) {
+                        try {
+                            map.removeLayer(feature.layer._endArrow);
+                        } catch (e2) {}
+                    }
+                }
+                if (feature.layer._startArrow) {
+                    try {
+                        drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                    } catch (e) {
+                        try {
+                            map.removeLayer(feature.layer._startArrow);
+                        } catch (e2) {}
+                    }
+                }
+                
+                // Remove arrow decorators (old system)
                 if (feature.layer.decorator) {
                     map.removeLayer(feature.layer.decorator);
                 }
@@ -5998,10 +6298,37 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
             
             if (confirm(`⚠️ Delete all ${drawnFeatures.length} saved drawing(s)?\n\nThis cannot be undone.`)) {
-                // Remove all decorators and reversed lines first
+                // CRITICAL: Force remove ALL arrow markers first
+                forceRemoveAllArrows();
+                
+                // Remove all decorators, arrows, and reversed lines first
                 drawnFeatures.forEach(feature => {
                     if (feature.layer) {
-                        // Remove main decorator
+                        // Remove arrow markers (new system)
+                        if (feature.layer._endArrow) {
+                            try {
+                                drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                            } catch (e) {
+                                try {
+                                    map.removeLayer(feature.layer._endArrow);
+                                } catch (e2) {
+                                    console.error('Error removing end arrow:', e2);
+                                }
+                            }
+                        }
+                        if (feature.layer._startArrow) {
+                            try {
+                                drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                            } catch (e) {
+                                try {
+                                    map.removeLayer(feature.layer._startArrow);
+                                } catch (e2) {
+                                    console.error('Error removing start arrow:', e2);
+                                }
+                            }
+                        }
+                        
+                        // Remove main decorator (old system)
                         if (feature.layer.decorator) {
                             try {
                                 map.removeLayer(feature.layer.decorator);
@@ -6009,7 +6336,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                                 console.error('Error removing decorator:', e);
                             }
                         }
-                        // Remove start decorator
+                        // Remove start decorator (old system)
                         if (feature.layer.startDecorator) {
                             try {
                                 map.removeLayer(feature.layer.startDecorator);
@@ -6042,6 +6369,682 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 alert('All saved drawings cleared');
             }
         }
+        
+        // ===== LINE EDITING SYSTEM =====
+        let editingFeatureIndex = null;
+        let editingNodes = [];
+        let editingMidpoints = [];
+        
+        function enterLineEditMode(index) {
+            const feature = drawnFeatures[index];
+            if (!feature || (feature.type !== 'line' && feature.type !== 'freehand' && feature.type !== 'polygon')) {
+                return;
+            }
+            
+            // Exit any existing edit mode
+            if (editingFeatureIndex !== null) {
+                exitLineEditMode();
+            }
+            
+            editingFeatureIndex = index;
+            
+            // Arrows stay visible during editing - they'll update in real-time as nodes are dragged
+            // The aggressive location-based cleanup in updateFeatureArrows() prevents orphans
+            
+            // Highlight the line being edited
+            feature.layer.setStyle({ weight: (feature.style.width || 2) + 2, opacity: 1 });
+            
+            // Create edit nodes
+            createEditNodes(feature);
+            
+            // Show edit instructions
+            showEditInstructions();
+        }
+        
+        function createEditNodes(feature) {
+            const latlngs = feature.latlngs;
+            editingNodes = [];
+            editingMidpoints = [];
+            
+            // Create grey dots for existing vertices
+            latlngs.forEach((latlng, i) => {
+                const node = L.circleMarker(latlng, {
+                    radius: 6,
+                    color: '#333',
+                    fillColor: '#666',
+                    fillOpacity: 0.8,
+                    weight: 2
+                }).addTo(map);
+                
+                node._nodeIndex = i;
+                node._isEditNode = true;
+                
+                // Make draggable
+                node.on('mousedown', onNodeDragStart);
+                
+                // Right-click to delete
+                node.on('contextmenu', (e) => {
+                    L.DomEvent.preventDefault(e);
+                    if (latlngs.length > 2) { // Keep minimum 2 nodes
+                        deleteNode(i);
+                    } else {
+                        alert('Line must have at least 2 points');
+                    }
+                });
+                
+                // Hover effect
+                node.on('mouseover', function() {
+                    this.setStyle({ radius: 8, fillColor: '#999' });
+                });
+                node.on('mouseout', function() {
+                    this.setStyle({ radius: 6, fillColor: '#666' });
+                });
+                
+                editingNodes.push(node);
+            });
+            
+            // Create white ghost dots for midpoints
+            for (let i = 0; i < latlngs.length - 1; i++) {
+                const midLat = (latlngs[i].lat + latlngs[i + 1].lat) / 2;
+                const midLng = (latlngs[i].lng + latlngs[i + 1].lng) / 2;
+                const midpoint = L.latLng(midLat, midLng);
+                
+                const ghost = L.circleMarker(midpoint, {
+                    radius: 5,
+                    color: '#fff',
+                    fillColor: '#fff',
+                    fillOpacity: 0.6,
+                    weight: 2,
+                    opacity: 0.6
+                }).addTo(map);
+                
+                ghost._afterIndex = i;
+                ghost._isGhostNode = true;
+                
+                // Click to add node
+                ghost.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    addNodeAfter(i, midpoint);
+                });
+                
+                // Hover effect
+                ghost.on('mouseover', function() {
+                    this.setStyle({ radius: 7, fillOpacity: 1, opacity: 1 });
+                });
+                ghost.on('mouseout', function() {
+                    this.setStyle({ radius: 5, fillOpacity: 0.6, opacity: 0.6 });
+                });
+                
+                editingMidpoints.push(ghost);
+            }
+            
+            // For polygons, add closing edge midpoint (between last and first node)
+            if (feature.type === 'polygon' && latlngs.length > 2) {
+                const lastIdx = latlngs.length - 1;
+                const midLat = (latlngs[lastIdx].lat + latlngs[0].lat) / 2;
+                const midLng = (latlngs[lastIdx].lng + latlngs[0].lng) / 2;
+                const midpoint = L.latLng(midLat, midLng);
+                
+                const ghost = L.circleMarker(midpoint, {
+                    radius: 5,
+                    color: '#fff',
+                    fillColor: '#fff',
+                    fillOpacity: 0.6,
+                    weight: 2,
+                    opacity: 0.6
+                }).addTo(map);
+                
+                ghost._afterIndex = lastIdx;
+                ghost._isGhostNode = true;
+                
+                ghost.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    addNodeAfter(lastIdx, midpoint);
+                });
+                
+                ghost.on('mouseover', function() {
+                    this.setStyle({ radius: 7, fillOpacity: 1, opacity: 1 });
+                });
+                ghost.on('mouseout', function() {
+                    this.setStyle({ radius: 5, fillOpacity: 0.6, opacity: 0.6 });
+                });
+                
+                editingMidpoints.push(ghost);
+            }
+        }
+        
+        function onNodeDragStart(e) {
+            const node = e.target;
+            const nodeIndex = node._nodeIndex;
+            
+            map.dragging.disable();
+            
+            const onDrag = (e) => {
+                const latlng = e.latlng;
+                node.setLatLng(latlng);
+                updateLinePosition(nodeIndex, latlng);
+            };
+            
+            const onDragEnd = () => {
+                map.off('mousemove', onDrag);
+                map.off('mouseup', onDragEnd);
+                map.dragging.enable();
+                
+                // Clear any pending debounced updates
+                if (arrowUpdateTimeout) {
+                    clearTimeout(arrowUpdateTimeout);
+                    arrowUpdateTimeout = null;
+                }
+                
+                // Immediately update arrows when drag ends
+                const feature = drawnFeatures[editingFeatureIndex];
+                if (feature) {
+                    updateFeatureArrows(feature);
+                }
+            };
+            
+            map.on('mousemove', onDrag);
+            map.on('mouseup', onDragEnd);
+        }
+        
+        let arrowUpdateTimeout = null;
+        
+        function updateLinePosition(nodeIndex, newLatLng) {
+            const feature = drawnFeatures[editingFeatureIndex];
+            feature.latlngs[nodeIndex] = newLatLng;
+            
+            // Update the polyline immediately
+            feature.layer.setLatLngs(feature.latlngs);
+            
+            // Debounce arrow updates to prevent rapid recreation during drag
+            if (arrowUpdateTimeout) {
+                clearTimeout(arrowUpdateTimeout);
+            }
+            arrowUpdateTimeout = setTimeout(() => {
+                updateFeatureArrows(feature);
+                arrowUpdateTimeout = null;
+            }, 50); // Update arrows 50ms after last movement
+            
+            // Update midpoint positions immediately
+            updateMidpoints(feature);
+        }
+        
+        function updateMidpoints(feature) {
+            const latlngs = feature.latlngs;
+            
+            editingMidpoints.forEach((ghost, i) => {
+                if (i < latlngs.length - 1) {
+                    const midLat = (latlngs[i].lat + latlngs[i + 1].lat) / 2;
+                    const midLng = (latlngs[i].lng + latlngs[i + 1].lng) / 2;
+                    ghost.setLatLng(L.latLng(midLat, midLng));
+                    ghost._afterIndex = i;
+                }
+            });
+        }
+        
+        function addNodeAfter(afterIndex, latlng) {
+            const feature = drawnFeatures[editingFeatureIndex];
+            feature.latlngs.splice(afterIndex + 1, 0, latlng);
+            
+            // Recreate all nodes
+            clearEditNodes();
+            createEditNodes(feature);
+            
+            // Update the line
+            feature.layer.setLatLngs(feature.latlngs);
+            updateFeatureArrows(feature);
+        }
+        
+        function deleteNode(nodeIndex) {
+            const feature = drawnFeatures[editingFeatureIndex];
+            feature.latlngs.splice(nodeIndex, 1);
+            
+            // Recreate all nodes
+            clearEditNodes();
+            createEditNodes(feature);
+            
+            // Update the line
+            feature.layer.setLatLngs(feature.latlngs);
+            updateFeatureArrows(feature);
+        }
+        
+        // Global arrow tracking for cleanup
+        let allArrowMarkers = [];
+        
+        function forceRemoveAllArrows() {
+            // Nuclear option: remove ALL arrow markers from everywhere
+            allArrowMarkers.forEach(arrow => {
+                try {
+                    drawnFeaturesLayer.removeLayer(arrow);
+                } catch (e) {
+                    try {
+                        map.removeLayer(arrow);
+                    } catch (e2) {
+                        // Arrow already removed, ignore
+                    }
+                }
+            });
+            allArrowMarkers = [];
+        }
+        
+        function updateFeatureArrows(feature) {
+            // CRITICAL: Remove old arrows using multiple methods
+            if (feature.layer._endArrow) {
+                try {
+                    drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                } catch (e) {
+                    try {
+                        map.removeLayer(feature.layer._endArrow);
+                    } catch (e2) {}
+                }
+                // Remove from tracking array
+                const idx = allArrowMarkers.indexOf(feature.layer._endArrow);
+                if (idx > -1) allArrowMarkers.splice(idx, 1);
+                feature.layer._endArrow = null;
+            }
+            if (feature.layer._startArrow) {
+                try {
+                    drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                } catch (e) {
+                    try {
+                        map.removeLayer(feature.layer._startArrow);
+                    } catch (e2) {}
+                }
+                // Remove from tracking array
+                const idx = allArrowMarkers.indexOf(feature.layer._startArrow);
+                if (idx > -1) allArrowMarkers.splice(idx, 1);
+                feature.layer._startArrow = null;
+            }
+            
+            // Helper function: Remove any arrow markers near a specific location
+            function removeArrowsNearLocation(latlng, radiusInPixels = 100) {
+                const targetPixel = map.latLngToLayerPoint(latlng);
+                const layersToRemove = [];
+                
+                // Check drawnFeaturesLayer
+                drawnFeaturesLayer.eachLayer(layer => {
+                    if (layer instanceof L.Marker && layer !== feature.layer._endArrow && layer !== feature.layer._startArrow) {
+                        const icon = layer.options.icon;
+                        if (icon && icon.options && icon.options.html) {
+                            const html = icon.options.html;
+                            // Check if this looks like an arrow marker
+                            if (html.includes('rotate') && html.includes('▶')) {
+                                const layerPixel = map.latLngToLayerPoint(layer.getLatLng());
+                                const distance = Math.sqrt(
+                                    Math.pow(targetPixel.x - layerPixel.x, 2) +
+                                    Math.pow(targetPixel.y - layerPixel.y, 2)
+                                );
+                                if (distance < radiusInPixels) {
+                                    layersToRemove.push({layer, source: 'drawnFeaturesLayer'});
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Also check main map layer
+                map.eachLayer(layer => {
+                    if (layer instanceof L.Marker && layer !== map && layer !== drawnFeaturesLayer) {
+                        const icon = layer.options.icon;
+                        if (icon && icon.options && icon.options.html) {
+                            const html = icon.options.html;
+                            if (html.includes('rotate') && html.includes('▶')) {
+                                const layerPixel = map.latLngToLayerPoint(layer.getLatLng());
+                                const distance = Math.sqrt(
+                                    Math.pow(targetPixel.x - layerPixel.x, 2) +
+                                    Math.pow(targetPixel.y - layerPixel.y, 2)
+                                );
+                                if (distance < radiusInPixels) {
+                                    layersToRemove.push({layer, source: 'map'});
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Remove found layers
+                layersToRemove.forEach(({layer, source}) => {
+                    try {
+                        if (source === 'drawnFeaturesLayer') {
+                            drawnFeaturesLayer.removeLayer(layer);
+                        } else {
+                            map.removeLayer(layer);
+                        }
+                        const idx = allArrowMarkers.indexOf(layer);
+                        if (idx > -1) allArrowMarkers.splice(idx, 1);
+                    } catch (e) {}
+                });
+                
+                return layersToRemove.length;
+            }
+            
+            // Recreate arrows with current style
+            if (feature.arrowStyle && feature.arrowStyle !== 'none') {
+                const color = feature.color || (feature.style ? feature.style.color : '#3498db');
+                const width = feature.style ? (feature.style.width || 2) : 2;
+                const arrowSize = Math.max(24, width * 6);
+                
+                function calculatePixelAngle(from, to) {
+                    const fromPixel = map.latLngToLayerPoint(from);
+                    const toPixel = map.latLngToLayerPoint(to);
+                    const dx = toPixel.x - fromPixel.x;
+                    const dy = toPixel.y - fromPixel.y;
+                    return Math.atan2(dy, dx) * 180 / Math.PI;
+                }
+                
+                // End arrow
+                if (feature.arrowStyle === 'end' || feature.arrowStyle === 'both') {
+                    const lastIdx = feature.latlngs.length - 1;
+                    const endPoint = feature.latlngs[lastIdx];
+                    
+                    // CLEAN UP: Remove any existing arrows at this location before creating new one
+                    removeArrowsNearLocation(endPoint);
+                    
+                    const endPixel = map.latLngToLayerPoint(endPoint);
+                    let prevPoint = feature.latlngs[Math.max(0, lastIdx - 1)];
+                    
+                    for (let i = lastIdx - 1; i >= 0; i--) {
+                        const testPixel = map.latLngToLayerPoint(feature.latlngs[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(endPixel.x - testPixel.x, 2) + 
+                            Math.pow(endPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            prevPoint = feature.latlngs[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(prevPoint, endPoint);
+                    
+                    const endArrow = L.marker(endPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="transform: rotate(${angle}deg); font-size: ${arrowSize}px; color: ${color}; line-height: 1; text-shadow: 0 0 2px white;">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
+                    }).addTo(drawnFeaturesLayer);
+                    
+                    feature.layer._endArrow = endArrow;
+                    allArrowMarkers.push(endArrow); // Track for cleanup
+                }
+                
+                // Start arrow
+                if (feature.arrowStyle === 'start' || feature.arrowStyle === 'both') {
+                    const startPoint = feature.latlngs[0];
+                    
+                    // CLEAN UP: Remove any existing arrows at this location before creating new one
+                    removeArrowsNearLocation(startPoint);
+                    
+                    const startPixel = map.latLngToLayerPoint(startPoint);
+                    let nextPoint = feature.latlngs[Math.min(1, feature.latlngs.length - 1)];
+                    
+                    for (let i = 1; i < feature.latlngs.length; i++) {
+                        const testPixel = map.latLngToLayerPoint(feature.latlngs[i]);
+                        const distance = Math.sqrt(
+                            Math.pow(startPixel.x - testPixel.x, 2) + 
+                            Math.pow(startPixel.y - testPixel.y, 2)
+                        );
+                        if (distance >= 30) {
+                            nextPoint = feature.latlngs[i];
+                            break;
+                        }
+                    }
+                    
+                    const angle = calculatePixelAngle(startPoint, nextPoint) + 180;
+                    
+                    const startArrow = L.marker(startPoint, {
+                        icon: L.divIcon({
+                            className: '',
+                            html: `<div style="transform: rotate(${angle}deg); font-size: ${arrowSize}px; color: ${color}; line-height: 1; text-shadow: 0 0 2px white;">▶</div>`,
+                            iconSize: [arrowSize, arrowSize],
+                            iconAnchor: [arrowSize/2, arrowSize/2]
+                        }),
+                        interactive: false
+                    }).addTo(drawnFeaturesLayer);
+                    
+                    feature.layer._startArrow = startArrow;
+                    allArrowMarkers.push(startArrow); // Track for cleanup
+                }
+            }
+        }
+        
+        function clearEditNodes() {
+            editingNodes.forEach(node => map.removeLayer(node));
+            editingMidpoints.forEach(ghost => map.removeLayer(ghost));
+            editingNodes = [];
+            editingMidpoints = [];
+        }
+        
+        function exitLineEditMode() {
+            if (editingFeatureIndex === null) return;
+            
+            try {
+                const feature = drawnFeatures[editingFeatureIndex];
+                
+                // Safety check: feature might have been deleted
+                if (!feature) {
+                    console.warn('Feature was deleted during edit mode');
+                    return;
+                }
+                
+                // Restore normal line style
+                if (feature.layer && feature.style) {
+                    feature.layer.setStyle({ weight: feature.style.width || 2, opacity: 1 });
+                }
+                
+                // Recreate arrows after editing
+                if (feature.arrowStyle && feature.arrowStyle !== 'none' && 
+                    (feature.type === 'line' || feature.type === 'freehand')) {
+                    updateFeatureArrows(feature);
+                }
+                
+                // Hide instructions
+                hideEditInstructions();
+                
+                // Update the features list
+                updateDrawnFeaturesList();
+                
+            } catch (error) {
+                console.error('Error in exitLineEditMode:', error);
+            } finally {
+                // ALWAYS clean up nodes, even if there was an error
+                clearEditNodes();
+                
+                // ALWAYS reset editing index
+                editingFeatureIndex = null;
+            }
+        }
+        
+        function showEditInstructions() {
+            const instructions = document.getElementById('editInstructions') || createEditInstructions();
+            instructions.style.display = 'block';
+        }
+        
+        function hideEditInstructions() {
+            const instructions = document.getElementById('editInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+        }
+        
+        function createEditInstructions() {
+            const instructions = document.createElement('div');
+            instructions.id = 'editInstructions';
+            instructions.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            `;
+            instructions.innerHTML = `
+                <strong>⚡ Edit Mode</strong><br>
+                <span style="color: #aaa;">● Grey dots</span> - Drag to move, Right-click to delete<br>
+                <span style="color: #fff;">○ White dots</span> - Click to add node<br>
+                <button onclick="exitLineEditMode()" style="margin-top: 8px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">✓ Done</button>
+                <button onclick="exitLineEditMode()" style="margin-left: 8px; padding: 4px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+            `;
+            document.body.appendChild(instructions);
+            return instructions;
+        }
+        
+        // Keyboard shortcut: Escape to exit edit mode
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && editingFeatureIndex !== null) {
+                exitLineEditMode();
+            }
+            if (e.key === 'Escape' && editingPointIndex !== null) {
+                exitPointEditMode();
+            }
+        });
+        
+        // ===== END LINE EDITING SYSTEM =====
+        
+        // ===== POINT EDITING SYSTEM =====
+        let editingPointIndex = null;
+        
+        function enterPointEditMode(index) {
+            const feature = drawnFeatures[index];
+            if (!feature || feature.type !== 'marker') {
+                return;
+            }
+            
+            // Exit any existing edit mode
+            if (editingPointIndex !== null) {
+                exitPointEditMode();
+            }
+            if (editingFeatureIndex !== null) {
+                exitLineEditMode();
+            }
+            
+            editingPointIndex = index;
+            
+            // Make marker draggable
+            feature.layer.dragging.enable();
+            
+            // Update latlng when dragged
+            feature.layer.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                feature.latlng = newLatLng;
+            });
+            
+            // Show point edit instructions with color picker
+            showPointEditInstructions(feature);
+        }
+        
+        function exitPointEditMode() {
+            if (editingPointIndex === null) return;
+            
+            const feature = drawnFeatures[editingPointIndex];
+            
+            // Disable dragging
+            feature.layer.dragging.disable();
+            
+            // Remove drag event
+            feature.layer.off('dragend');
+            
+            // Hide instructions
+            hidePointEditInstructions();
+            
+            // Update the features list
+            updateDrawnFeaturesList();
+            
+            editingPointIndex = null;
+        }
+        
+        function updatePointColor(newColor) {
+            if (editingPointIndex === null) return;
+            
+            const feature = drawnFeatures[editingPointIndex];
+            feature.style.color = newColor;
+            feature.style.fillColor = newColor;
+            
+            // Recreate the marker with new color
+            const latlng = feature.layer.getLatLng();
+            drawnFeaturesLayer.removeLayer(feature.layer);
+            
+            const newMarker = L.circleMarker(latlng, {
+                radius: feature.style.width || 8,
+                color: newColor,
+                fillColor: newColor,
+                fillOpacity: feature.style.fillOpacity || 0.8,
+                weight: 2
+            }).addTo(drawnFeaturesLayer);
+            
+            // Make it draggable
+            newMarker.dragging.enable();
+            newMarker.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                feature.latlng = newLatLng;
+            });
+            
+            feature.layer = newMarker;
+            
+            // Add popup if it exists
+            if (feature.label) {
+                newMarker.bindPopup(feature.label);
+            }
+        }
+        
+        function showPointEditInstructions(feature) {
+            const instructions = document.getElementById('pointEditInstructions') || createPointEditInstructions();
+            
+            // Update color picker to current color
+            const colorPicker = instructions.querySelector('#pointColorPicker');
+            if (colorPicker) {
+                colorPicker.value = feature.style.color || '#3498db';
+            }
+            
+            instructions.style.display = 'block';
+        }
+        
+        function hidePointEditInstructions() {
+            const instructions = document.getElementById('pointEditInstructions');
+            if (instructions) {
+                instructions.style.display = 'none';
+            }
+        }
+        
+        function createPointEditInstructions() {
+            const instructions = document.createElement('div');
+            instructions.id = 'pointEditInstructions';
+            instructions.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000;
+                font-size: 14px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            `;
+            instructions.innerHTML = `
+                <strong>📍 Edit Point</strong><br>
+                <span style="color: #fff;">Drag marker to move</span><br>
+                <div style="margin: 8px 0; display: flex; align-items: center; gap: 8px;">
+                    <label style="color: #fff;">Color:</label>
+                    <input type="color" id="pointColorPicker" onchange="updatePointColor(this.value)" style="width: 40px; height: 30px; border: none; cursor: pointer;">
+                </div>
+                <button onclick="exitPointEditMode()" style="margin-top: 8px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">✓ Done</button>
+                <button onclick="exitPointEditMode()" style="margin-left: 8px; padding: 4px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+            `;
+            document.body.appendChild(instructions);
+            return instructions;
+        }
+        
+        // ===== END POINT EDITING SYSTEM =====
         
         function exportDrawingsGeoJSON() {
             if (drawnFeatures.length === 0) {
@@ -10128,7 +11131,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.8.12 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.8.35 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
