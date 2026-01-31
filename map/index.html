@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.8.35 - UX: Arrows now STAY VISIBLE during edit mode and update in real-time. Aggressive cleanup (100px, both layers) prevents orphans. -->
+<!-- Geo Mapper v2.9.6 - POLISH & FUNCTIONALITY FIXES: (1) Fixed button size mismatch: "Select all" and "Deselect all" now same height (removed margin-top from btn-secondary), (2) Data points now render above drawings (z-index 660 via markersPane), (3) Georeference marker now persistent with fading animation - old marker removed when new location clicked, cleared when feature turned off, (4) Added line style editing to polygon/freehand edit mode: color picker, width slider, visibility toggle in edit panel, (5) Fixed Diagnostic Info styling: white text on blue background matching other sections. All previous v2.9.x improvements maintained. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.8.35</title>
+    <title>Geo Mapper v2.9.6</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.8.35</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.6</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1088,7 +1088,7 @@
 
             <!-- Fixed Lock in Changes button - always visible -->
             <div style="position: sticky; top: 0; z-index: 100; background: white; padding: 0.75rem 0; margin-bottom: 0.5rem; border-bottom: 2px solid #e0e0e0;">
-                <button class="btn" onclick="updateMarkers()" style="width: 100%; background: #27ae60; font-weight: 600; padding: 0.75rem;">🔒 Lock in Changes</button>
+                <button class="btn" onclick="updateMarkers()" style="width: 100%; background: #27ae60; font-weight: 600; padding: 0.75rem;">🔒 Lock in changes</button>
                 <div class="info-text" style="margin-top: 0.25rem; font-size: 0.7rem; text-align: center; color: #7f8c8d;">
                     Click to apply and save all changes
                 </div>
@@ -1098,7 +1098,7 @@
                 <summary class="section-title">🗺️ Basemap</summary>
                 <div class="section-content">
                 <div class="form-group">
-                    <label for="basemapSelect">Select Basemap</label>
+                    <label for="basemapSelect">Select basemap</label>
                     <select id="basemapSelect" onchange="changeBasemap()">
                         <option value="osm">OpenStreetMap</option>
                         <option value="osm-hot">Humanitarian OSM</option>
@@ -1155,24 +1155,24 @@
                 
                 <!-- Individual overlay settings panels -->
                 <div id="overlay-tectonic-boundaries-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #3498db;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Tectonic Boundaries Settings</div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Tectonic boundaries settings</div>
                     <div class="color-size-group">
                         <div class="form-group">
-                            <label for="plateLineColor">Line Color</label>
+                            <label for="plateLineColor">Line color</label>
                             <input type="color" id="plateLineColor" value="#FF6B35" oninput="reloadOverlay('tectonic-boundaries')" onchange="reloadOverlay('tectonic-boundaries')">
                         </div>
                         <div class="form-group">
-                            <label for="plateLineWidth">Line Width</label>
+                            <label for="plateLineWidth">Line width</label>
                             <input type="number" id="plateLineWidth" value="2" min="1" max="10" step="1" oninput="reloadOverlay('tectonic-boundaries')" onchange="reloadOverlay('tectonic-boundaries')">
                         </div>
                     </div>
                 </div>
                 
                 <div id="overlay-lat-long-grid-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #3498db;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Grid Settings</div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Grid settings</div>
                     <div class="color-size-group">
                         <div class="form-group">
-                            <label for="gridLineColor">Grid Color</label>
+                            <label for="gridLineColor">Grid color</label>
                             <input type="color" id="gridLineColor" value="#666666" oninput="reloadOverlay('lat-long-grid')" onchange="reloadOverlay('lat-long-grid')">
                         </div>
                         <div class="form-group">
@@ -1183,9 +1183,9 @@
                 </div>
                 
                 <div id="overlay-tectonic-names-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #3498db;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Label Settings</div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Label settings</div>
                     <div class="form-group">
-                        <label for="plateNameSize">Label Size</label>
+                        <label for="plateNameSize">Label size</label>
                         <select id="plateNameSize" onchange="reloadOverlay('tectonic-names')">
                             <option value="small" selected>Small</option>
                             <option value="medium">Medium</option>
@@ -1280,20 +1280,60 @@
                 </div>
                 </div>
             </details>
-            
-            <!-- DIAGNOSTIC PANEL -->
-            <details class="section" id="diagnosticSection" style="display: none;">
-                <summary class="section-title" style="background: #3498db;">🔍 Diagnostic Info (Tap to view)</summary>
-                <div class="section-content" style="background: #e8f4f8; padding: 1rem; font-family: monospace; font-size: 0.85rem;">
-                    <div id="diagnosticOutput" style="white-space: pre-wrap; line-height: 1.6;">
-                        Waiting for file upload...
+
+            <details class="section" id="symbolTypeSection" style="display: none;">
+                <summary class="section-title">🔷 SYMBOL TYPE</summary>
+                <div class="section-content">
+                <div class="form-group">
+                    <label for="markerShape">Symbol shape</label>
+                    <select id="markerShape">
+                        <optgroup label="Basic shapes">
+                            <option value="circle">● Circle</option>
+                            <option value="square">■ Square</option>
+                            <option value="triangle">▲ Triangle</option>
+                            <option value="diamond">◆ Diamond</option>
+                            <option value="star">★ Star</option>
+                            <option value="hexagon">⬡ Hexagon</option>
+                            <option value="pentagon">⬠ Pentagon</option>
+                            <option value="pin">📍 Location Pin</option>
+                        </optgroup>
+                        <optgroup label="Arrows">
+                            <option value="arrow">↑ Arrow</option>
+                            <option value="arrow-thick">⬆ Thick Arrow</option>
+                            <option value="arrow-triangle">▲ Triangle Arrow</option>
+                            <option value="arrow-double">⇈ Double Arrow</option>
+                            <option value="arrow-two-way">↔ Two-Way Arrow</option>
+                            <option value="arrow-two-way-thick">⬌ Two-Way Thick Arrow</option>
+                        </optgroup>
+                        <optgroup label="Hazards">
+                            <option value="volcano-active">🌋 Volcano (Active)</option>
+                            <option value="volcano-dormant">🗻 Volcano (Dormant)</option>
+                            <option value="earthquake">Earthquake</option>
+                            <option value="hurricane">🌀 Tropical Storm</option>
+                            <option value="tsunami">🌊 Tsunami</option>
+                            <option value="flood">💧 Flood</option>
+                            <option value="fire">🔥 Fire</option>
+                        </optgroup>
+                        <optgroup label="Custom image">
+                            <option value="custom">🖼️ Custom Image</option>
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div id="customIconSection" style="display: none; margin-top: 1rem;">
+                    <div class="custom-icon-upload" id="iconUpload">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🖼️</div>
+                        <div style="font-size: 0.875rem;">
+                            <strong>Upload Custom Icon</strong><br>
+                            PNG or JPG (max 100KB)
+                        </div>
+                        <input type="file" id="iconInput" accept=".png,.jpg,.jpeg">
                     </div>
-                    <button onclick="copyDiagnostics()" style="margin-top: 0.5rem; padding: 0.5rem; width: 100%; background: #2980b9; color: white; border: none; border-radius: 4px;">
-                        📋 Copy Diagnostics to Clipboard
-                    </button>
+                    <button class="btn btn-secondary" onclick="showIconHistorySelector()" style="margin-top: 0.5rem; font-size: 0.85rem; width: 100%;">📜 Recent custom icons</button>
+                    <div id="iconPreview" class="icon-preview" style="display: none;"></div>
+                </div>
                 </div>
             </details>
-
 
             <details class="section" id="symbolConfigSection" style="display: none;">
                 <summary class="section-title">⚙️ Symbol Configuration</summary>
@@ -1318,11 +1358,11 @@
                     <div id="continuousSizeSettings">
                         <div class="color-size-group">
                             <div class="form-group">
-                                <label for="minSymbolSize">Min Size</label>
+                                <label for="minSymbolSize">Min size</label>
                                 <input type="number" id="minSymbolSize" value="5" min="3" max="20">
                             </div>
                             <div class="form-group">
-                                <label for="maxSymbolSize">Max Size</label>
+                                <label for="maxSymbolSize">Max size</label>
                                 <input type="number" id="maxSymbolSize" value="20" min="10" max="50">
                             </div>
                         </div>
@@ -1369,7 +1409,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="classDecimalPlaces">Decimal Places</label>
+                            <label for="classDecimalPlaces">Decimal places</label>
                             <select id="classDecimalPlaces" onchange="updateClassification()">
                                 <option value="0">0 dp</option>
                                 <option value="1" selected>1 dp</option>
@@ -1389,7 +1429,7 @@
                             <span>🗝️ Show in Legend</span>
                         </label>
                         <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0;">
-                            <label for="sizeLegendTitle" style="font-size: 0.8rem;">Legend Title:</label>
+                            <label for="sizeLegendTitle" style="font-size: 0.8rem;">Legend title:</label>
                             <input type="text" id="sizeLegendTitle" placeholder="Auto (field name)" style="width: 100%; padding: 0.25rem; font-size: 0.8rem;" oninput="updateLegendTitle('size', this.value)">
                         </div>
                     </div>
@@ -1415,79 +1455,26 @@
                             <span>🗝️ Show in Legend</span>
                         </label>
                         <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0;">
-                            <label for="categoryLegendTitle" style="font-size: 0.8rem;">Legend Title:</label>
+                            <label for="categoryLegendTitle" style="font-size: 0.8rem;">Legend title:</label>
                             <input type="text" id="categoryLegendTitle" placeholder="Auto (field name)" style="width: 100%; padding: 0.25rem; font-size: 0.8rem;" oninput="updateLegendTitle('category', this.value)">
                         </div>
                     </div>
                     
                     <div id="categoryList"></div>
-                    <button class="btn btn-secondary" onclick="resetCategoryStyles()" style="margin-top: 0.5rem; font-size: 0.875rem;">Reset to Defaults</button>
+                    <button class="btn btn-secondary" onclick="resetCategoryStyles()" style="margin-top: 0.5rem; font-size: 0.875rem;">Reset to defaults</button>
                 </div>
                 
-                <!-- Marker Shape -->
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label for="markerShape">Marker Shape</label>
-                    <select id="markerShape">
-                        <optgroup label="Basic Shapes">
-                            <option value="circle">● Circle</option>
-                            <option value="square">■ Square</option>
-                            <option value="triangle">▲ Triangle</option>
-                            <option value="diamond">◆ Diamond</option>
-                            <option value="star">★ Star</option>
-                            <option value="hexagon">⬡ Hexagon</option>
-                            <option value="pentagon">⬠ Pentagon</option>
-                            <option value="pin">📍 Location Pin</option>
-                        </optgroup>
-                        <optgroup label="Arrows">
-                            <option value="arrow">↑ Arrow</option>
-                            <option value="arrow-thick">⬆ Thick Arrow</option>
-                            <option value="arrow-triangle">▲ Triangle Arrow</option>
-                            <option value="arrow-double">⇈ Double Arrow</option>
-                            <option value="arrow-two-way">↔ Two-Way Arrow</option>
-                            <option value="arrow-two-way-thick">⬌ Two-Way Thick Arrow</option>
-                        </optgroup>
-                        <optgroup label="Hazards">
-                            <option value="volcano-active">🌋 Volcano (Active)</option>
-                            <option value="volcano-dormant">🗻 Volcano (Dormant)</option>
-                            <option value="earthquake">Earthquake</option>
-                            <option value="hurricane">🌀 Tropical Storm</option>
-                            <option value="tsunami">🌊 Tsunami</option>
-                            <option value="flood">💧 Flood</option>
-                            <option value="fire">🔥 Fire</option>
-                        </optgroup>
-                        <optgroup label="Other">
-                            <option value="custom">🖼️ Custom Image</option>
-                        </optgroup>
-                    </select>
-                </div>
-                
-                <!-- Symbol Appearance Controls (moved inside Symbol Configuration) -->
+                <!-- Symbol Appearance Controls -->
                 <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
-                    <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol Appearance</div>
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol appearance</div>
                     <div class="info-text" style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 4px solid #4caf50; font-size: 0.85rem;">
-                        ✨ <strong>Live Preview:</strong> Changes update automatically. Click "Lock in Changes" at the top to finalize.
-                    </div>
-                    
-                    <div id="customIconSection" style="display: none;">
-                        <div class="custom-icon-upload" id="iconUpload">
-                            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🖼️</div>
-                            <div style="font-size: 0.875rem;">
-                                <strong>Upload Custom Icon</strong><br>
-                                PNG or JPG (max 100KB)
-                            </div>
-                            <input type="file" id="iconInput" accept=".png,.jpg,.jpeg">
-                        </div>
-                        <button class="btn btn-secondary" onclick="showIconHistorySelector()" style="margin-top: 0.5rem; font-size: 0.85rem; width: 100%;">📜 Recent Icons</button>
-                        <div id="iconPreview" class="icon-preview" style="display: none;"></div>
-                        <div class="info-text">
-                            ℹ️ Icons will be resized to match the specified size below
-                        </div>
+                        ✨ <strong>Live preview:</strong> Changes update automatically. Click "Lock in changes" at the top to finalize.
                     </div>
 
                     <div id="shapeStyleSection">
                         <div class="color-size-group">
                             <div class="form-group">
-                                <label for="markerColor">Fill Color</label>
+                                <label for="markerColor">Fill color</label>
                                 <input type="color" id="markerColor" value="#3498db">
                             </div>
                             <div class="form-group">
@@ -1497,11 +1484,11 @@
                         </div>
                         <div class="color-size-group">
                             <div class="form-group">
-                                <label for="strokeColor">Outline Color</label>
+                                <label for="strokeColor">Outline color</label>
                                 <input type="color" id="strokeColor" value="#2c3e50">
                             </div>
                             <div class="form-group">
-                                <label for="strokeWidth">Outline Width</label>
+                                <label for="strokeWidth">Outline width</label>
                                 <input type="number" id="strokeWidth" value="2" min="0" max="5">
                             </div>
                         </div>
@@ -1514,7 +1501,7 @@
                     
                     <!-- Rotate by Field moved to bottom -->
                     <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="rotationField">Rotate by Field (optional)</label>
+                        <label for="rotationField">Rotate symbol by bearing</label>
                         <select id="rotationField">
                             <option value="">No rotation</option>
                         </select>
@@ -1602,18 +1589,18 @@
                         <button class="btn" onclick="exportTrailAsGeoJSON()" style="background: #16a085; margin-top: 0.75rem; width: 100%;">📥 Export Trail as GeoJSON</button>
                     </div>
                     <div class="info-text">
-                        ℹ️ Points will appear sequentially. Click points to see popups during animation.
+                        ℹ️ Points will appear sequentially. Click points to see pop-ups during animation.
                     </div>
                 </div>
                 </div>
             </details>
 
             <details class="section" id="popupSection" style="display: none;">
-                <summary class="section-title">💬 Popup Configuration</summary>
+                <summary class="section-title">💬 Pop-up Configuration</summary>
                 <div class="section-content">
                 
                 <div class="form-group">
-                    <label for="popupTitle">Popup Title Template (optional)</label>
+                    <label for="popupTitle">Pop-up Title Template (optional)</label>
                     <input type="text" id="popupTitle" placeholder="e.g., {NAME}, {COUNTRY}, {CONTINENT}" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
                     <div style="margin-bottom: 0.5rem;">
                         <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.25rem;">Quick Insert Field:</label>
@@ -1626,18 +1613,8 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="popupWidth">Popup Width (px)</label>
-                    <input type="number" id="popupWidth" value="300" min="200" max="600">
-                </div>
-
-                <div class="form-group">
-                    <label for="popupMaxHeight">Max Height (px, 0 = no limit)</label>
-                    <input type="number" id="popupMaxHeight" value="400" min="0" max="800">
-                </div>
-
                 <div class="toggle-section" onclick="togglePopupTemplate()">
-                    <span>Custom Popup Template</span>
+                    <span>Custom pop-up template</span>
                     <span class="arrow" id="templateArrow">▼</span>
                 </div>
                 <div id="popupTemplateContent" style="display: none;">
@@ -1670,162 +1647,206 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                     
                     <div class="form-group" style="background: #f0f8ff; padding: 0.75rem; border-radius: 4px; border: 1px solid #b3d9ff; margin-top: 1rem;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🔢 Tab Labels</label>
-                        <div class="info-text" style="margin-bottom: 0.5rem;">
-                            ℹ️ When charts or multiple images are shown, tabs separate content. Customize tab names here (default: "1" and "2")
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <div>
-                                <label for="popupTab1Label" style="font-size: 0.8rem; color: #666;">Tab 1 (Info):</label>
-                                <input type="text" id="popupTab1Label" value="1" placeholder="e.g., Data & photo" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🔢 Tabs and titles</label>
+                        
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="enableSecondTab" style="width: auto; margin-right: 0.5rem;">
+                                <span>Enable second pop-up tab for graphics</span>
+                            </label>
+                            <div class="info-text" style="margin-top: 0.25rem;">
+                                When enabled, charts/images appear in a separate tab. When disabled, all content shows together.
                             </div>
-                            <div>
-                                <label for="popupTab2Label" style="font-size: 0.8rem; color: #666;">Tab 2 (Chart):</label>
-                                <input type="text" id="popupTab2Label" value="2" placeholder="e.g., Long profile" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                        </div>
+                        
+                        <div id="tabLabelsSection">
+                            <div class="info-text" style="margin-bottom: 0.5rem;">
+                                Customize tab labels (optional - tabs default to "1" and "2")
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <div>
+                                    <label for="popupTab1Label" style="font-size: 0.8rem; color: #666;">Tab 1 label (optional):</label>
+                                    <input type="text" id="popupTab1Label" value="" placeholder="e.g., Site data" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                                </div>
+                                <div>
+                                    <label for="popupTab2Label" style="font-size: 0.8rem; color: #666;">Tab 2 label (optional):</label>
+                                    <input type="text" id="popupTab2Label" value="" placeholder="e.g., Velocity chart" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="toggle-section" onclick="togglePopupConfig()">
-                    <span>Select Fields to Display (Table Mode)</span>
+                    <span>Select fields for non-custom pop-up</span>
                     <span class="arrow" id="popupConfigArrow" style="transform: rotate(-90deg);">▼</span>
                 </div>
                 <div id="popupConfigContent" style="display: none;">
                     <div class="form-group">
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="showColumnHeadings" style="width: auto; margin-right: 0.5rem;">
-                            <span>Show column headings in table mode</span>
+                            <span>Show field titles in pop-up</span>
                         </label>
                         <div class="info-text">
-                            ℹ️ When unchecked, only values are shown (cleaner for images)
+                            ℹ️ When unchecked, only values are shown
                         </div>
                     </div>
                     <div class="form-group">
-                        <button class="btn" onclick="selectAllFields()" style="margin-bottom: 0.5rem;">Select All</button>
-                        <button class="btn btn-secondary" onclick="deselectAllFields()">Deselect All</button>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" onclick="selectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1;">Select all</button>
+                            <button class="btn btn-secondary" onclick="deselectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1; margin-top: 0;">Deselect all</button>
+                        </div>
                     </div>
                     <div class="checkbox-group" id="fieldCheckboxes"></div>
-                    <div class="info-text">
-                        ℹ️ Only selected fields will appear in point popups (when not using template)
+                </div>
+                
+                <div class="toggle-section" onclick="togglePopupSizeConfig()">
+                    <span>Pop-up size</span>
+                    <span class="arrow" id="popupSizeArrow" style="transform: rotate(-90deg);">▼</span>
+                </div>
+                <div id="popupSizeContent" style="display: none;">
+                    <div class="form-group">
+                        <label for="popupWidth">Pop-up width (px)</label>
+                        <input type="number" id="popupWidth" value="300" min="200" max="600">
                     </div>
-                    
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🖼️ Image Fields</label>
-                        <div class="info-text" style="margin-bottom: 0.5rem;">
-                            ℹ️ Mark fields containing image URLs to display them as images in popups
+                    <div class="form-group">
+                        <label for="popupMaxHeight">Pop-up height (px)</label>
+                        <input type="number" id="popupMaxHeight" value="400" min="0" max="800">
+                        <div class="info-text">
+                            ℹ️ Set to 0 for no height limit
                         </div>
-                        <div class="checkbox-group" id="imageFieldCheckboxes"></div>
                     </div>
                 </div>
                 </div>
             </details>
 
             <details class="section" id="chartSection" style="display: none;">
-                <summary class="section-title">📊 Charts (EXPERIMENTAL)</summary>
+                <summary class="section-title">📊 Charts</summary>
                 <div class="section-content">
                     <div class="form-group">
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="enablePopupChart" onclick="toggleChartSettings()" style="width: auto; margin-right: 0.5rem;">
-                            <span>Show simple data chart in popups</span>
+                            <span>Show data chart in pop-up tab</span>
                         </label>
-                        <div class="info-text">
-                            ⚠️ EXPERIMENTAL: For datasets with numeric columns, shows a basic bar chart of values
-                        </div>
                     </div>
                     
                     <div id="chartSettingsPanel" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px;">
                         <!-- Chart Type -->
                         <div class="form-group" style="margin-bottom: 0.75rem;">
-                            <label for="chartType" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart Type:</label>
+                            <label for="chartType" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart type:</label>
                             <select id="chartType" onchange="toggleChartTypeSettings()" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                <option value="bar">Bar Chart (single point)</option>
-                                <option value="timeseries">Time-Series Line Chart (all points)</option>
+                                <option value="bar">Column chart (vertical bars)</option>
+                                <option value="bar-comparison">Column chart with comparison bars</option>
+                                <option value="timeseries">Line chart</option>
                             </select>
-                            <div class="info-text" style="margin-top: 0.25rem;">
-                                Bar = Compare this point's value. Line = Show trend over time for all points.
-                            </div>
                         </div>
                         
-                        <!-- BAR CHART SETTINGS -->
+                        <!-- BAR/COLUMN CHART SETTINGS -->
                         <div id="barChartSettings">
                             <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="chartFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Select Field to Chart:</label>
-                                <select id="chartFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select a numeric field --</option>
+                                <label for="barChartSequenceField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
+                                <select id="barChartSequenceField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select sequence field --</option>
                                 </select>
                                 <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose which numeric field to visualize (e.g., elevation, population)
+                                    Choose field related to sequence e.g. site; date; time
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="chartFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
+                                <select id="chartFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select numeric field --</option>
+                                </select>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
+                                </div>
+                            </div>
+                            
+                            <!-- Chart title moved here, right after Numerical field -->
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="chartTitleCustom" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
+                                <input type="text" id="chartTitleCustom" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Leave blank to use field name
                                 </div>
                             </div>
                             
                             <div class="form-group" style="margin-bottom: 0.75rem;">
                                 <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="showChartComparison" checked style="width: auto; margin-right: 0.5rem;">
-                                    <span>Show comparison bars (averages)</span>
+                                    <input type="checkbox" id="showChartValues" checked style="width: auto; margin-right: 0.5rem;">
+                                    <span>Show values on hover</span>
                                 </label>
                                 <div class="info-text" style="margin-top: 0.25rem;">
-                                    📊 Add context bars showing average for positive and negative values
+                                    📊 Display numeric values when hovering over data points
                                 </div>
                             </div>
                             
-                            <!-- Custom Labels for Bar Chart -->
-                            <details style="margin-top: 0.75rem;">
-                                <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem;">🏷️ Customize Labels (Optional)</summary>
-                                <div style="margin-top: 0.5rem;">
-                                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                                        <label for="chartTitleCustom" style="font-size: 0.85rem;">Chart Title:</label>
-                                        <input type="text" id="chartTitleCustom" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                        <div class="info-text">Leave blank to use field name</div>
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                                        <label for="chartThisValueLabel" style="font-size: 0.85rem;">"This value" Label:</label>
-                                        <input type="text" id="chartThisValueLabel" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 0.5rem;">
-                                        <label for="chartPositiveLabel" style="font-size: 0.85rem;">Positive Avg Label:</label>
-                                        <input type="text" id="chartPositiveLabel" placeholder="e.g., Avg land-based elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 0;">
-                                        <label for="chartNegativeLabel" style="font-size: 0.85rem;">Negative Avg Label:</label>
-                                        <input type="text" id="chartNegativeLabel" placeholder="e.g., Avg submarine elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                    </div>
+                            <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
+                                📊 Chart will show ALL data points with current point marked
+                            </div>
+                            
+                            <!-- Comparison bar labels - only shown when bar-comparison is selected -->
+                            <div id="comparisonBarLabels" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0;">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Comparison bar labels (optional)</div>
+                                <div class="form-group" style="margin-bottom: 0.5rem;">
+                                    <label for="chartThisValueLabel" style="font-size: 0.85rem;">"This value" label:</label>
+                                    <input type="text" id="chartThisValueLabel" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
                                 </div>
-                            </details>
+                                <div class="form-group" style="margin-bottom: 0.5rem;">
+                                    <label for="chartPositiveLabel" style="font-size: 0.85rem;">Positive avg label:</label>
+                                    <input type="text" id="chartPositiveLabel" placeholder="e.g., Avg land-based elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="chartNegativeLabel" style="font-size: 0.85rem;">Negative avg label:</label>
+                                    <input type="text" id="chartNegativeLabel" placeholder="e.g., Avg submarine elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- TIME-SERIES SETTINGS -->
                         <div id="timeSeriesSettings" style="display: none;">
                             <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Time Field:</label>
+                                <label for="timeFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
                                 <select id="timeFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select time/date field --</option>
+                                    <option value="">-- Select sequence field --</option>
                                 </select>
                                 <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose the field that represents time/date sequence
+                                    Choose field related to sequence e.g. site; date; time
                                 </div>
                             </div>
                             
                             <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeSeriesValueField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Value Field:</label>
+                                <label for="timeSeriesValueField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
                                 <select id="timeSeriesValueField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select numeric field to plot --</option>
+                                    <option value="">-- Select numeric field --</option>
                                 </select>
                                 <div class="info-text" style="margin-top: 0.25rem;">
-                                    E.g., Pressure, Wind speed, Temperature
+                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
                                 </div>
                             </div>
                             
+                            <!-- Chart title moved here, right after Numerical field -->
                             <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeSeriesChartTitle" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart Title (Optional):</label>
+                                <label for="timeSeriesChartTitle" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
                                 <input type="text" id="timeSeriesChartTitle" placeholder="e.g., Atmospheric Pressure Over Time" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
                                 <div class="info-text" style="margin-top: 0.25rem;">
                                     Leave blank to auto-generate from field names
                                 </div>
                             </div>
                             
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="showLineChartValues" checked style="width: auto; margin-right: 0.5rem;">
+                                    <span>Show values on hover</span>
+                                </label>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    📊 Display numeric values when hovering over data points
+                                </div>
+                            </div>
+                            
                             <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
-                                ⚡ Chart will show ALL data points connected as a line, with current point marked
+                                📊 Chart will show ALL data points with current point marked
                             </div>
                         </div>
                     </div>
@@ -1900,7 +1921,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     <div style="font-weight: 600; margin-bottom: 0.5rem;">🌐 Georeference (Click Map)</div>
                     <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
                         <input type="checkbox" id="coordTrackingEnabled" onchange="toggleCoordTracking()" style="width: auto; margin-right: 0.5rem;">
-                        <span>Enable coordinate tracking</span>
+                        <span>Find georeference</span>
                     </label>
                     <div id="coordResult" style="font-size: 0.875rem; color: #f57c00; display: none; padding: 0.5rem; background: white; border-radius: 4px;">
                         <strong>Coordinates:</strong><br>
@@ -2001,7 +2022,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <input type="color" id="drawColor" value="#3498db">
                         </div>
                         <div class="form-group">
-                            <label for="drawWidth">Line Width</label>
+                            <label for="drawWidth">Line width</label>
                             <input type="number" id="drawWidth" value="3" min="1" max="10">
                         </div>
                     </div>
@@ -2021,7 +2042,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                     <div class="color-size-group">
                         <div class="form-group">
-                            <label for="drawFillColor">Fill Color</label>
+                            <label for="drawFillColor">Fill color</label>
                             <input type="color" id="drawFillColor" value="#3498db">
                         </div>
                         <div class="form-group">
@@ -2076,6 +2097,27 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             <!-- Clear Map button at bottom - subtle design -->
             <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
                 <button class="btn btn-secondary" onclick="checkAutoSaveStatus()" style="background: #3498db; width: 100%; font-size: 0.85rem; padding: 0.5rem; margin-bottom: 0.5rem;">🔍 Check Auto-Save Status</button>
+                
+                <!-- DIAGNOSTIC INFO - collapsible with nested details -->
+                <details class="section" id="diagnosticSection" style="display: none; margin-bottom: 0.5rem;">
+                    <summary class="section-title" style="cursor: pointer; background: #3498db; color: white; padding: 0.75rem; border-radius: 4px; font-size: 0.875rem; font-weight: 600; margin-bottom: 0; list-style: none;">
+                        🔧 Diagnostic Info
+                    </summary>
+                    <div class="section-content" style="background: #f8f9fa; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 0.5rem;">
+                        <button onclick="copyDiagnostics()" style="width: 100%; padding: 0.5rem; background: #2980b9; color: white; border: none; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; cursor: pointer;">
+                            📋 Copy diagnostics to clipboard
+                        </button>
+                        <details style="margin-top: 0.5rem;">
+                            <summary style="cursor: pointer; padding: 0.5rem; background: #e8f4f8; border-radius: 4px; font-size: 0.85rem; color: #2c3e50; font-weight: 500;">
+                                View diagnostic details
+                            </summary>
+                            <div id="diagnosticOutput" style="margin-top: 0.5rem; padding: 0.75rem; background: white; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto;">
+                                Waiting for file upload...
+                            </div>
+                        </details>
+                    </div>
+                </details>
+                
                 <button class="btn btn-secondary" onclick="confirmClearMap()" style="background: #95a5a6; width: 100%; font-size: 0.85rem; padding: 0.5rem; opacity: 0.7;">Clear Map</button>
                 <div class="info-text" style="margin-top: 0.25rem; font-size: 0.7rem; color: #7f8c8d; text-align: center;">
                     Removes all data and settings
@@ -2179,6 +2221,25 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let customIconData = null;
         let selectedFields = new Set();
         let imageFields = new Set();
+        
+        // Helper function to detect if a value is an image URL
+        function isImageURL(value) {
+            if (typeof value !== 'string') return false;
+            if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+            
+            // Check for common image extensions
+            const lowerValue = value.toLowerCase();
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+            
+            // Check if URL ends with image extension (may have query params)
+            return imageExtensions.some(ext => {
+                const extIndex = lowerValue.indexOf(ext);
+                if (extIndex === -1) return false;
+                // Extension should be at end or followed by ? or #
+                const afterExt = lowerValue.charAt(extIndex + ext.length);
+                return afterExt === '' || afterExt === '?' || afterExt === '#';
+            });
+        }
         let currentBasemap;
         let labelsLayer = null;
         let basemapLayers = {};
@@ -2399,7 +2460,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     // NEW: Simple chart system (v2.6+)
                     simpleChartType: document.getElementById('chartType')?.value || 'bar',
                     chartFieldSelect: document.getElementById('chartFieldSelect')?.value || '',
-                    showChartComparison: document.getElementById('showChartComparison')?.checked !== false,
+                    chartType: document.getElementById('chartType')?.value || 'bar',
                     chartTitleCustom: document.getElementById('chartTitleCustom')?.value || '',
                     chartThisValueLabel: document.getElementById('chartThisValueLabel')?.value || '',
                     chartPositiveLabel: document.getElementById('chartPositiveLabel')?.value || '',
@@ -2721,10 +2782,17 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             currentBasemap = L.tileLayer(defaultBasemap.url, tileOptions).addTo(map);
             
-            markerLayer = L.layerGroup().addTo(map);
+            // Create a custom pane for data markers with high z-index
+            map.createPane('markersPane');
+            map.getPane('markersPane').style.zIndex = 660; // Above drawings (650) but below popups (700)
+            markerLayer = L.layerGroup({pane: 'markersPane'}).addTo(map);
+            
+            // Create a custom pane for drawings with high z-index so they're always on top
+            map.createPane('drawingsPane');
+            map.getPane('drawingsPane').style.zIndex = 650; // Above overlays (400) but below popups (700)
             
             // Initialize drawing layer early so Clear All Drawings works even without CSV
-            drawnFeaturesLayer = L.layerGroup().addTo(map);
+            drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
             
             // Set initial visibility for conditional controls
             // Fixed rotation shows by default (when no field-based rotation)
@@ -3165,6 +3233,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     
                     // Show all sections
                     document.getElementById('columnSection').style.display = 'block';
+                    document.getElementById('symbolTypeSection').style.display = 'block';
                     document.getElementById('symbolConfigSection').style.display = 'block';
                     document.getElementById('popupSection').style.display = 'block';
                     document.getElementById('chartSection').style.display = 'block';
@@ -3593,7 +3662,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
 
                 document.getElementById('columnSection').style.display = 'block';
                 document.getElementById('editDataSection').style.display = 'block';
-                document.getElementById('symbolConfigSection').style.display = 'block';
+                document.getElementById('symbolTypeSection').style.display = 'block';
+                    document.getElementById('symbolConfigSection').style.display = 'block';
                 document.getElementById('popupSection').style.display = 'block';
                 document.getElementById('chartSection').style.display = 'block';
                 document.getElementById('drawingToolsSection').style.display = 'block';
@@ -3613,9 +3683,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 addDiagnostic('Column selectors populated successfully', 'success');
                 
-                // Initialize drawing layer
+                // Initialize drawing layer with high z-index pane
             if (!drawnFeaturesLayer) {
-                drawnFeaturesLayer = L.layerGroup().addTo(map);
+                if (!map.getPane('drawingsPane')) {
+                    map.createPane('drawingsPane');
+                    map.getPane('drawingsPane').style.zIndex = 650;
+                }
+                drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
             }
             
             latSelect.addEventListener('change', plotPoints);
@@ -4114,6 +4188,28 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             });
         }
 
+        // Tooltip helper functions for charts
+        window.showTooltip = function(event, tooltipId, text) {
+            console.log('showTooltip called:', tooltipId, text);
+            const tooltip = document.getElementById(tooltipId);
+            if (tooltip) {
+                tooltip.textContent = text;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (event.clientX + 10) + 'px';
+                tooltip.style.top = (event.clientY - 25) + 'px';
+                console.log('Tooltip positioned at:', tooltip.style.left, tooltip.style.top);
+            } else {
+                console.log('Tooltip element not found:', tooltipId);
+            }
+        };
+        
+        window.hideTooltip = function(tooltipId) {
+            const tooltip = document.getElementById(tooltipId);
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        };
+
         // Chart functions
         function toggleChartSettings() {
             try {
@@ -4136,13 +4232,20 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const chartType = document.getElementById('chartType').value;
                 const barSettings = document.getElementById('barChartSettings');
                 const timeSettings = document.getElementById('timeSeriesSettings');
+                const comparisonLabels = document.getElementById('comparisonBarLabels');
                 
                 if (chartType === 'timeseries') {
                     barSettings.style.display = 'none';
                     timeSettings.style.display = 'block';
                 } else {
+                    // Both 'bar' and 'bar-comparison' show bar settings
                     barSettings.style.display = 'block';
                     timeSettings.style.display = 'none';
+                    
+                    // Only show comparison labels for 'bar-comparison'
+                    if (comparisonLabels) {
+                        comparisonLabels.style.display = chartType === 'bar-comparison' ? 'block' : 'none';
+                    }
                 }
             } catch (error) {
                 console.error('Error toggling chart type:', error);
@@ -4152,15 +4255,17 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function populateChartFieldDropdowns() {
             try {
                 const chartFieldSelect = document.getElementById('chartFieldSelect');
+                const barChartSequenceField = document.getElementById('barChartSequenceField');
                 const timeFieldSelect = document.getElementById('timeFieldSelect');
                 const timeSeriesValueField = document.getElementById('timeSeriesValueField');
                 
                 if (!chartFieldSelect) return;
                 
                 // Clear existing options
-                chartFieldSelect.innerHTML = '<option value="">-- Select a numeric field --</option>';
-                if (timeFieldSelect) timeFieldSelect.innerHTML = '<option value="">-- Select time/date field --</option>';
-                if (timeSeriesValueField) timeSeriesValueField.innerHTML = '<option value="">-- Select numeric field to plot --</option>';
+                chartFieldSelect.innerHTML = '<option value="">-- Select numeric field --</option>';
+                if (barChartSequenceField) barChartSequenceField.innerHTML = '<option value="">-- Select sequence field --</option>';
+                if (timeFieldSelect) timeFieldSelect.innerHTML = '<option value="">-- Select sequence field --</option>';
+                if (timeSeriesValueField) timeSeriesValueField.innerHTML = '<option value="">-- Select numeric field --</option>';
                 
                 // Add columns
                 if (csvData && csvData.length > 0) {
@@ -4179,13 +4284,14 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         });
                         
                         if (hasNumeric) {
-                            // Add to bar chart dropdown
+                            // Add to bar chart value dropdown
                             chartFieldSelect.add(new Option(col, col));
                             // Add to time-series value dropdown
                             if (timeSeriesValueField) timeSeriesValueField.add(new Option(col, col));
                         }
                         
-                        // Add ALL columns to time field dropdown (user decides which is time)
+                        // Add ALL columns to sequence field dropdowns (user decides which is sequence)
+                        if (barChartSequenceField) barChartSequenceField.add(new Option(col, col));
                         if (timeFieldSelect) timeFieldSelect.add(new Option(col, col));
                     });
                 }
@@ -4218,120 +4324,150 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         
         function generateBarChart(row) {
             try {
-                // Get selected field
-                const chartFieldSelect = document.getElementById('chartFieldSelect');
-                const selectedField = chartFieldSelect ? chartFieldSelect.value : '';
+                // Get selected fields
+                const sequenceField = document.getElementById('barChartSequenceField')?.value;
+                const valueField = document.getElementById('chartFieldSelect')?.value;
+                const showValues = document.getElementById('showChartValues')?.checked !== false;
+                const customTitle = document.getElementById('chartTitleCustom')?.value.trim() || '';
+                const decimalPlaces = parseInt(document.getElementById('classDecimalPlaces')?.value || 1);
                 
-                if (!selectedField) {
-                    return ''; // No field selected
+                if (!sequenceField || !valueField) {
+                    return '<div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">⚠️ Select both sequence field and value field</div>';
                 }
                 
-                // Get value for this row
-                const value = parseFloat(row[selectedField]);
-                if (isNaN(value)) {
-                    return ''; // Not a number
+                // Get current row's sequence value
+                const currentSequenceValue = row[sequenceField];
+                
+                // Collect all data points
+                const chartData = [];
+                csvData.forEach((dataRow, index) => {
+                    const seqVal = dataRow[sequenceField];
+                    const val = parseFloat(dataRow[valueField]);
+                    if (!isNaN(val)) {
+                        chartData.push({
+                            sequence: seqVal,
+                            value: val,
+                            isCurrent: seqVal === currentSequenceValue
+                        });
+                    }
+                });
+                
+                if (chartData.length === 0) {
+                    return '<div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">⚠️ No valid data points found</div>';
                 }
                 
-                // Get custom labels
-                const customTitle = document.getElementById('chartTitleCustom')?.value || selectedField;
-                const customThisValue = document.getElementById('chartThisValueLabel')?.value || 'This value';
-                const customPositive = document.getElementById('chartPositiveLabel')?.value || 'Avg positive';
-                const customNegative = document.getElementById('chartNegativeLabel')?.value || 'Avg negative';
-                
-                // Check if comparison is enabled
-                const showComparison = document.getElementById('showChartComparison')?.checked !== false;
-                
-                // Calculate averages from all data if comparison is enabled
-                let avgPositive = null;
-                let avgNegative = null;
-                let countPositive = 0;
-                let countNegative = 0;
-                
-                if (showComparison && csvData && csvData.length > 0) {
-                    let sumPositive = 0;
-                    let sumNegative = 0;
-                    
-                    csvData.forEach(dataRow => {
-                        const val = parseFloat(dataRow[selectedField]);
-                        if (!isNaN(val)) {
-                            if (val > 0) {
-                                sumPositive += val;
-                                countPositive++;
-                            } else if (val < 0) {
-                                sumNegative += val;
-                                countNegative++;
-                            }
-                        }
-                    });
-                    
-                    if (countPositive > 0) avgPositive = sumPositive / countPositive;
-                    if (countNegative > 0) avgNegative = sumNegative / countNegative;
+                // Limit to 50 points for readability
+                const MAX_POINTS = 50;
+                let displayData = chartData;
+                let warningText = '';
+                if (chartData.length > MAX_POINTS) {
+                    displayData = chartData.slice(0, MAX_POINTS);
+                    warningText = `<div style="font-size: 0.7rem; color: #e67e22; margin-top: 0.25rem; text-align: center;">⚠️ Showing first ${MAX_POINTS} of ${chartData.length} data points</div>`;
                 }
                 
-                // Find max absolute value for scaling
-                let maxAbsValue = Math.abs(value);
-                if (showComparison) {
-                    if (avgPositive !== null) maxAbsValue = Math.max(maxAbsValue, Math.abs(avgPositive));
-                    if (avgNegative !== null) maxAbsValue = Math.max(maxAbsValue, Math.abs(avgNegative));
-                }
+                // Find min/max for scaling
+                const values = displayData.map(d => d.value);
+                const minValue = Math.min(...values, 0); // Include 0
+                const maxValue = Math.max(...values, 0);
+                const valueRange = maxValue - minValue;
                 
-                // Create chart HTML
-                let chartHTML = `
+                // Chart dimensions with adaptive bar width
+                const chartHeight = 200;
+                // Adaptive bar width: 4-25px based on number of points
+                const barWidth = Math.max(4, Math.min(25, 280 / displayData.length));
+                const spacing = 1; // Gap between bars
+                const chartWidth = (barWidth + spacing) * displayData.length;
+                
+                // Use custom title or default
+                const chartTitle = customTitle || `${valueField} by ${sequenceField}`;
+                
+                // Create SVG column chart
+                let svgHTML = `
                     <div style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem;">📊 ${customTitle}</div>
-                        <div style="font-size: 0.75rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem;">📊 ${chartTitle}</div>
+                        <div style="overflow-x: auto; max-width: 100%;">
+                            <svg width="${chartWidth + 40}" height="${chartHeight + 60}" style="display: block; margin: 0 auto;">
+                                <!-- Y-axis line -->
+                                <line x1="20" y1="10" x2="20" y2="${chartHeight + 10}" stroke="#999" stroke-width="1"/>
+                                <!-- X-axis line -->
+                                <line x1="20" y1="${chartHeight + 10}" x2="${chartWidth + 20}" y2="${chartHeight + 10}" stroke="#999" stroke-width="1"/>
+                                
+                                <!-- Zero line if needed -->
+                                ${minValue < 0 ? `
+                                    <line x1="20" y1="${10 + ((maxValue / valueRange) * chartHeight)}" 
+                                          x2="${chartWidth + 20}" y2="${10 + ((maxValue / valueRange) * chartHeight)}" 
+                                          stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>
+                                ` : ''}
                 `;
                 
-                // Helper function to create bar
-                function createBar(label, val, color, isComparison = false) {
-                    if (val === null) return '';
+                // Draw bars
+                displayData.forEach((d, i) => {
+                    const x = 20 + (i * (barWidth + spacing));
+                    const barHeight = Math.abs((d.value - minValue) / valueRange) * chartHeight;
+                    const y = chartHeight + 10 - barHeight;
+                    const color = d.isCurrent ? '#3498db' : '#95a5a6';
+                    const opacity = d.isCurrent ? 1 : 0.6;
                     
-                    const barWidth = maxAbsValue > 0 ? (Math.abs(val) / maxAbsValue * 100) : 0;
-                    const isNegative = val < 0;
-                    const opacity = isComparison ? 0.5 : 1;
-                    
-                    return `
-                        <div style="display: flex; align-items: center; margin-bottom: 0.4rem;">
-                            <div style="width: 35%; text-align: right; padding-right: 0.5rem; font-size: 0.7rem;">
-                                ${label}:
-                            </div>
-                            <div style="width: 65%; position: relative; display: flex; justify-content: ${isNegative ? 'flex-end' : 'flex-start'}; align-items: center;">
-                                ${isNegative ? `
-                                    <div style="background: ${color}; opacity: ${opacity}; height: 1.2rem; width: ${barWidth}%; min-width: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: flex-start; padding: 0 0.25rem;">
-                                        <span style="font-size: 0.65rem; color: white; white-space: nowrap;">${val.toFixed(1)}</span>
-                                    </div>
-                                ` : `
-                                    <div style="background: ${color}; opacity: ${opacity}; height: 1.2rem; width: ${barWidth}%; min-width: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: flex-end; padding: 0 0.25rem;">
-                                        <span style="font-size: 0.65rem; color: white; white-space: nowrap;">${val.toFixed(1)}</span>
-                                    </div>
-                                `}
-                            </div>
-                        </div>
+                    // Column/bar with native browser tooltip
+                    svgHTML += `
+                        <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" 
+                              fill="${color}" opacity="${opacity}" rx="1" style="cursor: pointer;">
+                            <title>${d.value.toFixed(decimalPlaces)}</title>
+                        </rect>
                     `;
-                }
-                
-                // Add this value bar
-                chartHTML += createBar(customThisValue, value, value >= 0 ? '#3498db' : '#e74c3c');
-                
-                // Add comparison bars if enabled
-                if (showComparison) {
-                    if (avgPositive !== null) {
-                        chartHTML += createBar(`${customPositive} (total ${countPositive})`, avgPositive, '#27ae60', true);
+                    
+                    // Red dot indicator on current point
+                    if (d.isCurrent) {
+                        svgHTML += `
+                            <circle cx="${x + barWidth/2}" cy="${y - 5}" r="5" 
+                                    fill="#e74c3c" stroke="white" stroke-width="2" style="cursor: pointer;">
+                                <title>Current: ${d.value.toFixed(decimalPlaces)}</title>
+                            </circle>
+                        `;
                     }
-                    if (avgNegative !== null) {
-                        chartHTML += createBar(`${customNegative} (total ${countNegative})`, avgNegative, '#e67e22', true);
+                    
+                    // X-axis labels (sequence values) - show every nth label to avoid crowding
+                    const labelFrequency = Math.ceil(displayData.length / 15); // Show ~15 labels max
+                    if (i % labelFrequency === 0 || d.isCurrent) {
+                        const labelX = x + barWidth/2;
+                        const labelY = chartHeight + 25;
+                        const labelText = String(d.sequence).substring(0, 10); // Truncate long labels
+                        
+                        svgHTML += `
+                            <text x="${labelX}" y="${labelY}" 
+                                  font-size="8" text-anchor="end" 
+                                  transform="rotate(-45 ${labelX} ${labelY})"
+                                  fill="${d.isCurrent ? '#e74c3c' : '#666'}"
+                                  font-weight="${d.isCurrent ? 'bold' : 'normal'}">
+                                ${labelText}
+                            </text>
+                        `;
                     }
-                }
+                });
                 
-                chartHTML += `
+                // Y-axis labels
+                const yLabels = [maxValue, (maxValue + minValue) / 2, minValue];
+                yLabels.forEach(val => {
+                    const y = 10 + ((maxValue - val) / valueRange) * chartHeight;
+                    svgHTML += `
+                        <text x="15" y="${y + 3}" font-size="9" text-anchor="end" fill="#666">
+                            ${val.toFixed(decimalPlaces)}
+                        </text>
+                    `;
+                });
+                
+                svgHTML += `
+                            </svg>
                         </div>
+                        ${showValues ? '<div style="font-size: 0.7rem; color: #666; margin-top: 0.25rem; text-align: center;">Hover over bars to see values</div>' : ''}
+                        ${warningText}
                     </div>
                 `;
                 
-                return chartHTML;
+                return svgHTML;
                 
             } catch (error) {
-                console.error('Error generating bar chart:', error);
+                console.error('Error generating column chart:', error);
                 return '';
             }
         }
@@ -4342,9 +4478,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const timeField = document.getElementById('timeFieldSelect')?.value;
                 const valueField = document.getElementById('timeSeriesValueField')?.value;
                 const customTitle = document.getElementById('timeSeriesChartTitle')?.value.trim();
+                const showValues = document.getElementById('showLineChartValues')?.checked !== false;
+                const decimalPlaces = parseInt(document.getElementById('classDecimalPlaces')?.value || 1);
                 
                 if (!timeField || !valueField) {
-                    return '<div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">⚠️ Select both time field and value field</div>';
+                    return '<div style="margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">⚠️ Select both sequence field and value field</div>';
                 }
                 
                 // Use custom title if provided, otherwise auto-generate
@@ -4410,27 +4548,40 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <line x1="${padding.left}" y1="${chartHeight - padding.bottom}" x2="${chartWidth - padding.right}" y2="${chartHeight - padding.bottom}" stroke="#ccc" stroke-width="1"/>
                             
                             <!-- Y axis labels -->
-                            <text x="${padding.left - 5}" y="${padding.top + 5}" text-anchor="end" fill="#666">${maxValue.toFixed(0)}</text>
-                            <text x="${padding.left - 5}" y="${chartHeight - padding.bottom}" text-anchor="end" fill="#666">${minValue.toFixed(0)}</text>
+                            <text x="${padding.left - 5}" y="${padding.top + 5}" text-anchor="end" fill="#666">${maxValue.toFixed(decimalPlaces)}</text>
+                            <text x="${padding.left - 5}" y="${chartHeight - padding.bottom}" text-anchor="end" fill="#666">${minValue.toFixed(decimalPlaces)}</text>
                             
                             <!-- Line -->
                             <path d="${pathData}" fill="none" stroke="#3498db" stroke-width="2"/>
                             
-                            <!-- Data points -->
+                            <!-- Data points with native browser tooltips -->
                             ${timeSeriesData.map((d, i) => {
                                 const x = padding.left + (i / (timeSeriesData.length - 1)) * plotWidth;
                                 const y = padding.top + plotHeight - ((d.value - minValue) / valueRange) * plotHeight;
                                 const isCurrent = i === currentIndex;
-                                return `<circle cx="${x}" cy="${y}" r="${isCurrent ? 5 : 2}" fill="${isCurrent ? '#e74c3c' : '#3498db'}" stroke="${isCurrent ? '#c0392b' : 'none'}" stroke-width="${isCurrent ? 2 : 0}"/>`;
+                                // Only show non-current points as small circles
+                                if (!isCurrent && showValues) {
+                                    return `<circle cx="${x}" cy="${y}" r="3" fill="#3498db" style="cursor: pointer;"><title>${d.value.toFixed(decimalPlaces)}</title></circle>`;
+                                } else if (!isCurrent) {
+                                    return `<circle cx="${x}" cy="${y}" r="3" fill="#3498db"/>`;
+                                }
+                                return '';
                             }).join('')}
                             
-                            <!-- Current point label -->
-                            ${currentIndex >= 0 ? `
-                                <text x="${currentX}" y="${currentY - 10}" text-anchor="middle" fill="#e74c3c" font-weight="bold" font-size="11px">${row[valueField]}</text>
-                            ` : ''}
+                            <!-- Current point indicator (red dot with white outline) -->
+                            ${currentIndex >= 0 && showValues ? `
+                                <circle cx="${currentX}" cy="${currentY}" r="5" 
+                                        fill="#e74c3c" stroke="white" stroke-width="2" style="cursor: pointer;">
+                                    <title>Current: ${row[valueField]}</title>
+                                </circle>
+                            ` : (currentIndex >= 0 ? `
+                                <circle cx="${currentX}" cy="${currentY}" r="5" 
+                                        fill="#e74c3c" stroke="white" stroke-width="2"/>
+                            ` : '')}
                         </svg>
                         <div style="font-size: 0.7rem; color: #666; margin-top: 0.25rem;">
-                            ${currentIndex >= 0 ? `<span style="color: #e74c3c;">●</span> Current point: ${row[timeField]}` : ''}
+                            ${currentIndex >= 0 ? `<span style="color: #e74c3c;">●</span> Current: ${row[timeField]} = ${row[valueField]}` : ''}
+                            ${showValues ? '<br>Hover over points to see values' : ''}
                         </div>
                     </div>
                 `;
@@ -4481,8 +4632,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     columns.forEach(col => {
                         let value = row[col] !== null && row[col] !== undefined ? row[col] : '';
                         
-                        // Check if this field should display as an image
-                        if (imageFields.has(col) && typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'))) {
+                        // AUTOMATIC IMAGE DETECTION: Check if this value is an image URL
+                        if (isImageURL(value)) {
                             value = `<img src="${value}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
                         }
                         
@@ -4502,28 +4653,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 dataContent = '<table>';
                 columns.forEach(col => {
                     if (selectedFields.has(col) && row[col] !== null && row[col] !== undefined && row[col] !== '') {
-                        // Check if this field should display as an image
-                        if (imageFields.has(col)) {
+                        // AUTOMATIC IMAGE DETECTION: Check if this value is an image URL
+                        if (isImageURL(row[col])) {
                             const url = row[col];
-                            if (typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
-                                if (showHeadings) {
-                                    dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
-                                } else {
-                                    dataContent += `<tr><td colspan="2"><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
-                                }
+                            if (showHeadings) {
+                                dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
                             } else {
-                                // Determine text length class
-                                const textLength = String(row[col]).length;
-                                const textClass = textLength > 200 ? 'very-long-text' : (textLength > 100 ? 'long-text' : '');
-                                
-                                if (showHeadings) {
-                                    dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td class="${textClass}">${row[col]}</td></tr>`;
-                                } else {
-                                    dataContent += `<tr><td colspan="2" class="${textClass}">${row[col]}</td></tr>`;
-                                }
+                                dataContent += `<tr><td colspan="2"><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
                             }
                         } else {
-                            // Determine text length class
+                            // Regular text display
                             const textLength = String(row[col]).length;
                             const textClass = textLength > 200 ? 'very-long-text' : (textLength > 100 ? 'long-text' : '');
                             
@@ -4538,35 +4677,76 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 dataContent += '</table>';
             }
             
-            // Build final popup with or without tabs
-            if (hasChart) {
-                // Get custom tab labels (default to "1" and "2")
-                const tab1Label = document.getElementById('popupTab1Label')?.value || '1';
-                const tab2Label = document.getElementById('popupTab2Label')?.value || '2';
+            // Debug logging
+            console.log('dataContent before check:', dataContent.substring(0, 200));
+            console.log('selectedFields size:', selectedFields.size);
+            console.log('useTemplate:', useTemplate);
+            
+            // Ensure dataContent is never completely empty - add fallback
+            if (!dataContent || dataContent === '<table></table>' || dataContent.trim() === '' || dataContent.trim() === '<table></table>') {
+                console.log('!!! dataContent is empty, using fallback');
+                dataContent = '<div style="padding: 1rem;"><p style="color: #7f8c8d; font-style: italic;">No data fields selected for display. Please select fields in "Select Fields to Display" section.</p></div>';
+            }
+            
+            // Build final popup with smart graphic handling
+            // Check if user wants to enable second tab
+            const enableSecondTab = document.getElementById('enableSecondTab')?.checked || false;
+            
+            // Detect if there are images in the data content
+            const hasImage = dataContent.includes('<img');
+            
+            // Count total graphics (chart + images)
+            const graphicCount = (hasChart ? 1 : 0) + (hasImage ? 1 : 0);
+            
+            // Decide whether to use tabs
+            const useTabs = enableSecondTab && graphicCount >= 1;
+            
+            if (!useTabs) {
+                // No tabs - show everything together
+                let combinedContent = '';
+                if (hasChart) {
+                    combinedContent += chartHTML;
+                    if (dataContent.trim()) {
+                        combinedContent += '<div style="border-top: 1px solid #dee2e6; margin-top: 0.75rem; padding-top: 0.75rem;">' + dataContent + '</div>';
+                    }
+                } else {
+                    combinedContent = dataContent;
+                }
                 
-                // Use tabbed layout
-                popupContent = `
-                    <div class="popup-content">
-                        <h3>${popupTitleText}</h3>
-                        <div class="popup-tabs">
-                            <button class="popup-tab active" onclick="showPopupTab(event, 'info')">${tab1Label}</button>
-                            <button class="popup-tab" onclick="showPopupTab(event, 'chart')">${tab2Label}</button>
-                        </div>
-                        <div id="popup-info" class="popup-tab-content active" style="max-height: 300px; overflow-y: auto;">
-                            ${dataContent}
-                        </div>
-                        <div id="popup-chart" class="popup-tab-content" style="max-height: 300px; overflow-y: auto;">
-                            ${chartHTML}
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Simple layout without tabs
                 popupContent = `
                     <div class="popup-content">
                         <h3>${popupTitleText}</h3>
                         <div style="max-height: 300px; overflow-y: auto;">
+                            ${combinedContent}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Use tabs with swap button
+                const tab1CustomLabel = document.getElementById('popupTab1Label')?.value.trim() || '';
+                const tab2CustomLabel = document.getElementById('popupTab2Label')?.value.trim() || '';
+                
+                // Generate tab labels: "1" or "1: Custom Label"
+                const tab1Label = tab1CustomLabel ? `1: ${tab1CustomLabel}` : '1';
+                const tab2Label = tab2CustomLabel ? `2: ${tab2CustomLabel}` : '2';
+                
+                console.log('Tab label generation:', {tab1CustomLabel, tab2CustomLabel, tab1Label, tab2Label});
+                
+                popupContent = `
+                    <div class="popup-content">
+                        <h3>${popupTitleText}</h3>
+                        <div class="popup-tabs" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 2px solid #dee2e6;">
+                            <div style="display: flex;">
+                                <button class="popup-tab active" onclick="showPopupTab(event, 'info')" style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid #3498db; margin-bottom: -2px; font-weight: 500; min-width: 2rem; color: #2c3e50;">${tab1Label}</button>
+                                <button class="popup-tab" onclick="showPopupTab(event, 'chart')" style="padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; min-width: 2rem; color: #2c3e50;">${tab2Label}</button>
+                            </div>
+                            <button onclick="swapPopupTabs(event)" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer;">⇄ Swap</button>
+                        </div>
+                        <div id="popup-info" class="popup-tab-content active" style="max-height: 300px; overflow-y: auto;">
                             ${dataContent}
+                        </div>
+                        <div id="popup-chart" class="popup-tab-content" style="max-height: 300px; overflow-y: auto; display: none;">
+                            ${chartHTML}
                         </div>
                     </div>
                 `;
@@ -4604,18 +4784,87 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Hide all tab contents in this popup
             const tabContents = popup.querySelectorAll('.popup-tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
             
             // Remove active class from all tabs in this popup
             const tabs = popup.querySelectorAll('.popup-tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.borderBottom = '2px solid transparent';
+            });
             
             // Show selected tab content
             const selectedContent = popup.querySelector(`#popup-${tabId}`);
-            if (selectedContent) selectedContent.classList.add('active');
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+                selectedContent.style.display = 'block';
+            }
             
             // Mark tab as active
             event.target.classList.add('active');
+            event.target.style.borderBottom = '2px solid #3498db';
+        };
+        
+        window.swapPopupTabs = function(event) {
+            event.stopPropagation();
+            console.log('Swap button clicked!');
+            const popup = event.target.closest('.leaflet-popup-content');
+            if (!popup) {
+                console.log('Could not find popup');
+                return;
+            }
+            
+            // Find tabs and their content
+            const tabs = popup.querySelectorAll('.popup-tab');
+            const tabContents = popup.querySelectorAll('.popup-tab-content');
+            
+            console.log('Found', tabs.length, 'tabs and', tabContents.length, 'content areas');
+            
+            if (tabs.length !== 2 || tabContents.length !== 2) {
+                console.log('Wrong number of tabs or content areas');
+                return;
+            }
+            
+            // Parse tab labels: "1" or "1: Custom Label"
+            const parseTabLabel = (text) => {
+                const trimmed = text.trim();
+                if (trimmed === '1' || trimmed === '2') {
+                    return { number: trimmed, label: '' };
+                }
+                const match = trimmed.match(/^([12]):\s*(.*)$/);
+                if (match) {
+                    return { number: match[1], label: match[2] };
+                }
+                // Fallback
+                return { number: '1', label: trimmed };
+            };
+            
+            const tab0 = parseTabLabel(tabs[0].textContent);
+            const tab1 = parseTabLabel(tabs[1].textContent);
+            
+            console.log('Before swap - Tab 0:', tab0);
+            console.log('Before swap - Tab 1:', tab1);
+            
+            // IMPORTANT: Numbers stay with positions, only labels swap
+            // Position 0 keeps "1", position 1 keeps "2"
+            const newTab0 = tab1.label ? `1: ${tab1.label}` : '1';  // Position 0 = always "1"
+            const newTab1 = tab0.label ? `2: ${tab0.label}` : '2';  // Position 1 = always "2"
+            
+            tabs[0].textContent = newTab0;
+            tabs[1].textContent = newTab1;
+            
+            console.log('After swap - Tab 0:', tabs[0].textContent);
+            console.log('After swap - Tab 1:', tabs[1].textContent);
+            
+            // Swap tab content (innerHTML)
+            const tempContent = tabContents[0].innerHTML;
+            tabContents[0].innerHTML = tabContents[1].innerHTML;
+            tabContents[1].innerHTML = tempContent;
+            
+            console.log('Content swapped successfully');
         };
 
         function findReplace() {
@@ -6413,7 +6662,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     color: '#333',
                     fillColor: '#666',
                     fillOpacity: 0.8,
-                    weight: 2
+                    weight: 2,
+                    pane: 'drawingsPane' // Always on top
                 }).addTo(map);
                 
                 node._nodeIndex = i;
@@ -6455,7 +6705,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     fillColor: '#fff',
                     fillOpacity: 0.6,
                     weight: 2,
-                    opacity: 0.6
+                    opacity: 0.6,
+                    pane: 'drawingsPane' // Always on top
                 }).addTo(map);
                 
                 ghost._afterIndex = i;
@@ -6491,7 +6742,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     fillColor: '#fff',
                     fillOpacity: 0.6,
                     weight: 2,
-                    opacity: 0.6
+                    opacity: 0.6,
+                    pane: 'drawingsPane' // Always on top
                 }).addTo(map);
                 
                 ghost._afterIndex = lastIdx;
@@ -6858,8 +7110,82 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
         }
         
+        function updateEditingLineStyle() {
+            if (editingFeatureIndex === null) return;
+            
+            const feature = drawnFeatures[editingFeatureIndex];
+            if (!feature || !feature.layer) return;
+            
+            const newColor = document.getElementById('editLineColor').value;
+            const newWidth = parseInt(document.getElementById('editLineWidth').value) || 2;
+            
+            // Update feature style
+            feature.style = feature.style || {};
+            feature.style.color = newColor;
+            feature.style.width = newWidth;
+            feature.color = newColor; // For arrows
+            
+            // Apply to layer
+            feature.layer.setStyle({
+                color: newColor,
+                weight: newWidth + 2, // +2 during editing for visibility
+                fillOpacity: feature.style.fillOpacity || 0.2
+            });
+            
+            // Update arrows if they exist
+            if (feature.arrowStyle && feature.arrowStyle !== 'none') {
+                updateFeatureArrows(feature);
+            }
+        }
+        
+        function updateEditingLineVisibility() {
+            if (editingFeatureIndex === null) return;
+            
+            const feature = drawnFeatures[editingFeatureIndex];
+            if (!feature || !feature.layer) return;
+            
+            const visible = document.getElementById('editLineVisible').checked;
+            
+            // Update feature visibility
+            feature.visible = visible;
+            
+            if (visible) {
+                feature.layer.setStyle({ opacity: 1, fillOpacity: feature.style.fillOpacity || 0.2 });
+            } else {
+                feature.layer.setStyle({ opacity: 0, fillOpacity: 0 });
+            }
+            
+            // Hide/show arrows
+            if (feature.layer._endArrow) {
+                feature.layer._endArrow.setOpacity(visible ? 1 : 0);
+            }
+            if (feature.layer._startArrow) {
+                feature.layer._startArrow.setOpacity(visible ? 1 : 0);
+            }
+        }
+        
+        function cancelLineEdit() {
+            // Just exit without saving changes (they're already applied in real-time)
+            exitLineEditMode();
+        }
+        
         function showEditInstructions() {
             const instructions = document.getElementById('editInstructions') || createEditInstructions();
+            
+            // Populate current values
+            if (editingFeatureIndex !== null) {
+                const feature = drawnFeatures[editingFeatureIndex];
+                if (feature) {
+                    const colorInput = document.getElementById('editLineColor');
+                    const widthInput = document.getElementById('editLineWidth');
+                    const visibleInput = document.getElementById('editLineVisible');
+                    
+                    if (colorInput) colorInput.value = feature.style?.color || feature.color || '#3498db';
+                    if (widthInput) widthInput.value = feature.style?.width || 2;
+                    if (visibleInput) visibleInput.checked = feature.visible !== false;
+                }
+            }
+            
             instructions.style.display = 'block';
         }
         
@@ -6878,20 +7204,39 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 top: 10px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.9);
                 color: white;
                 padding: 12px 20px;
                 border-radius: 8px;
                 z-index: 1000;
                 font-size: 14px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                min-width: 350px;
             `;
             instructions.innerHTML = `
                 <strong>⚡ Edit Mode</strong><br>
                 <span style="color: #aaa;">● Grey dots</span> - Drag to move, Right-click to delete<br>
                 <span style="color: #fff;">○ White dots</span> - Click to add node<br>
-                <button onclick="exitLineEditMode()" style="margin-top: 8px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">✓ Done</button>
-                <button onclick="exitLineEditMode()" style="margin-left: 8px; padding: 4px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #555;">
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 12px;">Line color:</label>
+                        <input type="color" id="editLineColor" value="#3498db" onchange="updateEditingLineStyle()" style="width: 40px; height: 25px; border: none; border-radius: 3px; cursor: pointer;">
+                        <label style="font-size: 12px; margin-left: 10px;">Width:</label>
+                        <input type="number" id="editLineWidth" value="2" min="1" max="10" onchange="updateEditingLineStyle()" style="width: 50px; padding: 3px; border-radius: 3px; border: 1px solid #666; background: #333; color: white;">
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 12px; display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="editLineVisible" checked onchange="updateEditingLineVisibility()" style="margin-right: 5px;">
+                            Line visible
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px; display: flex; gap: 8px;">
+                    <button onclick="exitLineEditMode()" style="flex: 1; padding: 6px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">✓ Done</button>
+                    <button onclick="cancelLineEdit()" style="flex: 1; padding: 6px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+                </div>
             `;
             document.body.appendChild(instructions);
             return instructions;
@@ -7429,6 +7774,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             } else {
                 content.style.display = 'none';
                 arrow.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        function togglePopupSizeConfig() {
+            const content = document.getElementById('popupSizeContent');
+            const arrow = document.getElementById('popupSizeArrow');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.display = 'none';
+                if (arrow) arrow.style.transform = 'rotate(-90deg)';
             }
         }
 
@@ -8233,6 +8591,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let measurementPoints = [];
         let measurementLayer = null;
         let coordTrackingActive = false;
+        let georeferenceMarker = null; // Persistent marker for georeference
         
         function startDistanceMeasurement() {
             if (!map) {
@@ -8531,13 +8890,30 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
             
             coordTrackingActive = document.getElementById('coordTrackingEnabled').checked;
+            const mapContainer = document.getElementById('map');
             
             if (coordTrackingActive) {
                 document.getElementById('coordResult').style.display = 'block';
                 map.on('click', showCoordinates);
+                
+                // Change cursor to crosshair when active
+                if (mapContainer) {
+                    mapContainer.style.cursor = 'crosshair';
+                }
             } else {
                 document.getElementById('coordResult').style.display = 'none';
                 map.off('click', showCoordinates);
+                
+                // Remove persistent georeference marker
+                if (georeferenceMarker) {
+                    map.removeLayer(georeferenceMarker);
+                    georeferenceMarker = null;
+                }
+                
+                // Reset cursor to default
+                if (mapContainer) {
+                    mapContainer.style.cursor = '';
+                }
             }
         }
         
@@ -8546,6 +8922,48 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             let lat = e.latlng.lat;
             let lon = e.latlng.lng;
+            
+            // Remove previous georeference marker if it exists
+            if (georeferenceMarker) {
+                map.removeLayer(georeferenceMarker);
+            }
+            
+            // Create temporary fading marker for visual feedback
+            const tempMarker = L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: '#ff9800',
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            
+            // Animate fading marker
+            setTimeout(() => {
+                tempMarker.setStyle({ fillOpacity: 0.6, opacity: 0.7 });
+            }, 600);
+            setTimeout(() => {
+                tempMarker.setStyle({ fillOpacity: 0.4, opacity: 0.5 });
+            }, 1200);
+            setTimeout(() => {
+                tempMarker.setStyle({ fillOpacity: 0.2, opacity: 0.3 });
+            }, 1800);
+            setTimeout(() => {
+                tempMarker.setStyle({ fillOpacity: 0, opacity: 0 });
+            }, 2200);
+            setTimeout(() => {
+                map.removeLayer(tempMarker);
+            }, 2500);
+            
+            // Create persistent marker that stays until next click
+            georeferenceMarker = L.circleMarker(e.latlng, {
+                radius: 6,
+                fillColor: '#ff9800',
+                color: '#fff',
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.6
+            }).addTo(map);
             
             // Normalize longitude to -180 to 180 range
             while (lon > 180) lon -= 360;
@@ -9201,11 +9619,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     styleControls.innerHTML = `
                         <div class="color-size-group">
                             <div class="form-group">
-                                <label for="plateLineColor">Line Color</label>
+                                <label for="plateLineColor">Line color</label>
                                 <input type="color" id="plateLineColor" value="${currentColor}" oninput="updateOverlayStyle()" onchange="updateOverlayStyle()">
                             </div>
                             <div class="form-group">
-                                <label for="plateLineWidth">Line Width</label>
+                                <label for="plateLineWidth">Line width</label>
                                 <input type="number" id="plateLineWidth" value="${currentWidth}" min="1" max="10" step="1" oninput="updateOverlayStyle()" onchange="updateOverlayStyle()">
                             </div>
                         </div>
@@ -9217,7 +9635,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 case 'tectonic-names':
                     styleControls.innerHTML = `
                         <div class="form-group">
-                            <label for="plateNameSize">Label Size</label>
+                            <label for="plateNameSize">Label size</label>
                             <select id="plateNameSize" onchange="updateOverlayStyle()">
                                 <option value="small">Small</option>
                                 <option value="medium" selected>Medium</option>
@@ -9237,7 +9655,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     styleControls.innerHTML = `
                         <div class="color-size-group">
                             <div class="form-group">
-                                <label for="gridLineColor">Grid Color</label>
+                                <label for="gridLineColor">Grid color</label>
                                 <input type="color" id="gridLineColor" value="${currentGridColor}" oninput="updateOverlayStyle()" onchange="updateOverlayStyle()">
                             </div>
                             <div class="form-group">
@@ -10514,6 +10932,7 @@ Press OK to copy full config to console.`;
             document.getElementById('popupSection').style.display = 'none';
             document.getElementById('infoSection').style.display = 'none';
             document.getElementById('saveExportSection').style.display = 'none';
+            document.getElementById('symbolTypeSection').style.display = 'none';
             document.getElementById('symbolConfigSection').style.display = 'none';
             document.getElementById('editDataSection').style.display = 'none';
             document.getElementById('timeAnimationSection').style.display = 'none';
@@ -11037,10 +11456,22 @@ Press OK to copy full config to console.`;
                                 }
                             }
                             
-                            if (s.showChartComparison !== undefined) {
-                                const elem = document.getElementById('showChartComparison');
-                                if (elem) elem.checked = s.showChartComparison;
+                            // Restore chart type with backward compatibility
+                            if (s.chartType) {
+                                const elem = document.getElementById('chartType');
+                                if (elem) {
+                                    elem.value = s.chartType;
+                                    toggleChartTypeSettings(); // Update UI
+                                }
+                            } else if (s.showChartComparison !== undefined) {
+                                // Backward compatibility: convert old checkbox to new chart type
+                                const elem = document.getElementById('chartType');
+                                if (elem && s.showChartComparison) {
+                                    elem.value = 'bar-comparison';
+                                    toggleChartTypeSettings();
+                                }
                             }
+                            
                             if (s.chartTitleCustom) {
                                 const elem = document.getElementById('chartTitleCustom');
                                 if (elem) elem.value = s.chartTitleCustom;
@@ -11131,7 +11562,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.8.35 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.6 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
