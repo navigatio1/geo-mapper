@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.6 - POLISH & FUNCTIONALITY FIXES: (1) Fixed button size mismatch: "Select all" and "Deselect all" now same height (removed margin-top from btn-secondary), (2) Data points now render above drawings (z-index 660 via markersPane), (3) Georeference marker now persistent with fading animation - old marker removed when new location clicked, cleared when feature turned off, (4) Added line style editing to polygon/freehand edit mode: color picker, width slider, visibility toggle in edit panel, (5) Fixed Diagnostic Info styling: white text on blue background matching other sections. All previous v2.9.x improvements maintained. -->
+<!-- Geo Mapper v2.9.23 - THE BOTTLENECK FIX! CRITICAL: Animation Speed was the limiting factor! Changed: min 0.1→0.01 seconds (100x faster possible!), default 1→0.3 seconds (3x faster default), max 10→5 seconds, step 0.1→0.01 (fine control). NOW you can set Animation Speed to 0.05 or 0.1 seconds per step for RAPID typhoon-style animation! At 0.05s with 37 points = 1.85 seconds total (vs 37 seconds at old default). Pulse Travel Speed formula already linear from v2.9.22. This is the real speed fix! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.6</title>
+    <title>Geo Mapper v2.9.23</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.6</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.23</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1401,11 +1401,11 @@
                         <div class="color-size-group">
                             <div class="form-group">
                                 <label for="minClassSize">Smallest Class Size</label>
-                                <input type="number" id="minClassSize" value="6" min="3" max="15" onchange="updateClassification()" oninput="updateClassification()">
+                                <input type="number" id="minClassSize" value="6" min="3" max="15" onchange="updateClassification()" oninput="debouncedUpdateClassification()">
                             </div>
                             <div class="form-group">
                                 <label for="maxClassSize">Largest Class Size</label>
-                                <input type="number" id="maxClassSize" value="20" min="10" max="50" onchange="updateClassification()" oninput="updateClassification()">
+                                <input type="number" id="maxClassSize" value="20" min="10" max="50" onchange="updateClassification()" oninput="debouncedUpdateClassification()">
                             </div>
                         </div>
                         <div class="form-group">
@@ -1549,31 +1549,108 @@
                 <div id="timeAnimationSettings" style="display: none;">
                     <div class="form-group">
                         <label for="animationSpeed">Animation Speed (seconds per step)</label>
-                        <input type="number" id="animationSpeed" value="1" min="0.1" max="10" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="showTrail" style="width: auto; margin-right: 0.5rem;" onchange="if(this.checked) document.getElementById('trailOnly').checked = false;">
-                            <span>Show trail (connect points with line)</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="trailOnly" style="width: auto; margin-right: 0.5rem;" onchange="if(this.checked) document.getElementById('showTrail').checked = false;">
-                            <span>Trail only (hide points, show line only)</span>
-                        </label>
+                        <input type="number" id="animationSpeed" value="0.3" min="0.01" max="5" step="0.01">
                         <div class="info-text">
-                            ℹ️ Useful for hurricane tracks, flight paths, etc.
+                            ℹ️ Lower = faster! Try 0.1 or 0.05 for rapid animation
                         </div>
                     </div>
-                    <div class="color-size-group">
+                    
+                    <!-- NEW: Animation Mode Selector -->
+                    <div class="form-group">
+                        <label for="animationMode">Animation Style</label>
+                        <select id="animationMode" onchange="toggleAnimationMode()">
+                            <option value="standard">Standard (sequential points)</option>
+                            <option value="pulse">Pulse (wave along path)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Standard mode controls -->
+                    <div id="standardModeControls">
                         <div class="form-group">
-                            <label for="trailColor">Trail Color</label>
-                            <input type="color" id="trailColor" value="#3498db">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="showTrail" style="width: auto; margin-right: 0.5rem;" onchange="if(this.checked) document.getElementById('trailOnly').checked = false;">
+                                <span>Show trail (connect points with line)</span>
+                            </label>
                         </div>
                         <div class="form-group">
-                            <label for="trailWidth">Trail Width</label>
-                            <input type="number" id="trailWidth" value="3" min="1" max="10">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="trailOnly" style="width: auto; margin-right: 0.5rem;" onchange="if(this.checked) document.getElementById('showTrail').checked = false;">
+                                <span>Trail only (hide points, show line only)</span>
+                            </label>
+                            <div class="info-text">
+                                ℹ️ Useful for hurricane tracks, flight paths, etc.
+                            </div>
+                        </div>
+                        <div class="color-size-group">
+                            <div class="form-group">
+                                <label for="trailColor">Trail Color</label>
+                                <input type="color" id="trailColor" value="#3498db">
+                            </div>
+                            <div class="form-group">
+                                <label for="trailWidth">Trail Width</label>
+                                <input type="number" id="trailWidth" value="3" min="1" max="10">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NEW: Pulse mode controls -->
+                    <div id="pulseModeControls" style="display: none;">
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="pulseLoop" style="width: auto; margin-right: 0.5rem;">
+                                <span>Loop animation (repeat continuously)</span>
+                            </label>
+                        </div>
+                        <div class="color-size-group">
+                            <div class="form-group">
+                                <label for="pulseColor">Pulse Color</label>
+                                <input type="color" id="pulseColor" value="#ff6b6b">
+                            </div>
+                            <div class="form-group">
+                                <label for="pulseSize">Pulse Size (px)</label>
+                                <input type="number" id="pulseSize" value="12" min="4" max="30" step="2">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pulseSpeed">Pulse Travel Speed</label>
+                            <input type="range" id="pulseSpeed" value="2500" min="10" max="12000" step="10">
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">
+                                Slower ← → PLAID! (max: 12000)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pulseTrailLength">Pulse Trail Length</label>
+                            <input type="range" id="pulseTrailLength" value="25" min="10" max="50" step="5">
+                            <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem;">
+                                Shorter ← → Longer (10-50% of points visible)
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="pulseOnly" style="width: auto; margin-right: 0.5rem;" checked>
+                                <span>Pulse only (hide point markers, show pulses only)</span>
+                            </label>
+                            <div class="info-text">
+                                ℹ️ Like trail-only mode, but with animated pulses
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="pulseShowLines" style="width: auto; margin-right: 0.5rem;">
+                                <span>Show connecting lines</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="pulseGlow" style="width: auto; margin-right: 0.5rem;" checked>
+                                <span>Glow effect (firefly style)</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="pulseOutline" style="width: auto; margin-right: 0.5rem;">
+                                <span>Show outline (white border)</span>
+                            </label>
                         </div>
                     </div>
                     <div id="animationControls" style="display: none; margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
@@ -1589,7 +1666,8 @@
                         <button class="btn" onclick="exportTrailAsGeoJSON()" style="background: #16a085; margin-top: 0.75rem; width: 100%;">📥 Export Trail as GeoJSON</button>
                     </div>
                     <div class="info-text">
-                        ℹ️ Points will appear sequentially. Click points to see pop-ups during animation.
+                        ℹ️ <strong>Standard mode:</strong> Points appear sequentially with optional trail line.<br>
+                        ℹ️ <strong>Pulse mode:</strong> Animated pulse travels along path connecting points (great for tropical storms, hotspots, flight paths).
                     </div>
                 </div>
                 </div>
@@ -1736,7 +1814,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <label for="chartType" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart type:</label>
                             <select id="chartType" onchange="toggleChartTypeSettings()" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
                                 <option value="bar">Column chart (vertical bars)</option>
-                                <option value="bar-comparison">Column chart with comparison bars</option>
                                 <option value="timeseries">Line chart</option>
                             </select>
                         </div>
@@ -2058,6 +2135,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     <div id="drawnFeaturesList" style="font-size: 0.875rem; color: #7f8c8d;">
                         No features drawn yet
                     </div>
+                    
+                    <!-- Global Drawing Visibility Control -->
+                    <div id="globalDrawingVisibility" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e8f4f8; border-radius: 4px;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">All drawings visibility:</label>
+                        <input type="range" min="0" max="100" value="100" oninput="updateAllDrawingsVisibility(this.value)" style="width: 100%;">
+                        <div style="text-align: center; font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem;">
+                            <span id="globalVisibilityValue">100%</span>
+                        </div>
+                    </div>
+                    
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
                         <button class="btn" onclick="exportDrawingsGeoJSON()" style="background: #3498db; font-size: 0.85rem;">📥 Export GeoJSON</button>
                         <button class="btn" onclick="exportDrawingsGPX()" style="background: #9b59b6; font-size: 0.85rem;">📥 Export GPX</button>
@@ -2104,11 +2191,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         🔧 Diagnostic Info
                     </summary>
                     <div class="section-content" style="background: #f8f9fa; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 0.5rem;">
-                        <button onclick="copyDiagnostics()" style="width: 100%; padding: 0.5rem; background: #2980b9; color: white; border: none; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; cursor: pointer;">
+                        <button onclick="copyDiagnostics()" style="width: 100%; padding: 0.5rem; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; cursor: pointer; font-weight: 600;">
                             📋 Copy diagnostics to clipboard
                         </button>
                         <details style="margin-top: 0.5rem;">
-                            <summary style="cursor: pointer; padding: 0.5rem; background: #e8f4f8; border-radius: 4px; font-size: 0.85rem; color: #2c3e50; font-weight: 500;">
+                            <summary style="cursor: pointer; padding: 0.5rem; background: #3498db; color: white; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
                                 View diagnostic details
                             </summary>
                             <div id="diagnosticOutput" style="margin-top: 0.5rem; padding: 0.75rem; background: white; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto;">
@@ -2240,6 +2327,59 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 return afterExt === '' || afterExt === '?' || afterExt === '#';
             });
         }
+        
+        // Functions to disable/enable marker clicks during drawing/edit modes
+        function disableMarkerInteractivity() {
+            // Disable click events on ALL markers in the markerLayer
+            if (markerLayer) {
+                markerLayer.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                        // Store original handler
+                        layer._originalClickHandler = layer._events && layer._events.click ? layer._events.click.slice() : null;
+                        // Remove all click handlers
+                        layer.off('click');
+                    }
+                });
+            }
+            
+            // Also set pointer-events and z-index as backup
+            const markersPane = map.getPane('markersPane');
+            if (markersPane) {
+                markersPane.style.pointerEvents = 'none';
+                markersPane._originalZIndex = markersPane.style.zIndex;
+                markersPane.style.zIndex = '0';
+            }
+            console.log('Markers disabled: click handlers removed, pointer-events=none, z-index=0');
+        }
+        
+        function enableMarkerInteractivity() {
+            // Re-enable click events on all markers
+            if (markerLayer) {
+                markerLayer.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                        // Restore original click handlers
+                        if (layer._originalClickHandler) {
+                            layer._originalClickHandler.forEach(function(handler) {
+                                layer.on('click', handler.fn, handler.ctx);
+                            });
+                            delete layer._originalClickHandler;
+                        }
+                    }
+                });
+            }
+            
+            // Restore pointer-events and z-index
+            const markersPane = map.getPane('markersPane');
+            if (markersPane) {
+                markersPane.style.pointerEvents = '';
+                if (markersPane._originalZIndex) {
+                    markersPane.style.zIndex = markersPane._originalZIndex;
+                } else {
+                    markersPane.style.zIndex = '660';
+                }
+            }
+            console.log('Markers enabled: click handlers restored, pointer-events restored, z-index=' + (markersPane ? markersPane.style.zIndex : 'unknown'));
+        }
         let currentBasemap;
         let labelsLayer = null;
         let basemapLayers = {};
@@ -2259,6 +2399,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let currentAnimationStep = 0;
         let animationData = [];
         let trailPolyline = null;
+        
+        // Pulse animation variables (v2.9.23)
+        let pulseMarkers = []; // Animated pulse circles
+        let pulseLines = []; // Connecting lines for pulse mode
+        let pulseAnimationFrames = []; // Animation frame requests
+        let pulseLoopActive = false; // Whether pulse animation should loop
         
         // Drawing tool variables
         let drawingMode = null;
@@ -2784,12 +2930,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Create a custom pane for data markers with high z-index
             map.createPane('markersPane');
-            map.getPane('markersPane').style.zIndex = 660; // Above drawings (650) but below popups (700)
+            map.getPane('markersPane').style.zIndex = 660; // Above overlays but below measurements
             markerLayer = L.layerGroup({pane: 'markersPane'}).addTo(map);
             
-            // Create a custom pane for drawings with high z-index so they're always on top
+            // Create a custom pane for measurements with z-index between markers and drawings
+            map.createPane('measurementsPane');
+            map.getPane('measurementsPane').style.zIndex = 665; // Above markers but below drawings
+            
+            // Create a custom pane for drawings with highest z-index so they're always on top
             map.createPane('drawingsPane');
-            map.getPane('drawingsPane').style.zIndex = 650; // Above overlays (400) but below popups (700)
+            map.getPane('drawingsPane').style.zIndex = 670; // Above everything except popups (700)
             
             // Initialize drawing layer early so Clear All Drawings works even without CSV
             drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
@@ -3687,7 +3837,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!drawnFeaturesLayer) {
                 if (!map.getPane('drawingsPane')) {
                     map.createPane('drawingsPane');
-                    map.getPane('drawingsPane').style.zIndex = 650;
+                    map.getPane('drawingsPane').style.zIndex = 670;
                 }
                 drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
             }
@@ -4944,6 +5094,24 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
         }
 
+        
+        // Toggle between standard and pulse animation modes (v2.9.23)
+        function toggleAnimationMode() {
+            const mode = document.getElementById('animationMode').value;
+            const standardControls = document.getElementById('standardModeControls');
+            const pulseControls = document.getElementById('pulseModeControls');
+            
+            if (mode === 'pulse') {
+                standardControls.style.display = 'none';
+                pulseControls.style.display = 'block';
+                console.log('Switched to PULSE animation mode');
+            } else {
+                standardControls.style.display = 'block';
+                pulseControls.style.display = 'none';
+                console.log('Switched to STANDARD animation mode');
+            }
+        }
+        
         function prepareAnimation() {
             const timeField = document.getElementById('timeField').value;
             if (!timeField) return;
@@ -5000,13 +5168,23 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function playAnimation() {
             if (animationInterval) return; // Already playing
             
+            const mode = document.getElementById('animationMode').value;
+            
+            if (mode === 'pulse') {
+                playPulseAnimation();
+            } else {
+                playStandardAnimation();
+            }
+        }
+        
+        function playStandardAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             
-            console.log(`Starting animation: ${animationData.length} points, step ${currentAnimationStep}, speed ${speed}ms`);
+            console.log(`Starting STANDARD animation: ${animationData.length} points, step ${currentAnimationStep}, speed ${speed}ms`);
             
             animationInterval = setInterval(() => {
                 if (currentAnimationStep >= animationData.length) {
-                    console.log('Animation complete');
+                    console.log('Standard animation complete');
                     pauseAnimation();
                     return;
                 }
@@ -5022,12 +5200,350 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('playBtn').disabled = true;
             document.getElementById('pauseBtn').disabled = false;
         }
+        
+        // NEW: Pulse Animation (v2.9.23)
+        function playPulseAnimation() {
+            const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
+            const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
+            const loop = document.getElementById('pulseLoop').checked;
+            const pulseOnly = document.getElementById('pulseOnly').checked;
+            
+            console.log(`Starting PULSE animation: ${animationData.length} points, speed ${speed}ms, pulse speed ${pulseSpeed}`);
+            
+            // CRITICAL: Hide existing markers if pulse-only mode is active
+            if (pulseOnly && markerLayer) {
+                console.log('Pulse-only mode: Hiding existing markers');
+                markerLayer.eachLayer(function(layer) {
+                    layer.setOpacity(0); // Hide markers instead of removing them
+                });
+            }
+            
+            pulseLoopActive = true;
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            
+            function runPulseSequence() {
+                if (!pulseLoopActive) return;
+                
+                currentAnimationStep = 0;
+                
+                function showNextPulseStep() {
+                    if (!pulseLoopActive) return;
+                    
+                    if (currentAnimationStep >= animationData.length) {
+                        console.log('Pulse animation sequence complete');
+                        if (loop) {
+                            console.log('Looping pulse animation...');
+                            setTimeout(() => {
+                                // Clear previous markers and lines
+                                clearPulseAnimation();
+                                runPulseSequence();
+                            }, speed);
+                        } else {
+                            pauseAnimation();
+                        }
+                        return;
+                    }
+                    
+                    showPulseStep(currentAnimationStep);
+                    currentAnimationStep++;
+                    
+                    // Update progress
+                    document.getElementById('animationSlider').value = currentAnimationStep;
+                    document.getElementById('animationProgress').textContent = `${currentAnimationStep} / ${animationData.length}`;
+                    
+                    setTimeout(showNextPulseStep, speed);
+                }
+                
+                showNextPulseStep();
+            }
+            
+            runPulseSequence();
+        }
+        
+        function showPulseStep(step) {
+            if (step >= animationData.length) return;
+            
+            const row = animationData[step];
+            const latCol = document.getElementById('latColumn').value;
+            const lonCol = document.getElementById('lonColumn').value;
+            const lat = parseFloat(row[latCol]);
+            const lon = parseFloat(row[lonCol]);
+            
+            if (isNaN(lat) || isNaN(lon)) {
+                console.warn(`Pulse step ${step}: Invalid coordinates`);
+                return;
+            }
+            
+            // Get marker configuration
+            const shape = document.getElementById('markerShape').value;
+            const color = document.getElementById('markerColor').value;
+            const size = parseInt(document.getElementById('markerSize').value);
+            const strokeColor = document.getElementById('strokeColor').value;
+            const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+            
+            // Get pulse configuration
+            const pulseColor = document.getElementById('pulseColor').value;
+            const pulseSize = parseInt(document.getElementById('pulseSize').value);
+            const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
+            const pulseOnly = document.getElementById('pulseOnly').checked;
+            const pulseGlow = document.getElementById('pulseGlow').checked;
+            const pulseOutline = document.getElementById('pulseOutline').checked;
+            const pulseShowLines = document.getElementById('pulseShowLines').checked;
+            const pulseTrailLength = parseInt(document.getElementById('pulseTrailLength').value);
+            
+            // Calculate fade duration based on trail length
+            // If animation speed is 1s per point and trail length is 25%, we want ~9 pulses visible (25% of 37)
+            // So fade duration = animation_speed * (trail_length_percentage / 100) * total_points
+            const animSpeed = parseFloat(document.getElementById('animationSpeed').value);
+            const fadeDuration = animSpeed * (pulseTrailLength / 100) * animationData.length * 1000; // Convert to ms
+            
+            // Add the point marker (unless pulse-only mode)
+            if (!pulseOnly) {
+                const icon = getMarkerIcon(shape, color, size, strokeColor, strokeWidth, 0);
+                const marker = L.marker([lat, lon], { icon: icon }).addTo(markerLayer);
+                
+                // Add popup
+                const popupContent = createPopupContent(row);
+                const popupOptions = createPopupOptions();
+                marker.bindPopup(popupContent, popupOptions);
+                
+                // Smart popup positioning
+                marker.on('popupopen', function(e) {
+                    const popup = e.popup;
+                    const map = e.target._map;
+                    const markerLatLng = e.target.getLatLng();
+                    
+                    setTimeout(function() {
+                        const popupElement = popup._container;
+                        if (!popupElement) return;
+                        
+                        const popupHeight = Math.min(popupElement.offsetHeight, 400);
+                        const markerPoint = map.latLngToContainerPoint(markerLatLng);
+                        const mapContainer = map.getContainer();
+                        const mapHeight = mapContainer.offsetHeight;
+                        
+                        const spaceAbove = markerPoint.y;
+                        const spaceBelow = mapHeight - markerPoint.y;
+                        
+                        if (spaceBelow < popupHeight + 50 && spaceAbove > spaceBelow) {
+                            popup.options.offset = [0, -45];
+                        } else {
+                            popup.options.offset = [25, -25];
+                        }
+                        
+                        popup.update();
+                    }, 10);
+                });
+                
+                pulseMarkers.push(marker);
+            }
+            
+            // If there's a next point, animate pulse (and optionally draw line)
+            if (step < animationData.length - 1) {
+                const nextRow = animationData[step + 1];
+                const nextLat = parseFloat(nextRow[latCol]);
+                const nextLon = parseFloat(nextRow[lonCol]);
+                
+                if (!isNaN(nextLat) && !isNaN(nextLon)) {
+                    // Draw connecting line (only if enabled)
+                    if (pulseShowLines) {
+                        const line = L.polyline([[lat, lon], [nextLat, nextLon]], {
+                            color: pulseColor,
+                            weight: 3,
+                            opacity: 0.6
+                        }).addTo(map);
+                        
+                        pulseLines.push(line);
+                    }
+                    
+                    // Animate pulse along the path
+                    animatePulse([lat, lon], [nextLat, nextLon], pulseColor, pulseSize, pulseSpeed, pulseGlow, pulseOutline, fadeDuration);
+                }
+            }
+        }
+        
+        function animatePulse(fromLatLng, toLatLng, color, size, speed, glow, outline, fadeDuration) {
+            // LINEAR speed formula: higher speed = shorter duration (directly proportional)
+            // Old formula: 1000 / (speed / 50) created hyperbolic curve with diminishing returns
+            // New formula: Direct linear relationship - doubling speed doubles the visual speed!
+            const duration = 10000 / speed; // speed=12000 → 0.83ms, speed=1000 → 10ms
+            const startTime = Date.now();
+            
+            // Build style for pulse with glow and optional outline
+            let boxShadow = '';
+            let border = 'none';
+            
+            if (glow) {
+                // Firefly-style glow: multiple layered shadows for intense glow
+                boxShadow = `
+                    0 0 ${size * 0.5}px ${color},
+                    0 0 ${size}px ${color},
+                    0 0 ${size * 1.5}px ${color},
+                    0 0 ${size * 2}px ${color}
+                `;
+            }
+            
+            if (outline) {
+                border = '2px solid white';
+            }
+            
+            // Easing function for smoother motion (ease-out-quad)
+            function easeOutQuad(t) {
+                return t * (2 - t);
+            }
+            
+            // Create pulse marker
+            const pulseIcon = L.divIcon({
+                className: '',
+                html: `<div class="pulse-dot" style="
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    border: ${border};
+                    border-radius: 50%;
+                    box-shadow: ${boxShadow};
+                    opacity: 1;
+                "></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2]
+            });
+            
+            const pulseMarker = L.marker(fromLatLng, { icon: pulseIcon, interactive: false }).addTo(map);
+            pulseMarker._pulseAge = 0; // Track age for fading
+            pulseMarkers.push(pulseMarker);
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const linearProgress = Math.min(elapsed / duration, 1);
+                
+                // Apply easing for smoother motion
+                const progress = easeOutQuad(linearProgress);
+                
+                // Interpolate with easing
+                const lat = fromLatLng[0] + (toLatLng[0] - fromLatLng[0]) * progress;
+                const lon = fromLatLng[1] + (toLatLng[1] - fromLatLng[1]) * progress;
+                
+                pulseMarker.setLatLng([lat, lon]);
+                
+                if (linearProgress < 1 && pulseLoopActive) {
+                    const frameId = requestAnimationFrame(animate);
+                    pulseAnimationFrames.push(frameId);
+                } else {
+                    // Pulse reached destination - start fading trail
+                    startPulseFade(pulseMarker, glow, color, size, border, fadeDuration);
+                }
+            }
+            
+            animate();
+        }
+        
+        // Fading trail effect for pulses
+        function startPulseFade(pulseMarker, glow, color, size, border, fadeDuration) {
+            const fadeStartTime = Date.now();
+            // Use custom fade duration (calculated from trail length slider)
+            
+            function fade() {
+                if (!pulseLoopActive || !map.hasLayer(pulseMarker)) {
+                    return;
+                }
+                
+                const elapsed = Date.now() - fadeStartTime;
+                const progress = Math.min(elapsed / fadeDuration, 1);
+                const opacity = 1 - progress; // Fade from 1 to 0
+                
+                // Update pulse appearance with fading
+                let boxShadow = '';
+                if (glow) {
+                    boxShadow = `
+                        0 0 ${size * 0.5 * opacity}px ${color},
+                        0 0 ${size * opacity}px ${color},
+                        0 0 ${size * 1.5 * opacity}px ${color},
+                        0 0 ${size * 2 * opacity}px ${color}
+                    `;
+                }
+                
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div class="pulse-dot" style="
+                        width: ${size}px;
+                        height: ${size}px;
+                        background: ${color};
+                        border: ${border};
+                        border-radius: 50%;
+                        box-shadow: ${boxShadow};
+                        opacity: ${opacity};
+                    "></div>`,
+                    iconSize: [size, size],
+                    iconAnchor: [size/2, size/2]
+                });
+                
+                pulseMarker.setIcon(icon);
+                
+                if (progress < 1 && pulseLoopActive) {
+                    const frameId = requestAnimationFrame(fade);
+                    pulseAnimationFrames.push(frameId);
+                } else {
+                    // Fade complete - remove pulse
+                    if (map.hasLayer(pulseMarker)) {
+                        map.removeLayer(pulseMarker);
+                    }
+                    // Remove from pulseMarkers array
+                    const index = pulseMarkers.indexOf(pulseMarker);
+                    if (index > -1) {
+                        pulseMarkers.splice(index, 1);
+                    }
+                }
+            }
+            
+            fade();
+        }
+        
+        function clearPulseAnimation() {
+            // Clear all pulse markers and lines
+            pulseMarkers.forEach(m => {
+                if (map.hasLayer(m)) {
+                    map.removeLayer(m);
+                }
+            });
+            pulseMarkers = [];
+            
+            pulseLines.forEach(l => {
+                if (map.hasLayer(l)) {
+                    map.removeLayer(l);
+                }
+            });
+            pulseLines = [];
+            
+            // Cancel all animation frames
+            pulseAnimationFrames.forEach(id => cancelAnimationFrame(id));
+            pulseAnimationFrames = [];
+            
+            // DO NOT clear markerLayer here - it contains the original plotted points
+            // Those markers are managed separately (hidden/shown via opacity)
+        }
 
         function pauseAnimation() {
+            // Stop standard animation
             if (animationInterval) {
                 clearInterval(animationInterval);
                 animationInterval = null;
             }
+            
+            // Stop pulse animation
+            pulseLoopActive = false;
+            
+            // Cancel all pulse animation frames
+            pulseAnimationFrames.forEach(id => cancelAnimationFrame(id));
+            pulseAnimationFrames = [];
+            
+            // Restore marker visibility (in case they were hidden for pulse-only mode)
+            if (markerLayer) {
+                markerLayer.eachLayer(function(layer) {
+                    layer.setOpacity(1); // Restore full opacity
+                });
+            }
+            
             document.getElementById('playBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
         }
@@ -5035,26 +5551,40 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function resetAnimation() {
             console.log('Resetting animation');
             pauseAnimation();
+            
             currentAnimationStep = 0;
+            
+            // Clear standard animation elements
             markerLayer.clearLayers();
             if (trailPolyline) {
                 cleanupEditMarkers(trailPolyline);
                 map.removeLayer(trailPolyline);
                 trailPolyline = null;
             }
+            
+            // Clear pulse animation elements
+            clearPulseAnimation();
+            
             document.getElementById('animationSlider').value = 0;
             document.getElementById('animationProgress').textContent = `0 / ${animationData.length}`;
             
             console.log(`Animation reset. Ready to play ${animationData.length} points.`);
-            // Clear all points so animation can start fresh
-            // Don't call plotPoints - leave map empty for animation
         }
 
         function seekAnimation(value) {
             pauseAnimation();
             currentAnimationStep = parseInt(value);
             
-            // Clear and redraw up to this point
+            // Check animation mode - pulse mode doesn't use the slider the same way
+            const animMode = document.getElementById('animationMode').value;
+            
+            // In pulse mode, slider just updates the step counter (no redraw needed)
+            if (animMode === 'pulse') {
+                console.log('Seek in pulse mode: Just updating step counter, no redraw');
+                return; // Don't redraw anything in pulse mode
+            }
+            
+            // Standard mode: Clear and redraw up to this point
             markerLayer.clearLayers();
             if (trailPolyline) {
                 cleanupEditMarkers(trailPolyline);
@@ -5370,6 +5900,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Disable double-click zoom during drawing
             map.doubleClickZoom.disable();
             
+            // Disable marker interactivity so clicks go through to drawing
+            disableMarkerInteractivity();
+            
             map.on('click', onDrawClick);
             map.on('dblclick', finishDrawing);
             
@@ -5394,6 +5927,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             map.getContainer().style.cursor = 'crosshair';
             map.doubleClickZoom.disable();
+            
+            // Disable marker interactivity so clicks go through to drawing
+            disableMarkerInteractivity();
             
             // Add mousedown listener to start freehand
             map.on('mousedown', onFreehandStart);
@@ -5873,6 +6409,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
             
             if (tempDrawingLayer) {
+                // CRITICAL: Remove preview arrows before removing the temp layer
+                if (tempDrawingLayer._endArrow) {
+                    map.removeLayer(tempDrawingLayer._endArrow);
+                    tempDrawingLayer._endArrow = null;
+                }
+                if (tempDrawingLayer._startArrow) {
+                    map.removeLayer(tempDrawingLayer._startArrow);
+                    tempDrawingLayer._startArrow = null;
+                }
                 map.removeLayer(tempDrawingLayer);
                 tempDrawingLayer = null;
             }
@@ -6117,6 +6662,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Re-enable double-click zoom
             map.doubleClickZoom.enable();
+            
+            // Re-enable marker interactivity
+            enableMarkerInteractivity();
         }
 
         function cancelDrawing(e) {
@@ -6168,6 +6716,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Re-enable double-click zoom
             map.doubleClickZoom.enable();
+            
+            // Re-enable marker interactivity
+            enableMarkerInteractivity();
         }
 
         // NEW: Direct marker arrows (no polyline decorator needed)
@@ -6217,16 +6768,23 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
 
         function updateDrawnFeaturesList() {
             const list = document.getElementById('drawnFeaturesList');
+            const globalControl = document.getElementById('globalDrawingVisibility');
             
             if (drawnFeatures.length === 0) {
                 list.innerHTML = '<span style="color: #7f8c8d;">No features drawn yet</span>';
+                if (globalControl) globalControl.style.display = 'none';
                 return;
             }
+            
+            // Show global control when features exist
+            if (globalControl) globalControl.style.display = 'block';
             
             let html = '';
             drawnFeatures.forEach((feature, index) => {
                 const icon = feature.type === 'marker' ? '📍' : feature.type === 'line' ? '📏' : '⬟';
                 const label = feature.label ? `: "${feature.label}"` : '';
+                const isVisible = feature.visible !== false; // Default true
+                const fillOpacity = feature.style?.fillOpacity ?? 0.2;
                 
                 // Add arrow style dropdown for lines and edit buttons
                 let arrowControl = '';
@@ -6243,24 +6801,120 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <option value="both" ${currentArrowStyle === 'both' ? 'selected' : ''}>Both ⬌</option>
                         </select>
                     `;
-                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit nodes">🔧</button>`;
+                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit Mode">🔧</button>`;
                 } else if (feature.type === 'polygon') {
-                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit nodes">🔧</button>`;
+                    editButton = `<button onclick="enterLineEditMode(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit Mode">🔧</button>`;
                 } else if (feature.type === 'marker') {
                     editButton = `<button onclick="enterPointEditMode(${index})" style="background: #e67e22; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Move & color">📍</button>`;
                 }
                 
-                html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; margin-bottom: 0.5rem;">
-                    <span style="flex: 1;">${icon} ${feature.type.charAt(0).toUpperCase() + feature.type.slice(1)} ${index + 1}${label}</span>
-                    <div style="display: flex; gap: 0.25rem; align-items: center;">
-                        ${arrowControl}
-                        ${editButton}
-                        <button onclick="editFeatureLabel(${index})" style="background: #3498db; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit label">✏️</button>
-                        <button onclick="deleteDrawnFeature(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Delete">🗑️</button>
+                html += `
+                    <div style="background: #f8f9fa; border-radius: 4px; margin-bottom: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                <button onclick="toggleFeatureControls(${index})" style="background: none; border: none; cursor: pointer; padding: 0; font-size: 0.9rem; color: #7f8c8d;" title="Show/hide controls">
+                                    <span id="featureToggle${index}">▶</span>
+                                </button>
+                                <span style="flex: 1;">${icon} ${feature.type.charAt(0).toUpperCase() + feature.type.slice(1)} ${index + 1}${label}</span>
+                            </div>
+                            <div style="display: flex; gap: 0.25rem; align-items: center;">
+                                ${arrowControl}
+                                ${editButton}
+                                <button onclick="editFeatureLabel(${index})" style="background: #3498db; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Edit label">✏️</button>
+                                <button onclick="deleteDrawnFeature(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                        <div id="featureControls${index}" style="display: none; padding: 0 0.5rem 0.5rem 0.5rem; border-top: 1px solid #dee2e6;">
+                            <div style="margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="toggleFeatureVisibility(${index}, this.checked)" style="margin-right: 0.5rem;">
+                                    Visible
+                                </label>
+                                ${feature.type === 'polygon' ? `
+                                    <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Fill opacity: <span id="fillOpacityValue${index}">${Math.round(fillOpacity * 100)}%</span></label>
+                                    <input type="range" min="0" max="100" value="${fillOpacity * 100}" oninput="updateFeatureFillOpacity(${index}, this.value)" style="width: 100%;">
+                                ` : ''}
+                            </div>
+                        </div>
                     </div>
-                </div>`;
+                `;
             });
             list.innerHTML = html;
+        }
+        
+        function updateAllDrawingsVisibility(value) {
+            const opacity = value / 100;
+            document.getElementById('globalVisibilityValue').textContent = `${Math.round(opacity * 100)}%`;
+            
+            drawnFeatures.forEach(feature => {
+                if (!feature.layer) return;
+                
+                // Only update if feature is marked as visible
+                if (feature.visible !== false) {
+                    const currentFillOpacity = feature.style?.fillOpacity || 0.2;
+                    feature.layer.setStyle({ 
+                        opacity: opacity,
+                        fillOpacity: currentFillOpacity * opacity
+                    });
+                    
+                    // Update arrows
+                    if (feature.layer._endArrow) feature.layer._endArrow.setOpacity(opacity);
+                    if (feature.layer._startArrow) feature.layer._startArrow.setOpacity(opacity);
+                }
+            });
+        }
+        
+        function toggleFeatureControls(index) {
+            const controlsDiv = document.getElementById(`featureControls${index}`);
+            const toggleIcon = document.getElementById(`featureToggle${index}`);
+            
+            if (controlsDiv.style.display === 'none') {
+                controlsDiv.style.display = 'block';
+                toggleIcon.textContent = '▼';
+            } else {
+                controlsDiv.style.display = 'none';
+                toggleIcon.textContent = '▶';
+            }
+        }
+        
+        function toggleFeatureVisibility(index, isVisible) {
+            const feature = drawnFeatures[index];
+            if (!feature || !feature.layer) return;
+            
+            feature.visible = isVisible;
+            
+            if (isVisible) {
+                feature.layer.setStyle({ opacity: 1, fillOpacity: feature.style?.fillOpacity || 0.2 });
+                // Recreate arrows if they should exist
+                if (feature.arrowStyle && feature.arrowStyle !== 'none') {
+                    updateFeatureArrows(feature);
+                }
+            } else {
+                feature.layer.setStyle({ opacity: 0, fillOpacity: 0 });
+                // Remove arrows completely when hiding
+                if (feature.layer._endArrow) {
+                    drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                    feature.layer._endArrow = null;
+                }
+                if (feature.layer._startArrow) {
+                    drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                    feature.layer._startArrow = null;
+                }
+            }
+        }
+        
+        function updateFeatureFillOpacity(index, value) {
+            const feature = drawnFeatures[index];
+            if (!feature || !feature.layer || feature.type !== 'polygon') return;
+            
+            const opacity = value / 100;
+            feature.style = feature.style || {};
+            feature.style.fillOpacity = opacity;
+            
+            feature.layer.setStyle({ fillOpacity: opacity });
+            
+            // Update display
+            document.getElementById(`fillOpacityValue${index}`).textContent = `${Math.round(opacity * 100)}%`;
         }
         
         function updateFeatureArrowStyle(index, newArrowStyle) {
@@ -6637,6 +7291,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             editingFeatureIndex = index;
             
+            // Disable marker interactivity during editing
+            disableMarkerInteractivity();
+            
             // Arrows stay visible during editing - they'll update in real-time as nodes are dragged
             // The aggressive location-based cleanup in updateFeatureArrows() prevents orphans
             
@@ -6658,7 +7315,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Create grey dots for existing vertices
             latlngs.forEach((latlng, i) => {
                 const node = L.circleMarker(latlng, {
-                    radius: 6,
+                    radius: 8,
                     color: '#333',
                     fillColor: '#666',
                     fillOpacity: 0.8,
@@ -6684,10 +7341,10 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 // Hover effect
                 node.on('mouseover', function() {
-                    this.setStyle({ radius: 8, fillColor: '#999' });
+                    this.setStyle({ radius: 10, fillColor: '#999' });
                 });
                 node.on('mouseout', function() {
-                    this.setStyle({ radius: 6, fillColor: '#666' });
+                    this.setStyle({ radius: 8, fillColor: '#666' });
                 });
                 
                 editingNodes.push(node);
@@ -6703,9 +7360,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     radius: 5,
                     color: '#fff',
                     fillColor: '#fff',
-                    fillOpacity: 0.6,
+                    fillOpacity: 1.0,
                     weight: 2,
-                    opacity: 0.6,
+                    opacity: 1.0,
                     pane: 'drawingsPane' // Always on top
                 }).addTo(map);
                 
@@ -6723,7 +7380,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     this.setStyle({ radius: 7, fillOpacity: 1, opacity: 1 });
                 });
                 ghost.on('mouseout', function() {
-                    this.setStyle({ radius: 5, fillOpacity: 0.6, opacity: 0.6 });
+                    this.setStyle({ radius: 5 });
                 });
                 
                 editingMidpoints.push(ghost);
@@ -6740,9 +7397,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     radius: 5,
                     color: '#fff',
                     fillColor: '#fff',
-                    fillOpacity: 0.6,
+                    fillOpacity: 1.0,
                     weight: 2,
-                    opacity: 0.6,
+                    opacity: 1.0,
                     pane: 'drawingsPane' // Always on top
                 }).addTo(map);
                 
@@ -6758,7 +7415,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     this.setStyle({ radius: 7, fillOpacity: 1, opacity: 1 });
                 });
                 ghost.on('mouseout', function() {
-                    this.setStyle({ radius: 5, fillOpacity: 0.6, opacity: 0.6 });
+                    this.setStyle({ radius: 5 });
                 });
                 
                 editingMidpoints.push(ghost);
@@ -7107,6 +7764,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 // ALWAYS reset editing index
                 editingFeatureIndex = null;
+                
+                // Re-enable marker interactivity
+                enableMarkerInteractivity();
             }
         }
         
@@ -7151,16 +7811,21 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             if (visible) {
                 feature.layer.setStyle({ opacity: 1, fillOpacity: feature.style.fillOpacity || 0.2 });
+                // Recreate arrows if they should exist
+                if (feature.arrowStyle && feature.arrowStyle !== 'none') {
+                    updateFeatureArrows(feature);
+                }
             } else {
                 feature.layer.setStyle({ opacity: 0, fillOpacity: 0 });
-            }
-            
-            // Hide/show arrows
-            if (feature.layer._endArrow) {
-                feature.layer._endArrow.setOpacity(visible ? 1 : 0);
-            }
-            if (feature.layer._startArrow) {
-                feature.layer._startArrow.setOpacity(visible ? 1 : 0);
+                // Remove arrows completely when hiding
+                if (feature.layer._endArrow) {
+                    drawnFeaturesLayer.removeLayer(feature.layer._endArrow);
+                    feature.layer._endArrow = null;
+                }
+                if (feature.layer._startArrow) {
+                    drawnFeaturesLayer.removeLayer(feature.layer._startArrow);
+                    feature.layer._startArrow = null;
+                }
             }
         }
         
@@ -7204,31 +7869,32 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 top: 10px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.9);
+                background: #2c3e50;
                 color: white;
                 padding: 12px 20px;
                 border-radius: 8px;
                 z-index: 1000;
                 font-size: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
                 min-width: 350px;
+                border: 2px solid #34495e;
             `;
             instructions.innerHTML = `
-                <strong>⚡ Edit Mode</strong><br>
-                <span style="color: #aaa;">● Grey dots</span> - Drag to move, Right-click to delete<br>
-                <span style="color: #fff;">○ White dots</span> - Click to add node<br>
+                <strong>⚡ Edit mode</strong><br>
+                <span style="color: #bdc3c7; font-size: 20px;">●</span> <span style="color: #bdc3c7;">Grey dots</span> - Drag to move, Right-click to delete<br>
+                <span style="color: #fff; font-size: 14px;">●</span> <span style="color: #fff;">White dots</span> - Click to add node<br>
                 
-                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #555;">
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #7f8c8d;">
                     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
-                        <label style="font-size: 12px;">Line color:</label>
+                        <label style="font-size: 13px; font-weight: 500;">Line color:</label>
                         <input type="color" id="editLineColor" value="#3498db" onchange="updateEditingLineStyle()" style="width: 40px; height: 25px; border: none; border-radius: 3px; cursor: pointer;">
-                        <label style="font-size: 12px; margin-left: 10px;">Width:</label>
-                        <input type="number" id="editLineWidth" value="2" min="1" max="10" onchange="updateEditingLineStyle()" style="width: 50px; padding: 3px; border-radius: 3px; border: 1px solid #666; background: #333; color: white;">
+                        <label style="font-size: 13px; font-weight: 500; margin-left: 10px;">Width:</label>
+                        <input type="number" id="editLineWidth" value="2" min="1" max="10" onchange="updateEditingLineStyle()" style="width: 50px; padding: 3px; border-radius: 3px; border: 1px solid #7f8c8d; background: #34495e; color: white;">
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <label style="font-size: 12px; display: flex; align-items: center; cursor: pointer;">
+                    <div style="display: flex; align-items: center;">
+                        <label style="font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; cursor: pointer; white-space: nowrap;" title="Uncheck to show only edit nodes without the line">
                             <input type="checkbox" id="editLineVisible" checked onchange="updateEditingLineVisibility()" style="margin-right: 5px;">
-                            Line visible
+                            Line visible <span style="font-size: 10px; color: #95a5a6; margin-left: 2px;">(toggle for points only)</span>
                         </label>
                     </div>
                 </div>
@@ -7273,6 +7939,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             editingPointIndex = index;
             
+            // Disable marker interactivity during editing
+            disableMarkerInteractivity();
+            
             // Make marker draggable
             feature.layer.dragging.enable();
             
@@ -7304,6 +7973,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             updateDrawnFeaturesList();
             
             editingPointIndex = null;
+            
+            // Re-enable marker interactivity
+            enableMarkerInteractivity();
         }
         
         function updatePointColor(newColor) {
@@ -8137,6 +8809,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             buildLegend();
         }
         
+        // Debounce utility for class size inputs to prevent lag
+        let classificationDebounceTimer = null;
+        function debouncedUpdateClassification() {
+            clearTimeout(classificationDebounceTimer);
+            classificationDebounceTimer = setTimeout(() => {
+                updateClassification();
+            }, 300); // Wait 300ms after user stops typing
+        }
+        
         function updateClassification() {
             const sizeByField = document.getElementById('sizeByField').value;
             if (!sizeByField || !csvData) return;
@@ -8611,6 +9292,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('distanceCancelBtn').style.display = 'block';
             map.getContainer().style.cursor = 'crosshair';
             
+            // Disable marker interactivity during measurement
+            disableMarkerInteractivity();
+            
             map.on('click', onMeasurementClick);
             map.on('dblclick', finishDistanceMeasurement);
             
@@ -8648,6 +9332,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('distanceFinishBtn').style.display = 'none';
             document.getElementById('distanceCancelBtn').style.display = 'none';
             measurementMode = null;
+            
+            // Re-enable marker interactivity
+            enableMarkerInteractivity();
         }
         
         function startAreaMeasurement() {
@@ -8667,6 +9354,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('areaCancelBtn').style.display = 'block';
             map.getContainer().style.cursor = 'crosshair';
             
+            // Disable marker interactivity during measurement
+            disableMarkerInteractivity();
+            
             map.on('click', onMeasurementClick);
             
             alert('Click on the map to add points. Click "Finish" button when done (need at least 3 points).');
@@ -8682,7 +9372,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 if (measurementLayer) {
                     map.removeLayer(measurementLayer);
                 }
-                measurementLayer = L.layerGroup().addTo(map);
+                measurementLayer = L.layerGroup({pane: 'measurementsPane'}).addTo(map);
                 
                 if (measurementPoints.length > 1) {
                     // Draw line
@@ -8724,7 +9414,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 if (measurementLayer) {
                     map.removeLayer(measurementLayer);
                 }
-                measurementLayer = L.layerGroup().addTo(map);
+                measurementLayer = L.layerGroup({pane: 'measurementsPane'}).addTo(map);
                 
                 if (measurementPoints.length > 2) {
                     L.polygon(measurementPoints, {
@@ -8812,6 +9502,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 document.getElementById('areaCancelBtn').style.display = 'none';
                 measurementMode = null;
                 
+                // Re-enable marker interactivity
+                enableMarkerInteractivity();
+                
                 console.log('Area measurement completed successfully');
             } catch (error) {
                 console.error('Error calculating area:', error);
@@ -8843,6 +9536,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('distanceCancelBtn').style.display = 'none';
             document.getElementById('areaFinishBtn').style.display = 'none';
             document.getElementById('areaCancelBtn').style.display = 'none';
+            
+            // Re-enable marker interactivity
+            enableMarkerInteractivity();
         }
         
         // Copy functions for measurements
@@ -8896,6 +9592,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 document.getElementById('coordResult').style.display = 'block';
                 map.on('click', showCoordinates);
                 
+                // Disable marker interactivity so clicks go to georeference
+                disableMarkerInteractivity();
+                
                 // Change cursor to crosshair when active
                 if (mapContainer) {
                     mapContainer.style.cursor = 'crosshair';
@@ -8903,6 +9602,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             } else {
                 document.getElementById('coordResult').style.display = 'none';
                 map.off('click', showCoordinates);
+                
+                // Re-enable marker interactivity
+                enableMarkerInteractivity();
                 
                 // Remove persistent georeference marker
                 if (georeferenceMarker) {
@@ -11562,7 +12264,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.6 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.23 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
