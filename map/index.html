@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.32 - OCEAN CURRENTS VISIBILITY FIX! IMPROVED: Ocean currents now much more visible with thicker default lines (6px, up to 8px) and full opacity (0.9). Shows 18 major global currents with clear color coding: Warm currents (red tones: Gulf Stream, Kuroshio, Brazil Current) vs Cold currents (blue tones: California, Peru/Humboldt, Labrador). Adjustable line width slider (1-8px). Loads from local file or GitHub. Perfect for oceanography education. BIOMES: Requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing, image field detection, single share button, data editor CSV download. Both ocean currents and biomes ready for 3D globe. -->
+<!-- Geo Mapper v2.9.34 - UI IMPROVEMENTS! FIXED: Changed "Overlay Layers" to "Overlays" for cleaner UI. Added icons to all overlays: 🗺️ Tectonic Boundaries, 🏷️ Plate Names, 🌐 Lat/Long Grid, 🏙️ Major Cities, 🌍 Biomes, 🌊 Ocean Currents. Ocean currents ready for v5 data with ultra-dense coordinates for truly smooth curves. All v2.9.33 fixes preserved: improved arrow indicators (12px, configurable spacing, 0.9 opacity). BIOMES: Requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing. Both ocean currents and biomes ready for 3D globe. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.32</title>
+    <title>Geo Mapper v2.9.34</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.32</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.34</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1120,26 +1120,26 @@
             </details>
 
             <details class="section">
-                <summary class="section-title">📚 Overlay Layers</summary>
+                <summary class="section-title">📚 Overlays</summary>
                 <div class="section-content">
                 <div class="form-group">
                     <label>Select Overlays (multiple allowed)</label>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-tectonic-boundaries" value="tectonic-boundaries" onchange="toggleOverlay('tectonic-boundaries')" style="width: auto; margin-right: 0.5rem;">
-                            <span>Tectonic Plate Boundaries</span>
+                            <span>🗺️ Tectonic Plate Boundaries</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-tectonic-names" value="tectonic-names" onchange="toggleOverlay('tectonic-names')" style="width: auto; margin-right: 0.5rem;">
-                            <span>Tectonic Plate Names (Labels)</span>
+                            <span>🏷️ Tectonic Plate Names (Labels)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-lat-long-grid" value="lat-long-grid" onchange="toggleOverlay('lat-long-grid')" style="width: auto; margin-right: 0.5rem;">
-                            <span>Latitude/Longitude Grid</span>
+                            <span>🌐 Latitude/Longitude Grid</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-major-cities" value="major-cities" onchange="toggleOverlay('major-cities')" style="width: auto; margin-right: 0.5rem;">
-                            <span>Major Cities (Pop >7M Metro)</span>
+                            <span>🏙️ Major Cities (Pop >7M Metro)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-biomes" value="biomes" onchange="toggleOverlay('biomes')" style="width: auto; margin-right: 0.5rem;">
@@ -2467,7 +2467,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let animationData = [];
         let trailPolyline = null;
         
-        // Pulse animation variables (v2.9.32)
+        // Pulse animation variables (v2.9.34)
         let pulseMarkers = []; // Animated pulse circles
         let pulseLines = []; // Connecting lines for pulse mode
         let pulseAnimationFrames = []; // Animation frame requests
@@ -5210,7 +5210,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         
-        // Toggle between standard and pulse animation modes (v2.9.32)
+        // Toggle between standard and pulse animation modes (v2.9.34)
         function toggleAnimationMode() {
             const mode = document.getElementById('animationMode').value;
             const standardControls = document.getElementById('standardModeControls');
@@ -5316,7 +5316,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('pauseBtn').disabled = false;
         }
         
-        // NEW: Pulse Animation (v2.9.32)
+        // NEW: Pulse Animation (v2.9.34)
         function playPulseAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
@@ -10620,19 +10620,20 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 // Add arrow decorators to show direction
                 if (typeof L.polylineDecorator !== 'undefined') {
+                    const arrowSpacing = props.arrowSpacing || 250; // Use custom spacing or default
                     const decorator = L.polylineDecorator(currentLine, {
                         patterns: [
                             {
-                                offset: '50%',
-                                repeat: 200,
+                                offset: '20%',
+                                repeat: arrowSpacing,
                                 symbol: L.Symbol.arrowHead({
-                                    pixelSize: 8,
+                                    pixelSize: 12,
                                     polygon: false,
                                     pathOptions: {
                                         stroke: true,
-                                        weight: 2,
+                                        weight: 3,
                                         color: color,
-                                        opacity: overlayOpacity
+                                        opacity: 0.9
                                     }
                                 })
                             }
@@ -12627,7 +12628,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.32 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.34 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
