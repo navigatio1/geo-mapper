@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.31 - OCEAN CURRENTS OVERLAY! NEW FEATURE: Ocean currents overlay showing 18 major global currents with flow direction. Warm currents (red tones: Gulf Stream, Kuroshio, Brazil Current) vs Cold currents (blue tones: California, Peru/Humboldt, Labrador). Line-based rendering with adjustable width (1-5px). Loads from GitHub like other overlays. Perfect for oceanography education. BIOMES UPDATE: Now requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md for instructions. Removed broken hand-drawn biomes data. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing, image field detection, single share button, data editor CSV download. Both ocean currents and biomes ready for 3D globe. -->
+<!-- Geo Mapper v2.9.32 - OCEAN CURRENTS VISIBILITY FIX! IMPROVED: Ocean currents now much more visible with thicker default lines (6px, up to 8px) and full opacity (0.9). Shows 18 major global currents with clear color coding: Warm currents (red tones: Gulf Stream, Kuroshio, Brazil Current) vs Cold currents (blue tones: California, Peru/Humboldt, Labrador). Adjustable line width slider (1-8px). Loads from local file or GitHub. Perfect for oceanography education. BIOMES: Requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing, image field detection, single share button, data editor CSV download. Both ocean currents and biomes ready for 3D globe. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.31</title>
+    <title>Geo Mapper v2.9.32</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.31</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.32</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1241,8 +1241,8 @@
                     <div class="form-group">
                         <label for="currentsWidth">Line Width</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" id="currentsWidth" min="1" max="5" value="3" style="flex: 1;" oninput="reloadOverlay('ocean-currents'); document.getElementById('currentsWidthValue').textContent = this.value">
-                            <span id="currentsWidthValue" style="min-width: 35px; text-align: right;">3</span>
+                            <input type="range" id="currentsWidth" min="1" max="8" value="6" style="flex: 1;" oninput="reloadOverlay('ocean-currents'); document.getElementById('currentsWidthValue').textContent = this.value">
+                            <span id="currentsWidthValue" style="min-width: 35px; text-align: right;">6</span>
                         </div>
                     </div>
                     <div class="info-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
@@ -2467,7 +2467,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let animationData = [];
         let trailPolyline = null;
         
-        // Pulse animation variables (v2.9.31)
+        // Pulse animation variables (v2.9.32)
         let pulseMarkers = []; // Animated pulse circles
         let pulseLines = []; // Connecting lines for pulse mode
         let pulseAnimationFrames = []; // Animation frame requests
@@ -5210,7 +5210,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         
-        // Toggle between standard and pulse animation modes (v2.9.31)
+        // Toggle between standard and pulse animation modes (v2.9.32)
         function toggleAnimationMode() {
             const mode = document.getElementById('animationMode').value;
             const standardControls = document.getElementById('standardModeControls');
@@ -5316,7 +5316,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('pauseBtn').disabled = false;
         }
         
-        // NEW: Pulse Animation (v2.9.31)
+        // NEW: Pulse Animation (v2.9.32)
         function playPulseAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
@@ -10589,7 +10589,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
             }
             
-            const currentsWidth = parseInt(document.getElementById('currentsWidth')?.value || 3);
+            const currentsWidth = parseInt(document.getElementById('currentsWidth')?.value || 6);
             
             // Create layer group for all currents
             const layers = [];
@@ -10605,8 +10605,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     {
                         color: color,
                         weight: currentsWidth,
-                        opacity: overlayOpacity * 0.8,
-                        className: 'ocean-current'
+                        opacity: 0.9,
+                        className: 'ocean-current',
+                        pane: 'overlayPane'
                     }
                 );
                 
@@ -12626,7 +12627,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.31 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.32 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
