@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.23 - THE BOTTLENECK FIX! CRITICAL: Animation Speed was the limiting factor! Changed: min 0.1→0.01 seconds (100x faster possible!), default 1→0.3 seconds (3x faster default), max 10→5 seconds, step 0.1→0.01 (fine control). NOW you can set Animation Speed to 0.05 or 0.1 seconds per step for RAPID typhoon-style animation! At 0.05s with 37 points = 1.85 seconds total (vs 37 seconds at old default). Pulse Travel Speed formula already linear from v2.9.22. This is the real speed fix! -->
+<!-- Geo Mapper v2.9.31 - OCEAN CURRENTS OVERLAY! NEW FEATURE: Ocean currents overlay showing 18 major global currents with flow direction. Warm currents (red tones: Gulf Stream, Kuroshio, Brazil Current) vs Cold currents (blue tones: California, Peru/Humboldt, Labrador). Line-based rendering with adjustable width (1-5px). Loads from GitHub like other overlays. Perfect for oceanography education. BIOMES UPDATE: Now requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md for instructions. Removed broken hand-drawn biomes data. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing, image field detection, single share button, data editor CSV download. Both ocean currents and biomes ready for 3D globe. -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.23</title>
+    <title>Geo Mapper v2.9.31</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.23</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.31</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1141,6 +1141,14 @@
                             <input type="checkbox" id="overlay-major-cities" value="major-cities" onchange="toggleOverlay('major-cities')" style="width: auto; margin-right: 0.5rem;">
                             <span>Major Cities (Pop >7M Metro)</span>
                         </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <input type="checkbox" id="overlay-biomes" value="biomes" onchange="toggleOverlay('biomes')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🌍 Biomes (Terrestrial Ecosystems)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <input type="checkbox" id="overlay-ocean-currents" value="ocean-currents" onchange="toggleOverlay('ocean-currents')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🌊 Ocean Currents (Major Global)</span>
+                        </label>
                     </div>
                 </div>
                 
@@ -1173,11 +1181,11 @@
                     <div class="color-size-group">
                         <div class="form-group">
                             <label for="gridLineColor">Grid color</label>
-                            <input type="color" id="gridLineColor" value="#666666" oninput="reloadOverlay('lat-long-grid')" onchange="reloadOverlay('lat-long-grid')">
+                            <input type="color" id="gridLineColor" value="#00FAFF" oninput="reloadOverlay('lat-long-grid')" onchange="reloadOverlay('lat-long-grid')">
                         </div>
                         <div class="form-group">
                             <label for="gridSpacing">Grid Spacing (°)</label>
-                            <input type="number" id="gridSpacing" value="10" min="5" max="30" step="5" oninput="reloadOverlay('lat-long-grid')" onchange="reloadOverlay('lat-long-grid')">
+                            <input type="number" id="gridSpacing" value="30" min="5" max="30" step="5" oninput="reloadOverlay('lat-long-grid')" onchange="reloadOverlay('lat-long-grid')">
                         </div>
                     </div>
                 </div>
@@ -1211,6 +1219,34 @@
                             <label for="citySize">Marker Size</label>
                             <input type="number" id="citySize" value="6" min="3" max="12" step="1" oninput="reloadOverlay('major-cities')" onchange="reloadOverlay('major-cities')">
                         </div>
+                    </div>
+                </div>
+                
+                <div id="overlay-biomes-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0fff0; border-radius: 4px; border-left: 3px solid #27ae60;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">🌍 Biomes settings</div>
+                    <div class="form-group">
+                        <label for="biomesOpacity">Biomes Opacity (%)</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="biomesOpacity" min="10" max="100" value="40" style="flex: 1;" oninput="reloadOverlay('biomes'); document.getElementById('biomesOpacityValue').textContent = this.value">
+                            <span id="biomesOpacityValue" style="min-width: 35px; text-align: right;">40</span>
+                        </div>
+                    </div>
+                    <div class="info-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
+                        Download official RESOLVE Ecoregions 2017 from <a href="https://ecoregions.appspot.com/" target="_blank">ecoregions.appspot.com</a> and update GitHub URL in code. See BIOMES_DATA_GUIDE.md for instructions.
+                    </div>
+                </div>
+                
+                <div id="overlay-ocean-currents-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e6f3ff; border-radius: 4px; border-left: 3px solid #2196F3;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">🌊 Ocean currents settings</div>
+                    <div class="form-group">
+                        <label for="currentsWidth">Line Width</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="currentsWidth" min="1" max="5" value="3" style="flex: 1;" oninput="reloadOverlay('ocean-currents'); document.getElementById('currentsWidthValue').textContent = this.value">
+                            <span id="currentsWidthValue" style="min-width: 35px; text-align: right;">3</span>
+                        </div>
+                    </div>
+                    <div class="info-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
+                        Shows 18 major ocean currents. Red = warm currents, Blue = cold currents. Arrows indicate flow direction.
                     </div>
                 </div>
                 
@@ -1490,6 +1526,35 @@
                             <div class="form-group">
                                 <label for="strokeWidth">Outline width</label>
                                 <input type="number" id="strokeWidth" value="2" min="0" max="5">
+                            </div>
+                        </div>
+                        
+                        <!-- Halo controls (always available) -->
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="haloEnabled" onchange="plotPoints()" style="margin-right: 0.5rem;">
+                                Add Halo (outer glow)
+                            </label>
+                        </div>
+                        <div id="haloControls" style="display: none; margin-top: 0.5rem;">
+                            <div class="color-size-group">
+                                <div class="form-group">
+                                    <label for="haloColor">Halo color</label>
+                                    <input type="color" id="haloColor" value="#ffffff" onchange="plotPoints()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="haloSize">Halo size</label>
+                                    <input type="number" id="haloSize" value="12" min="4" max="60" onchange="plotPoints()">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="haloGlow" onchange="plotPoints()" style="margin-right: 0.5rem;">
+                                    Firefly glow (soft multi-layer)
+                                </label>
+                                <div class="info-text" style="font-size: 0.75rem; margin-top: 0.25rem;">
+                                    ℹ️ Creates soft, glowing effect like pulse animation
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1936,10 +2001,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 <div class="section-content">
                 <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
                 <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <button class="btn" onclick="generateShareURL()" style="background: #e67e22;">🔗 Share URL (Compressed)</button>
-                    <button class="btn" id="gistShareBtn" onclick="generateGistShareURL()" style="background: #9b59b6;">🔗 Share via GitHub Gist</button>
-                </div>
+                <button class="btn" onclick="generateShareURL()" style="background: #e67e22; width: 100%; margin-bottom: 0.5rem;">🔗 Share Map</button>
                 <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; width: 100%; display: none; margin-bottom: 0.5rem;">📋 Copy URL to Share</button>
                 <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 1rem; background: #ecf0f1; border-radius: 4px; max-height: 300px; overflow-y: auto;">
                     <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Share URL:</strong>
@@ -1950,9 +2012,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                 </div>
                 <div class="info-text">
-                    Save your map settings and data to work on later, or export as GeoJSON for use in GIS software.<br>
-                    <strong>Share URL (Compressed):</strong> Embeds data in URL - works offline but creates long URLs<br>
-                    <strong>Share via GitHub Gist:</strong> Creates super-short shareable links (requires GitHub token configured)
+                    Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.<br>
+                    <strong>Share Map:</strong> Creates a shareable URL with your data and settings embedded (compressed for shorter links)
                 </div>
                 </div>
             </details>
@@ -2284,6 +2345,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 </div>
             </div>
             
+            <div class="add-column-section">
+                <strong>📥 Export Updated Data:</strong>
+                <button class="btn" onclick="downloadUpdatedCSV()" style="background: #16a085; display: inline-block; width: auto; padding: 0.5rem 1rem;">💾 Download as CSV</button>
+                <span style="font-size: 0.75rem; color: #7f8c8d; margin-left: 0.5rem;">Filename will include update date</span>
+            </div>
+            
             <div class="data-table-container">
                 <table class="data-table" id="dataTable">
                     <thead id="dataTableHead"></thead>
@@ -2400,7 +2467,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let animationData = [];
         let trailPolyline = null;
         
-        // Pulse animation variables (v2.9.23)
+        // Pulse animation variables (v2.9.31)
         let pulseMarkers = []; // Animated pulse circles
         let pulseLines = []; // Connecting lines for pulse mode
         let pulseAnimationFrames = []; // Animation frame requests
@@ -2429,10 +2496,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         // Store overlay style settings
         let overlayLineColor = '#FF6B35';
         let overlayLineWidth = 2;
-        let overlayGridColor = '#666666';
-        let overlayGridSpacing = 10;
+        let overlayGridColor = '#00FAFF';
+        let overlayGridSpacing = 30;
         let overlayNameSize = 12;
         let tectonicPlatesData = null;
+        let biomesData = null;  // Will load from GitHub like tectonic plates
+        let oceanCurrentsData = null;  // Will load from GitHub
         let overlayOpacity = 0.7;
         
         // Chart variables
@@ -2862,6 +2931,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             safeAddListener('strokeWidth', 'input', debouncedPlotPoints);
             safeAddListener('markerSize2', 'input', debouncedPlotPoints);
             safeAddListener('markerShape', 'change', () => plotPoints(false)); // Immediate for dropdown
+            
+            // Halo controls
+            safeAddListener('haloEnabled', 'change', function() {
+                const controls = document.getElementById('haloControls');
+                controls.style.display = this.checked ? 'block' : 'none';
+                plotPoints(false);
+            });
             
             // Rotation changes
             safeAddListener('rotationField', 'change', () => plotPoints(false)); // Immediate for dropdown
@@ -4017,6 +4093,45 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
         }
 
+        function downloadUpdatedCSV() {
+            if (!csvData || csvData.length === 0) {
+                alert('No data to download');
+                return;
+            }
+            
+            // Get current date in YYYYMMDD format
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+            
+            // Build CSV content
+            const headers = columns.join(',');
+            const rows = csvData.map(row => {
+                return columns.map(col => {
+                    const value = row[col] || '';
+                    // Escape quotes and wrap in quotes if contains comma or quote
+                    if (value.toString().includes(',') || value.toString().includes('"')) {
+                        return `"${value.toString().replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                }).join(',');
+            });
+            
+            const csvContent = headers + '\n' + rows.join('\n');
+            
+            // Create download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `data-UPD-${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log(`Downloaded updated CSV: data-UPD-${dateStr}.csv`);
+        }
+
         function addNewColumn() {
             const columnName = document.getElementById('newColumnName').value.trim();
             
@@ -5095,7 +5210,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         
-        // Toggle between standard and pulse animation modes (v2.9.23)
+        // Toggle between standard and pulse animation modes (v2.9.31)
         function toggleAnimationMode() {
             const mode = document.getElementById('animationMode').value;
             const standardControls = document.getElementById('standardModeControls');
@@ -5201,7 +5316,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('pauseBtn').disabled = false;
         }
         
-        // NEW: Pulse Animation (v2.9.23)
+        // NEW: Pulse Animation (v2.9.31)
         function playPulseAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
@@ -8473,7 +8588,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             columns.forEach(col => {
                 const lowerCol = col.toLowerCase();
                 if (lowerCol.includes('image') || lowerCol.includes('img') || 
-                    lowerCol.includes('photo') || lowerCol.includes('picture') || 
+                    lowerCol.includes('photo') || lowerCol.includes('pic') ||
+                    lowerCol.includes('picture') || 
                     lowerCol.includes('url') || lowerCol.includes('link')) {
                     imageFields.add(col);
                 }
@@ -8511,35 +8627,73 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             });
         }
 
-        function getMarkerIcon(shape, color, size, strokeColor, strokeWidth, rotation = 0) {
-            // Handle custom icon with rotation
+        function getMarkerIcon(shape, color, size, strokeColor, strokeWidth, rotation = 0, haloEnabled = false, haloColor = '#ffffff', haloSize = 12, haloGlow = false) {
+            // Handle custom icon with rotation (and halo)
             if (shape === 'custom' && customIconData) {
-                const iconHtml = `<div style="width: ${size}px; height: ${size}px; transform: rotate(${rotation}deg); transform-origin: center center;">
+                let haloHtml = '';
+                if (haloEnabled) {
+                    if (haloGlow) {
+                        // Firefly glow effect - multiple layers
+                        haloHtml = `
+                            <div style="position: absolute; width: ${haloSize*3}px; height: ${haloSize*3}px; left: ${-haloSize*1.5 + size/2}px; top: ${-haloSize*1.5 + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.15;"></div>
+                            <div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${-haloSize + size/2}px; top: ${-haloSize + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.3;"></div>
+                            <div style="position: absolute; width: ${haloSize}px; height: ${haloSize}px; left: ${-haloSize/2 + size/2}px; top: ${-haloSize/2 + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5;"></div>
+                        `;
+                    } else {
+                        // Simple circular halo
+                        haloHtml = `<div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${-haloSize + size/2}px; top: ${-haloSize + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5;"></div>`;
+                    }
+                }
+                const iconHtml = `<div style="position: relative; width: ${size}px; height: ${size}px;">${haloHtml}<div style="width: ${size}px; height: ${size}px; transform: rotate(${rotation}deg); transform-origin: center center; position: relative; z-index: 2;">
                     <img src="${customIconData}" style="width: 100%; height: 100%; display: block;">
-                </div>`;
+                </div></div>`;
                 
                 return L.divIcon({
                     html: iconHtml,
                     className: 'custom-marker-rotated',
-                    iconSize: [size, size],
-                    iconAnchor: [size/2, size/2],
+                    iconSize: [size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0), size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0)],
+                    iconAnchor: [(size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0))/2, (size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0))/2],
                     popupAnchor: [0, -size/2]
                 });
             }
 
-            // Handle shape-based icons with rotation
+            // Calculate SVG size needed to contain marker + halo
+            const markerRadius = size * 0.85;  // Actual marker size
+            const maxHaloRadius = haloEnabled ? (haloGlow ? haloSize * 1.5 : haloSize) : 0;
+            const totalRadius = markerRadius + maxHaloRadius + strokeWidth;
+            const svgSize = Math.max(size * 2, totalRadius * 2 + 4);  // +4 for padding
+            const center = svgSize / 2;
+            
+            // Add circular halo for shape-based icons (centered in larger SVG)
+            let haloShape = '';
+            if (haloEnabled) {
+                if (haloGlow) {
+                    // Firefly glow - multiple concentric circles
+                    haloShape = `
+                        <circle cx="${center}" cy="${center}" r="${haloSize*1.5}" fill="${haloColor}" opacity="0.15"/>
+                        <circle cx="${center}" cy="${center}" r="${haloSize}" fill="${haloColor}" opacity="0.3"/>
+                        <circle cx="${center}" cy="${center}" r="${haloSize*0.5}" fill="${haloColor}" opacity="0.5"/>
+                    `;
+                } else {
+                    // Simple circular halo
+                    haloShape = `<circle cx="${center}" cy="${center}" r="${haloSize}" fill="${haloColor}" opacity="0.5"/>`;
+                }
+            }
+
+            // Adjust marker shapes to center in larger SVG
+            // Handle shape-based icons with rotation (centered at new center point)
             const svgShapes = {
                 // Basic Shapes - improved
-                circle: `<circle cx="${size}" cy="${size}" r="${size*0.85}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`,
-                square: `<rect x="${size*0.2}" y="${size*0.2}" width="${size*1.6}" height="${size*1.6}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${size} ${size})"/>`,
-                triangle: `<polygon points="${size},${size*0.2} ${size*0.2},${size*1.8} ${size*1.8},${size*1.8}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${size} ${size})"/>`,
-                diamond: `<polygon points="${size},${size*0.2} ${size*0.2},${size} ${size},${size*1.8} ${size*1.8},${size}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${size} ${size})"/>`,
-                star: `<g transform="rotate(${rotation} ${size} ${size})"><polygon points="${size},${size*0.2} ${size*1.15},${size*0.75} ${size*1.85},${size*0.75} ${size*1.3},${size*1.2} ${size*1.5},${size*1.85} ${size},${size*1.45} ${size*0.5},${size*1.85} ${size*0.7},${size*1.2} ${size*0.15},${size*0.75} ${size*0.85},${size*0.75}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
-                hexagon: `<polygon points="${size},${size*0.3} ${size*1.6},${size*0.65} ${size*1.6},${size*1.35} ${size},${size*1.7} ${size*0.4},${size*1.35} ${size*0.4},${size*0.65}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${size} ${size})"/>`,
-                pentagon: `<polygon points="${size},${size*0.2} ${size*1.7},${size*0.8} ${size*1.4},${size*1.7} ${size*0.6},${size*1.7} ${size*0.3},${size*0.8}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${size} ${size})"/>`,
+                circle: `<circle cx="${center}" cy="${center}" r="${size*0.85}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`,
+                square: `<rect x="${center - size*0.8}" y="${center - size*0.8}" width="${size*1.6}" height="${size*1.6}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
+                triangle: `<polygon points="${center},${center - size*0.8} ${center - size*0.8},${center + size*0.8} ${center + size*0.8},${center + size*0.8}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
+                diamond: `<polygon points="${center},${center - size*0.8} ${center - size*0.8},${center} ${center},${center + size*0.8} ${center + size*0.8},${center}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
+                star: `<g transform="rotate(${rotation} ${center} ${center})"><polygon points="${center},${center - size*0.8} ${center + size*0.15},${center - size*0.25} ${center + size*0.85},${center - size*0.25} ${center + size*0.3},${center + size*0.2} ${center + size*0.5},${center + size*0.85} ${center},${center + size*0.45} ${center - size*0.5},${center + size*0.85} ${center - size*0.3},${center + size*0.2} ${center - size*0.85},${center - size*0.25} ${center - size*0.15},${center - size*0.25}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
+                hexagon: `<polygon points="${center},${center - size*0.7} ${center + size*0.6},${center - size*0.35} ${center + size*0.6},${center + size*0.35} ${center},${center + size*0.7} ${center - size*0.6},${center + size*0.35} ${center - size*0.6},${center - size*0.35}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
+                pentagon: `<polygon points="${center},${center - size*0.8} ${center + size*0.7},${center - size*0.2} ${center + size*0.4},${center + size*0.7} ${center - size*0.4},${center + size*0.7} ${center - size*0.7},${center - size*0.2}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
                 
-                // Arrows - improved
-                arrow: `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size} ${size*1.6} M ${size} ${size*0.2} L ${size*0.5} ${size*0.7} M ${size} ${size*0.2} L ${size*1.5} ${size*0.7}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+                // Arrows - improved (centered)
+                arrow: `<g transform="rotate(${rotation} ${center} ${center})"><path d="M ${center} ${center - size*0.8} L ${center} ${center + size*0.6} M ${center} ${center - size*0.8} L ${center - size*0.5} ${center - size*0.3} M ${center} ${center - size*0.8} L ${center + size*0.5} ${center - size*0.3}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
                 'arrow-thick': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size*0.3} ${size*0.8} L ${size*0.65} ${size*0.8} L ${size*0.65} ${size*1.7} L ${size*1.35} ${size*1.7} L ${size*1.35} ${size*0.8} L ${size*1.7} ${size*0.8} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 'arrow-triangle': `<g transform="rotate(${rotation} ${size} ${size})"><polygon points="${size},${size*0.2} ${size*0.2},${size*1.7} ${size*1.8},${size*1.7}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 'arrow-double': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size} ${size*1.7} M ${size} ${size*0.2} L ${size*0.5} ${size*0.7} M ${size} ${size*0.2} L ${size*1.5} ${size*0.7} M ${size} ${size*0.5} L ${size*0.5} ${size} M ${size} ${size*0.5} L ${size*1.5} ${size}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
@@ -8636,14 +8790,14 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 pin: `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} Q ${size*0.35} ${size*0.2} ${size*0.35} ${size*0.7} Q ${size*0.35} ${size} ${size} ${size*1.75} Q ${size*1.65} ${size} ${size*1.65} ${size*0.7} Q ${size*1.65} ${size*0.2} ${size} ${size*0.2} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/><circle cx="${size}" cy="${size*0.6}" r="${size*0.3}" fill="white" opacity="0.9"/></g>`
             };
 
-            const svg = `<svg width="${size*2}" height="${size*2}" xmlns="http://www.w3.org/2000/svg">${svgShapes[shape]}</svg>`;
+            const svg = `<svg width="${svgSize}" height="${svgSize}" xmlns="http://www.w3.org/2000/svg">${haloShape}${svgShapes[shape]}</svg>`;
             
             return L.divIcon({
                 html: svg,
                 className: 'custom-marker',
-                iconSize: [size*2, size*2],
-                iconAnchor: [size, size],
-                popupAnchor: [0, -size]
+                iconSize: [svgSize, svgSize],
+                iconAnchor: [svgSize/2, svgSize/2],
+                popupAnchor: [0, -svgSize/2]
             });
         }
 
@@ -9853,6 +10007,29 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             html += '<span>City (>7M)</span>';
                             html += '</div>';
                             break;
+                            
+                        case 'biomes':
+                            html += '<div class="legend-section-title">🌍 Biomes</div>';
+                            html += '<div style="display: grid; grid-template-columns: 1fr; gap: 0.35rem; font-size: 0.7rem;">';
+                            // Show color swatches for major biomes
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #006400; border: 1px solid #333;"></div><span>Tropical Moist Forests</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #228B22; border: 1px solid #333;"></div><span>Temperate Forests</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #006B3C; border: 1px solid #333;"></div><span>Boreal/Taiga</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #DAA520; border: 1px solid #333;"></div><span>Grasslands/Savanna</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #E0FFFF; border: 1px solid #333;"></div><span>Tundra</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><div style="width: 14px; height: 14px; background: #F4A460; border: 1px solid #333;"></div><span>Deserts</span></div>';
+                            html += '</div>';
+                            html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.5rem;">14 terrestrial biomes (RESOLVE 2017)</div>';
+                            break;
+                            
+                        case 'ocean-currents':
+                            html += '<div class="legend-section-title">🌊 Ocean Currents</div>';
+                            html += '<div style="display: grid; grid-template-columns: 1fr; gap: 0.35rem; font-size: 0.7rem;">';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><svg width="20" height="14"><line x1="0" y1="7" x2="20" y2="7" stroke="#FF4500" stroke-width="3"/></svg><span>Warm Currents</span></div>';
+                            html += '<div style="display: flex; align-items: center; gap: 0.25rem;"><svg width="20" height="14"><line x1="0" y1="7" x2="20" y2="7" stroke="#4169E1" stroke-width="3"/></svg><span>Cold Currents</span></div>';
+                            html += '</div>';
+                            html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.5rem;">18 major global currents with flow direction</div>';
+                            break;
                     }
                     html += '</div>';
                 }
@@ -9982,6 +10159,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     break;
                 case 'major-cities':
                     layer = await loadMajorCitiesLayer();
+                    break;
+                case 'biomes':
+                    layer = await loadBiomesLayer();
+                    break;
+                case 'ocean-currents':
+                    layer = await loadOceanCurrentsLayer();
                     break;
             }
             
@@ -10194,7 +10377,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 style: function(feature) {
                     return {
                         color: color,
-                        weight: feature.properties.special ? 2 : 1,
+                        weight: feature.properties.special ? 3 : 2,  // Thicker for easier hover
                         opacity: overlayOpacity,
                         dashArray: feature.properties.special ? null : '3, 3'
                     };
@@ -10211,12 +10394,28 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         label = props.value > 0 ? `${props.value}°E` : props.value < 0 ? `${Math.abs(props.value)}°W` : '0° Prime Meridian';
                     }
                     
+                    // All grid lines get hover labels with 3-second persistence
                     layer.bindTooltip(label, {
-                        permanent: false,
-                        sticky: true,
+                        permanent: false,  // All labels only on hover
+                        sticky: true,  // Follow mouse
                         className: 'grid-label',
                         opacity: 0.9,
                         offset: [0, 0]
+                    });
+                    
+                    // Highlight on hover for better visibility
+                    layer.on('mouseover', function(e) {
+                        e.target.setStyle({ weight: props.special ? 4 : 3, opacity: 1 });
+                        if (this._tooltipTimeout) clearTimeout(this._tooltipTimeout);
+                        this.openTooltip();
+                    });
+                    
+                    layer.on('mouseout', function(e) {
+                        e.target.setStyle({ weight: props.special ? 3 : 2, opacity: overlayOpacity });
+                        // Keep tooltip visible for 3 seconds after mouseout
+                        this._tooltipTimeout = setTimeout(() => {
+                            this.closeTooltip();
+                        }, 3000);  // 3 second delay before fading
                     });
                 }
             });
@@ -10286,6 +10485,165 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             });
             
             return L.layerGroup(markers);
+        }
+        
+        async function loadBiomesLayer() {
+            if (!biomesData) {
+                try {
+                    // Try loading from local file first (for offline use / school firewalls)
+                    console.log('Attempting to load biomes from local file...');
+                    const localResponse = await fetch('biomes-simplified.json');
+                    if (localResponse.ok) {
+                        biomesData = await localResponse.json();
+                        console.log('✅ Biomes loaded from local file');
+                    } else {
+                        throw new Error('Local file not found');
+                    }
+                } catch (localError) {
+                    console.log('Local file not available, trying GitHub...');
+                    try {
+                        // Fallback to GitHub - REPLACE THIS URL with your GitHub raw URL
+                        // Example: https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO/main/biomes-simplified.json
+                        const githubUrl = 'REPLACE_WITH_YOUR_GITHUB_URL/biomes-simplified.json';
+                        const response = await fetch(githubUrl);
+                        if (!response.ok) throw new Error('GitHub fetch failed');
+                        biomesData = await response.json();
+                        console.log('✅ Biomes loaded from GitHub');
+                    } catch (error) {
+                        console.error('Error loading biomes from all sources:', error);
+                        alert('⚠️ Failed to load biomes data.\n\nPlease host biomes-simplified.json on GitHub and update the URL in the code.\n\nThis may also be blocked by your network firewall.\nContact your IT administrator to whitelist:\n• navigatio.earth (for local file)\n• raw.githubusercontent.com (for fallback)\n\nSee IT Manager Guide for details.');
+                        return null;
+                    }
+                }
+            }
+            
+            const biomesOpacity = parseInt(document.getElementById('biomesOpacity')?.value || 40) / 100;
+            
+            // Define color scheme for 14 major biomes
+            const biomeColors = {
+                'Tropical & Subtropical Moist Broadleaf Forests': '#006400',
+                'Tropical & Subtropical Dry Broadleaf Forests': '#8B4513',
+                'Tropical & Subtropical Coniferous Forests': '#2F4F2F',
+                'Temperate Broadleaf & Mixed Forests': '#228B22',
+                'Temperate Conifer Forests': '#2E8B57',
+                'Boreal Forests/Taiga': '#006B3C',
+                'Tropical & Subtropical Grasslands, Savannas & Shrublands': '#DAA520',
+                'Temperate Grasslands, Savannas & Shrublands': '#BDB76B',
+                'Flooded Grasslands & Savannas': '#4682B4',
+                'Montane Grasslands & Shrublands': '#9ACD32',
+                'Tundra': '#E0FFFF',
+                'Mediterranean Forests, Woodlands & Scrub': '#808000',
+                'Deserts & Xeric Shrublands': '#F4A460',
+                'Mangroves': '#008080'
+            };
+            
+            return L.geoJSON(biomesData, {
+                style: function(feature) {
+                    const biomeName = feature.properties.BIOME_NAME || feature.properties.biome || 'Unknown';
+                    const color = biomeColors[biomeName] || '#808080';
+                    return {
+                        fillColor: color,
+                        fillOpacity: biomesOpacity,
+                        color: '#333',
+                        weight: 0.5,
+                        opacity: 0.3
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    const biomeName = feature.properties.BIOME_NAME || feature.properties.biome || 'Unknown Biome';
+                    const ecoName = feature.properties.ECO_NAME || feature.properties.name || '';
+                    let popupText = `<strong>${biomeName}</strong>`;
+                    if (ecoName && ecoName !== biomeName) {
+                        popupText += `<br><span style="font-size: 0.85rem; color: #666;">${ecoName}</span>`;
+                    }
+                    layer.bindPopup(popupText);
+                }
+            });
+        }
+        
+        async function loadOceanCurrentsLayer() {
+            if (!oceanCurrentsData) {
+                try {
+                    console.log('Attempting to load ocean currents from local file...');
+                    const localResponse = await fetch('ocean-currents.json');
+                    if (localResponse.ok) {
+                        oceanCurrentsData = await localResponse.json();
+                        console.log('✅ Ocean currents loaded from local file');
+                    } else {
+                        throw new Error('Local file not found');
+                    }
+                } catch (localError) {
+                    console.log('Local file not available, trying GitHub...');
+                    try {
+                        // Fallback to GitHub
+                        const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ocean-currents.json';
+                        const response = await fetch(githubUrl);
+                        if (!response.ok) throw new Error('GitHub fetch failed');
+                        oceanCurrentsData = await response.json();
+                        console.log('✅ Ocean currents loaded from GitHub');
+                    } catch (error) {
+                        console.error('Error loading ocean currents from all sources:', error);
+                        alert('⚠️ Failed to load ocean currents data.\n\nThis may be blocked by your network firewall.\nContact your IT administrator to whitelist:\n• navigatio.earth (for local file)\n• raw.githubusercontent.com (for fallback)');
+                        return null;
+                    }
+                }
+            }
+            
+            const currentsWidth = parseInt(document.getElementById('currentsWidth')?.value || 3);
+            
+            // Create layer group for all currents
+            const layers = [];
+            
+            oceanCurrentsData.features.forEach(feature => {
+                const props = feature.properties;
+                const isWarm = props.type === 'warm';
+                const color = props.color;
+                
+                // Create polyline for the current
+                const currentLine = L.polyline(
+                    feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), // Flip lon/lat to lat/lon
+                    {
+                        color: color,
+                        weight: currentsWidth,
+                        opacity: overlayOpacity * 0.8,
+                        className: 'ocean-current'
+                    }
+                );
+                
+                // Add popup with current info
+                currentLine.bindPopup(`
+                    <strong>${props.name}</strong><br>
+                    <span style="color: ${color};">● ${isWarm ? 'Warm' : 'Cold'} Current</span><br>
+                    <span style="font-size: 0.85rem;">${props.description}</span>
+                `);
+                
+                // Add arrow decorators to show direction
+                if (typeof L.polylineDecorator !== 'undefined') {
+                    const decorator = L.polylineDecorator(currentLine, {
+                        patterns: [
+                            {
+                                offset: '50%',
+                                repeat: 200,
+                                symbol: L.Symbol.arrowHead({
+                                    pixelSize: 8,
+                                    polygon: false,
+                                    pathOptions: {
+                                        stroke: true,
+                                        weight: 2,
+                                        color: color,
+                                        opacity: overlayOpacity
+                                    }
+                                })
+                            }
+                        ]
+                    });
+                    layers.push(decorator);
+                }
+                
+                layers.push(currentLine);
+            });
+            
+            return L.layerGroup(layers);
         }
         
         // Old function kept for backward compatibility
@@ -11249,6 +11607,10 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const size = parseInt(document.getElementById('markerSize').value);
                 const strokeColor = document.getElementById('strokeColor').value;
                 const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                const haloEnabled = document.getElementById('haloEnabled')?.checked || false;
+                const haloColor = document.getElementById('haloColor')?.value || '#ffffff';
+                const haloSize = parseInt(document.getElementById('haloSize')?.value) || 12;
+                const haloGlow = document.getElementById('haloGlow')?.checked || false;
                 const sizeByField = document.getElementById('sizeByField').value;
                 const rotationField = document.getElementById('rotationField').value;
                 const fixedRotation = parseInt(document.getElementById('fixedRotation').value);
@@ -11332,7 +11694,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     }
                     
                     // Create icon with category styles or defaults
-                    const icon = getMarkerIcon(finalShape, finalColor, Math.round(markerSize), strokeColor, strokeWidth, rotation);
+                    const icon = getMarkerIcon(finalShape, finalColor, Math.round(markerSize), strokeColor, strokeWidth, rotation, haloEnabled, haloColor, haloSize, haloGlow);
                     
                     // Add halo if category has one enabled
                     let marker;
@@ -12264,7 +12626,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.23 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.31 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
