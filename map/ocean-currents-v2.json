@@ -1,0 +1,332 @@
+{
+  "type": "FeatureCollection",
+  "info": "Major ocean currents with realistic curved paths. Arrows show direction, colors indicate warm (red) vs cold (blue) currents.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gulf Stream",
+        "type": "warm",
+        "color": "#FF4500",
+        "description": "Warm current flowing from Gulf of Mexico to North Atlantic"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-82, 25], [-81, 25.5], [-80, 26], [-79, 26.5], [-78, 27], [-77, 27.8],
+          [-76, 28.5], [-75, 29.2], [-74, 30], [-73, 30.8], [-72, 31.5], [-71, 32.2],
+          [-70, 33], [-69, 33.8], [-68, 34.5], [-67, 35.2], [-66, 36], [-65, 36.8],
+          [-64, 37.5], [-63, 38.2], [-62, 39], [-61, 39.8], [-60, 40.5], [-59, 41.2],
+          [-58, 42], [-57, 42.8], [-56, 43.5], [-55, 44.2], [-54, 45], [-53, 45.8],
+          [-52, 46.5], [-51, 47], [-50, 47.5], [-49, 48], [-48, 48.5], [-47, 49],
+          [-46, 49.5], [-45, 50], [-44, 50.4], [-43, 50.8], [-42, 51.2], [-41, 51.6],
+          [-40, 52], [-39, 52.3], [-38, 52.6], [-37, 52.9], [-36, 53.2], [-35, 53.5],
+          [-34, 53.8], [-33, 54], [-32, 54.2], [-31, 54.4], [-30, 54.6], [-29, 54.8],
+          [-28, 55], [-27, 55.2], [-26, 55.4], [-25, 55.6], [-24, 55.8], [-23, 56],
+          [-22, 56.2], [-21, 56.4], [-20, 56.6], [-19, 56.8], [-18, 57], [-17, 57.2],
+          [-16, 57.4], [-15, 57.6], [-14, 57.8], [-13, 58], [-12, 58.2], [-11, 58.4],
+          [-10, 58.6]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North Atlantic Drift",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Extension of Gulf Stream towards Europe"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-10, 58.6], [-9, 59], [-8, 59.4], [-7, 59.8], [-6, 60.2], [-5, 60.6],
+          [-4, 61], [-3, 61.4], [-2, 61.8], [-1, 62.2], [0, 62.6], [1, 63],
+          [2, 63.4], [3, 63.8], [4, 64.2], [5, 64.6], [6, 65], [7, 65.3],
+          [8, 65.6], [9, 65.9], [10, 66.2]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Labrador Current",
+        "type": "cold",
+        "color": "#4169E1",
+        "description": "Cold current flowing south along eastern Canada"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-60, 60], [-59.5, 59], [-59, 58], [-58.5, 57], [-58, 56], [-57.5, 55],
+          [-57, 54], [-56.5, 53], [-56, 52], [-55.5, 51], [-55, 50], [-54.5, 49],
+          [-54, 48], [-53.5, 47], [-53, 46], [-52.5, 45], [-52, 44], [-51.5, 43],
+          [-51, 42], [-50.5, 41], [-50, 40]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "California Current",
+        "type": "cold",
+        "color": "#1E90FF",
+        "description": "Cold current flowing south along western North America"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-125, 48], [-124.5, 47], [-124, 46], [-123.8, 45], [-123.5, 44], [-123.3, 43],
+          [-123, 42], [-122.8, 41], [-122.5, 40], [-122.3, 39], [-122, 38], [-121.8, 37],
+          [-121.5, 36], [-121.3, 35], [-121, 34], [-120.8, 33], [-120.5, 32], [-120.3, 31],
+          [-120, 30], [-119.8, 29], [-119.5, 28], [-119.3, 27], [-119, 26], [-118.8, 25],
+          [-118.5, 24], [-118.3, 23], [-118, 22], [-117.8, 21], [-117.5, 20]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Kuroshio Current",
+        "type": "warm",
+        "color": "#FF4500",
+        "description": "Warm current flowing north along eastern Asia"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [123, 25], [124, 26], [125, 27.2], [126, 28.5], [127, 29.8], [128, 31.2],
+          [129, 32.6], [130, 34], [131, 35.4], [132, 36.8], [133, 38.2], [134, 39.6],
+          [135, 41], [136, 42.4], [137, 43.8], [138, 45.2], [139, 46.6], [140, 48],
+          [141, 49.2], [142, 50.4], [143, 51.5], [144, 52.5], [145, 53.5]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North Pacific Current",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Warm current flowing east across North Pacific"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [145, 42], [150, 42.2], [155, 42.5], [160, 42.8], [165, 43.2], [170, 43.6],
+          [175, 44], [180, 44.5], [-175, 45], [-170, 45.5], [-165, 46], [-160, 46.5],
+          [-155, 47], [-150, 47.5], [-145, 48], [-140, 48.4], [-135, 48.8], [-130, 49.2],
+          [-125, 49.5]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Oyashio Current",
+        "type": "cold",
+        "color": "#4169E1",
+        "description": "Cold current flowing south along northeastern Asia"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [155, 55], [154, 53.5], [153, 52], [152, 50.5], [151, 49], [150, 47.5],
+          [149, 46], [148, 44.5], [147, 43], [146, 41.5], [145, 40], [144, 38.5],
+          [143, 37]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Peru Current (Humboldt)",
+        "type": "cold",
+        "color": "#1E90FF",
+        "description": "Cold current flowing north along western South America"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74, -42], [-73.5, -40], [-73, -38], [-72.8, -36], [-72.5, -34], [-72.3, -32],
+          [-72, -30], [-71.8, -28], [-71.5, -26], [-71.3, -24], [-71, -22], [-70.8, -20],
+          [-70.5, -18], [-70.3, -16], [-70, -14], [-69.8, -12], [-69.5, -10], [-69.3, -8],
+          [-69, -6], [-68.8, -4], [-68.5, -2], [-68.3, 0], [-68, 2]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Brazil Current",
+        "type": "warm",
+        "color": "#FF4500",
+        "description": "Warm current flowing south along eastern Brazil"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-34, -8], [-35, -10], [-36, -12], [-37, -14], [-38, -16], [-39, -18],
+          [-40, -20], [-41, -22], [-42, -24], [-43, -26], [-44, -28], [-45, -30],
+          [-46, -32], [-47, -34], [-48, -36], [-49, -38], [-50, -40]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Benguela Current",
+        "type": "cold",
+        "color": "#4169E1",
+        "description": "Cold current flowing north along southwestern Africa"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [15, -34], [14.5, -32], [14, -30], [13.5, -28], [13, -26], [12.8, -24],
+          [12.5, -22], [12.3, -20], [12, -18], [11.8, -16], [11.5, -14], [11.3, -12],
+          [11, -10], [10.8, -8], [10.5, -6], [10.3, -4]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Agulhas Current",
+        "type": "warm",
+        "color": "#FF4500",
+        "description": "Warm current flowing south along eastern Africa"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [40, -15], [39.5, -17], [39, -19], [38.5, -21], [38, -23], [37, -25],
+          [36, -27], [35, -29], [34, -31], [33, -33], [32, -35], [31, -37],
+          [30, -39], [29, -41], [28, -43], [27, -45]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "East Australian Current",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Warm current flowing south along eastern Australia"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [153, -10], [153.2, -12], [153.4, -14], [153.6, -16], [153.8, -18],
+          [154, -20], [154.2, -22], [154.4, -24], [154.6, -26], [154.8, -28],
+          [155, -30], [155.2, -32], [155.4, -34], [155.6, -36], [155.8, -38],
+          [156, -40]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "West Australian Current",
+        "type": "cold",
+        "color": "#1E90FF",
+        "description": "Cold current flowing north along western Australia"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [115, -35], [115, -33], [115, -31], [115, -29], [115, -27], [115, -25],
+          [115, -23], [115, -21], [115, -19], [115, -17], [115, -15]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Canary Current",
+        "type": "cold",
+        "color": "#4169E1",
+        "description": "Cold current flowing south along northwestern Africa"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-15, 35], [-14.5, 33], [-14, 31], [-13.5, 29], [-13, 27], [-12.8, 25],
+          [-12.5, 23], [-12.3, 21], [-12, 19], [-11.8, 17], [-11.5, 15]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North Equatorial Current (Atlantic)",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Warm current flowing west across tropical Atlantic"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-20, 15], [-25, 15.2], [-30, 15.4], [-35, 15.5], [-40, 15.4], [-45, 15.2],
+          [-50, 15], [-55, 14.8], [-60, 14.5], [-65, 14.2], [-70, 14]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "South Equatorial Current (Atlantic)",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Warm current flowing west across tropical South Atlantic"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [10, -5], [5, -5.2], [0, -5.4], [-5, -5.5], [-10, -5.4], [-15, -5.2],
+          [-20, -5], [-25, -4.8], [-30, -4.5], [-35, -4.2]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North Equatorial Current (Pacific)",
+        "type": "warm",
+        "color": "#FF6347",
+        "description": "Warm current flowing west across tropical Pacific"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-140, 10], [-135, 10.2], [-130, 10.4], [-125, 10.5], [-120, 10.4],
+          [-115, 10.2], [-110, 10], [180, 9.8], [175, 9.5], [170, 9.2],
+          [165, 9], [160, 8.8], [155, 8.5], [150, 8.2], [145, 8], [140, 7.8],
+          [135, 7.5], [130, 7.2], [125, 7]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Antarctic Circumpolar Current",
+        "type": "cold",
+        "color": "#0000CD",
+        "description": "Cold current flowing east around Antarctica"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-180, -60], [-170, -59.8], [-160, -59.5], [-150, -59.2], [-140, -59],
+          [-130, -58.8], [-120, -58.5], [-110, -58.2], [-100, -58], [-90, -57.8],
+          [-80, -58], [-70, -58.2], [-60, -58.5], [-50, -58.8], [-40, -59],
+          [-30, -59.2], [-20, -59.5], [-10, -59.8], [0, -60], [10, -60.2],
+          [20, -60.5], [30, -60.8], [40, -61], [50, -61.2], [60, -61.5],
+          [70, -61.8], [80, -62], [90, -61.8], [100, -61.5], [110, -61.2],
+          [120, -61], [130, -60.8], [140, -60.5], [150, -60.2], [160, -60],
+          [170, -59.8], [180, -60]
+        ]
+      }
+    }
+  ]
+}
