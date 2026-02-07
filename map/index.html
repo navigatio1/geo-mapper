@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.39 - URBAN AREAS ADDED! Natural Earth 10m overlays: Major Rivers (2MB), Major Lakes (500KB), Urban Areas (3MB) showing global population density. All working via jsDelivr CDN from public GitHub repo. Rivers show global river systems, Lakes show natural/artificial lakes, Urban Areas show dense human habitation worldwide. All v2.9.27-v2.9.38 features preserved: Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes (RESOLVE 2017). Chart system fully operational. Map stable and tested. Ready for deployment! -->
+<!-- Geo Mapper v2.9.40 - VIDEO & MEDIA SUPPORT ADDED! Popups now support: Animated GIFs, MP4/WebM videos, YouTube embeds, Vimeo embeds. Auto-detects media URLs in any column and renders appropriately. All v2.9.39 features preserved: Rivers, Lakes, Urban Areas overlays working via jsDelivr CDN. Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes. Chart system operational. STABLE VERSION - Safe to deploy! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.39 - Rivers, Lakes & Urban Areas</title>
+    <title>Geo Mapper v2.9.40 - Video & Media Support</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.39</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.40</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2401,6 +2401,68 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const afterExt = lowerValue.charAt(extIndex + ext.length);
                 return afterExt === '' || afterExt === '?' || afterExt === '#';
             });
+        }
+        
+        function isVideoURL(value) {
+            if (typeof value !== 'string') return false;
+            if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
+            
+            const lowerValue = value.toLowerCase();
+            
+            // Check for video file extensions
+            const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.m4v'];
+            const hasVideoExt = videoExtensions.some(ext => {
+                const extIndex = lowerValue.indexOf(ext);
+                if (extIndex === -1) return false;
+                const afterExt = lowerValue.charAt(extIndex + ext.length);
+                return afterExt === '' || afterExt === '?' || afterExt === '#';
+            });
+            
+            // Check for video platform URLs
+            const isYouTube = lowerValue.includes('youtube.com') || lowerValue.includes('youtu.be');
+            const isVimeo = lowerValue.includes('vimeo.com');
+            
+            return hasVideoExt || isYouTube || isVimeo;
+        }
+        
+        function getMediaHTML(url, columnName, showHeadings = false) {
+            if (isVideoURL(url)) {
+                const lowerUrl = url.toLowerCase();
+                
+                // YouTube embed
+                if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                    let videoId = '';
+                    if (lowerUrl.includes('youtu.be/')) {
+                        videoId = url.split('youtu.be/')[1].split(/[?&#]/)[0];
+                    } else if (lowerUrl.includes('youtube.com')) {
+                        const match = url.match(/[?&]v=([^&#]+)/);
+                        if (match) videoId = match[1];
+                    }
+                    
+                    if (videoId) {
+                        return `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius: 4px; margin-top: 0.25rem;"></iframe>`;
+                    }
+                }
+                
+                // Vimeo embed
+                if (lowerUrl.includes('vimeo.com')) {
+                    const match = url.match(/vimeo\.com\/(\d+)/);
+                    if (match) {
+                        const videoId = match[1];
+                        return `<iframe width="100%" height="200" src="https://player.vimeo.com/video/${videoId}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="border-radius: 4px; margin-top: 0.25rem;"></iframe>`;
+                    }
+                }
+                
+                // Direct video file (MP4, WebM, etc.)
+                return `<video controls style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;"><source src="${url}" type="video/mp4">Your browser does not support video playback.</video>`;
+            } 
+            else if (isImageURL(url)) {
+                // Animated GIF or static image
+                return `<img src="${url}" class="popup-image" alt="${columnName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
+            }
+            
+            // Not media - return as text
+            return url;
         }
         
         // Functions to disable/enable marker clicks during drawing/edit modes
@@ -4907,9 +4969,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     columns.forEach(col => {
                         let value = row[col] !== null && row[col] !== undefined ? row[col] : '';
                         
-                        // AUTOMATIC IMAGE DETECTION: Check if this value is an image URL
-                        if (isImageURL(value)) {
-                            value = `<img src="${value}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
+                        // AUTOMATIC MEDIA DETECTION: Check if this value is an image or video URL
+                        if (isImageURL(value) || isVideoURL(value)) {
+                            value = getMediaHTML(value, col);
                         }
                         
                         const escapedCol = col.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -4928,13 +4990,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 dataContent = '<table>';
                 columns.forEach(col => {
                     if (selectedFields.has(col) && row[col] !== null && row[col] !== undefined && row[col] !== '') {
-                        // AUTOMATIC IMAGE DETECTION: Check if this value is an image URL
-                        if (isImageURL(row[col])) {
-                            const url = row[col];
+                        // AUTOMATIC MEDIA DETECTION: Check if this value is an image or video URL
+                        if (isImageURL(row[col]) || isVideoURL(row[col])) {
+                            const mediaHTML = getMediaHTML(row[col], col);
                             if (showHeadings) {
-                                dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
+                                dataContent += `<tr><td style="font-weight: 600; vertical-align: top; padding-right: 0.75rem;">${col}:</td><td>${mediaHTML}</td></tr>`;
                             } else {
-                                dataContent += `<tr><td colspan="2"><img src="${url}" class="popup-image" alt="${col}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';"></td></tr>`;
+                                dataContent += `<tr><td colspan="2">${mediaHTML}</td></tr>`;
                             }
                         } else {
                             // Regular text display
@@ -12708,7 +12770,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.39 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.40 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
