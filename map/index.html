@@ -10573,7 +10573,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!riversData) {
                 try {
                     console.log('Loading rivers from GitHub...');
-                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map2/ne_10m_rivers_lake_centerlines.geojson';
+                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map/ne_10m_rivers_lake_centerlines.geojson';
                     const response = await fetch(githubUrl);
                     if (!response.ok) throw new Error('Failed to fetch rivers data');
                     riversData = await response.json();
@@ -10627,7 +10627,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!lakesData) {
                 try {
                     console.log('Loading lakes from GitHub...');
-                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map2/ne_10m_lakes.geojson';
+                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map/ne_10m_lakes.geojson';
                     const response = await fetch(githubUrl);
                     if (!response.ok) throw new Error('Failed to fetch lakes data');
                     lakesData = await response.json();
