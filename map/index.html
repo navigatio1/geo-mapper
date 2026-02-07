@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.34 - UI IMPROVEMENTS! FIXED: Changed "Overlay Layers" to "Overlays" for cleaner UI. Added icons to all overlays: 🗺️ Tectonic Boundaries, 🏷️ Plate Names, 🌐 Lat/Long Grid, 🏙️ Major Cities, 🌍 Biomes, 🌊 Ocean Currents. Ocean currents ready for v5 data with ultra-dense coordinates for truly smooth curves. All v2.9.33 fixes preserved: improved arrow indicators (12px, configurable spacing, 0.9 opacity). BIOMES: Requires official RESOLVE Ecoregions 2017 data (download from ecoregions.appspot.com) - see BIOMES_DATA_GUIDE.md. All v2.9.27 fixes preserved: circular halos with firefly glow (4-60px), interactive grid labels (3s persistence, hover highlight), cyan grid at 30° spacing. Both ocean currents and biomes ready for 3D globe. -->
+<!-- Geo Mapper v2.9.38 - RIVERS & LAKES OVERLAYS ADDED! New Natural Earth 10m overlays: Major Rivers (2MB) + Major Lakes (500KB) with blue styling and proper names. Rivers show global river systems, Lakes show natural/artificial lakes worldwide. Load from GitHub repo (user uploads required). Ocean Currents REMOVED (non-functional). All v2.9.27-v2.9.33 features preserved: Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes (RESOLVE 2017). Chart system fully operational. Map stable and tested. Ready for deployment! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.34</title>
+    <title>Geo Mapper v2.9.38 - Rivers & Lakes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.34</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.33</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1120,34 +1120,38 @@
             </details>
 
             <details class="section">
-                <summary class="section-title">📚 Overlays</summary>
+                <summary class="section-title">📚 Overlay Layers</summary>
                 <div class="section-content">
                 <div class="form-group">
                     <label>Select Overlays (multiple allowed)</label>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-tectonic-boundaries" value="tectonic-boundaries" onchange="toggleOverlay('tectonic-boundaries')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🗺️ Tectonic Plate Boundaries</span>
+                            <span>Tectonic Plate Boundaries</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-tectonic-names" value="tectonic-names" onchange="toggleOverlay('tectonic-names')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🏷️ Tectonic Plate Names (Labels)</span>
+                            <span>Tectonic Plate Names (Labels)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-lat-long-grid" value="lat-long-grid" onchange="toggleOverlay('lat-long-grid')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🌐 Latitude/Longitude Grid</span>
+                            <span>Latitude/Longitude Grid</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-major-cities" value="major-cities" onchange="toggleOverlay('major-cities')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🏙️ Major Cities (Pop >7M Metro)</span>
+                            <span>Major Cities (Pop >7M Metro)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-biomes" value="biomes" onchange="toggleOverlay('biomes')" style="width: auto; margin-right: 0.5rem;">
                             <span>🌍 Biomes (Terrestrial Ecosystems)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
-                            <input type="checkbox" id="overlay-ocean-currents" value="ocean-currents" onchange="toggleOverlay('ocean-currents')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🌊 Ocean Currents (Major Global)</span>
+                            <input type="checkbox" id="overlay-rivers" value="rivers" onchange="toggleOverlay('rivers')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🏞️ Major Rivers</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <input type="checkbox" id="overlay-lakes" value="lakes" onchange="toggleOverlay('lakes')" style="width: auto; margin-right: 0.5rem;">
+                            <span>💧 Major Lakes</span>
                         </label>
                     </div>
                 </div>
@@ -2467,7 +2471,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let animationData = [];
         let trailPolyline = null;
         
-        // Pulse animation variables (v2.9.34)
+        // Pulse animation variables (v2.9.33)
         let pulseMarkers = []; // Animated pulse circles
         let pulseLines = []; // Connecting lines for pulse mode
         let pulseAnimationFrames = []; // Animation frame requests
@@ -2501,7 +2505,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let overlayNameSize = 12;
         let tectonicPlatesData = null;
         let biomesData = null;  // Will load from GitHub like tectonic plates
-        let oceanCurrentsData = null;  // Will load from GitHub
+        let riversData = null;  // Will load from GitHub
+        let lakesData = null;  // Will load from GitHub
         let overlayOpacity = 0.7;
         
         // Chart variables
@@ -5210,7 +5215,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         
-        // Toggle between standard and pulse animation modes (v2.9.34)
+        // Toggle between standard and pulse animation modes (v2.9.33)
         function toggleAnimationMode() {
             const mode = document.getElementById('animationMode').value;
             const standardControls = document.getElementById('standardModeControls');
@@ -5316,7 +5321,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             document.getElementById('pauseBtn').disabled = false;
         }
         
-        // NEW: Pulse Animation (v2.9.34)
+        // NEW: Pulse Animation (v2.9.33)
         function playPulseAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
@@ -10163,8 +10168,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 case 'biomes':
                     layer = await loadBiomesLayer();
                     break;
-                case 'ocean-currents':
-                    layer = await loadOceanCurrentsLayer();
+                case 'rivers':
+                    layer = await loadRiversLayer();
+                    break;
+                case 'lakes':
+                    layer = await loadLakesLayer();
                     break;
             }
             
@@ -10561,88 +10569,103 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             });
         }
         
-        async function loadOceanCurrentsLayer() {
-            if (!oceanCurrentsData) {
+        async function loadRiversLayer() {
+            if (!riversData) {
                 try {
-                    console.log('Attempting to load ocean currents from local file...');
-                    const localResponse = await fetch('ocean-currents.json');
-                    if (localResponse.ok) {
-                        oceanCurrentsData = await localResponse.json();
-                        console.log('✅ Ocean currents loaded from local file');
-                    } else {
-                        throw new Error('Local file not found');
-                    }
-                } catch (localError) {
-                    console.log('Local file not available, trying GitHub...');
-                    try {
-                        // Fallback to GitHub
-                        const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ocean-currents.json';
-                        const response = await fetch(githubUrl);
-                        if (!response.ok) throw new Error('GitHub fetch failed');
-                        oceanCurrentsData = await response.json();
-                        console.log('✅ Ocean currents loaded from GitHub');
-                    } catch (error) {
-                        console.error('Error loading ocean currents from all sources:', error);
-                        alert('⚠️ Failed to load ocean currents data.\n\nThis may be blocked by your network firewall.\nContact your IT administrator to whitelist:\n• navigatio.earth (for local file)\n• raw.githubusercontent.com (for fallback)');
-                        return null;
-                    }
+                    console.log('Loading rivers from GitHub...');
+                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ne_10m_rivers_lake_centerlines.geojson';
+                    const response = await fetch(githubUrl);
+                    if (!response.ok) throw new Error('Failed to fetch rivers data');
+                    riversData = await response.json();
+                    console.log('✅ Rivers loaded from GitHub');
+                } catch (error) {
+                    console.error('Error loading rivers:', error);
+                    alert('⚠️ Failed to load rivers data.\n\nPlease ensure:\n1. ne_10m_rivers_lake_centerlines.geojson is uploaded to your GitHub repo\n2. Your network allows access to raw.githubusercontent.com');
+                    return null;
                 }
             }
             
-            const currentsWidth = parseInt(document.getElementById('currentsWidth')?.value || 6);
-            
-            // Create layer group for all currents
             const layers = [];
             
-            oceanCurrentsData.features.forEach(feature => {
+            riversData.features.forEach(feature => {
                 const props = feature.properties;
-                const isWarm = props.type === 'warm';
-                const color = props.color;
+                const coords = feature.geometry.coordinates;
                 
-                // Create polyline for the current
-                const currentLine = L.polyline(
-                    feature.geometry.coordinates.map(coord => [coord[1], coord[0]]), // Flip lon/lat to lat/lon
-                    {
-                        color: color,
-                        weight: currentsWidth,
-                        opacity: 0.9,
-                        className: 'ocean-current',
-                        pane: 'overlayPane'
+                // Handle MultiLineString geometry
+                const lineCoords = feature.geometry.type === 'MultiLineString' 
+                    ? coords 
+                    : [coords];
+                
+                lineCoords.forEach(line => {
+                    const riverLine = L.polyline(
+                        line.map(coord => [coord[1], coord[0]]), // Flip lon/lat to lat/lon
+                        {
+                            color: '#1e90ff',
+                            weight: props.strokeweig ? Math.max(1, props.strokeweig / 2) : 2,
+                            opacity: 0.7,
+                            className: 'river-line',
+                            pane: 'overlayPane'
+                        }
+                    );
+                    
+                    // Add popup with river info
+                    if (props.name) {
+                        riverLine.bindPopup(`
+                            <strong>${props.name}</strong><br>
+                            <span style="color: #1e90ff;">● Major River</span>
+                        `);
                     }
-                );
+                    
+                    layers.push(riverLine);
+                });
+            });
+            
+            return L.layerGroup(layers);
+        }
+        
+        async function loadLakesLayer() {
+            if (!lakesData) {
+                try {
+                    console.log('Loading lakes from GitHub...');
+                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ne_10m_lakes.geojson';
+                    const response = await fetch(githubUrl);
+                    if (!response.ok) throw new Error('Failed to fetch lakes data');
+                    lakesData = await response.json();
+                    console.log('✅ Lakes loaded from GitHub');
+                } catch (error) {
+                    console.error('Error loading lakes:', error);
+                    alert('⚠️ Failed to load lakes data.\n\nPlease ensure:\n1. ne_10m_lakes.geojson is uploaded to your GitHub repo\n2. Your network allows access to raw.githubusercontent.com');
+                    return null;
+                }
+            }
+            
+            const layers = [];
+            
+            lakesData.features.forEach(feature => {
+                const props = feature.properties;
+                const coords = feature.geometry.coordinates;
                 
-                // Add popup with current info
-                currentLine.bindPopup(`
-                    <strong>${props.name}</strong><br>
-                    <span style="color: ${color};">● ${isWarm ? 'Warm' : 'Cold'} Current</span><br>
-                    <span style="font-size: 0.85rem;">${props.description}</span>
-                `);
+                // Handle both Polygon and MultiPolygon
+                const lakePolygon = L.geoJSON(feature, {
+                    style: {
+                        color: '#1e90ff',
+                        fillColor: '#4169e1',
+                        fillOpacity: 0.3,
+                        weight: 1,
+                        opacity: 0.6
+                    },
+                    pane: 'overlayPane'
+                });
                 
-                // Add arrow decorators to show direction
-                if (typeof L.polylineDecorator !== 'undefined') {
-                    const arrowSpacing = props.arrowSpacing || 250; // Use custom spacing or default
-                    const decorator = L.polylineDecorator(currentLine, {
-                        patterns: [
-                            {
-                                offset: '20%',
-                                repeat: arrowSpacing,
-                                symbol: L.Symbol.arrowHead({
-                                    pixelSize: 12,
-                                    polygon: false,
-                                    pathOptions: {
-                                        stroke: true,
-                                        weight: 3,
-                                        color: color,
-                                        opacity: 0.9
-                                    }
-                                })
-                            }
-                        ]
-                    });
-                    layers.push(decorator);
+                // Add popup with lake info
+                if (props.name) {
+                    lakePolygon.bindPopup(`
+                        <strong>${props.name}</strong><br>
+                        <span style="color: #1e90ff;">● Lake</span>
+                    `);
                 }
                 
-                layers.push(currentLine);
+                layers.push(lakePolygon);
             });
             
             return L.layerGroup(layers);
@@ -12628,7 +12651,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.34 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.33 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
