@@ -10683,14 +10683,14 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!urbanAreasData) {
                 try {
                     console.log('Loading urban areas from GitHub...');
-                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map/ne_10m_urban_areas.geojson';
+                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map/ne_50m_urban_areas.geojson';
                     const response = await fetch(githubUrl);
                     if (!response.ok) throw new Error('Failed to fetch urban areas data');
                     urbanAreasData = await response.json();
                     console.log('✅ Urban areas loaded from GitHub');
                 } catch (error) {
                     console.error('Error loading urban areas:', error);
-                    alert('⚠️ Failed to load urban areas data.\n\nPlease ensure:\n1. ne_10m_urban_areas.geojson is uploaded to your GitHub repo\n2. Your network allows access to cdn.jsdelivr.net');
+                    alert('⚠️ Failed to load urban areas data.\n\nPlease ensure:\n1. ne_50m_urban_areas.geojson is uploaded to your GitHub repo\n2. Your network allows access to cdn.jsdelivr.net');
                     return null;
                 }
             }
