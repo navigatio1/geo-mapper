@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.33</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.38</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -10573,7 +10573,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!riversData) {
                 try {
                     console.log('Loading rivers from GitHub...');
-                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ne_10m_rivers_lake_centerlines.geojson';
+                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map2/ne_10m_rivers_lake_centerlines.geojson';
                     const response = await fetch(githubUrl);
                     if (!response.ok) throw new Error('Failed to fetch rivers data');
                     riversData = await response.json();
@@ -10627,7 +10627,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (!lakesData) {
                 try {
                     console.log('Loading lakes from GitHub...');
-                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map/ne_10m_lakes.geojson';
+                    const githubUrl = 'https://raw.githubusercontent.com/navigatio1/geo-mapper/main/map2/ne_10m_lakes.geojson';
                     const response = await fetch(githubUrl);
                     if (!response.ok) throw new Error('Failed to fetch lakes data');
                     lakesData = await response.json();
@@ -12651,7 +12651,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.33 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.38 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
