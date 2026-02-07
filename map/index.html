@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.38 - RIVERS & LAKES OVERLAYS ADDED! New Natural Earth 10m overlays: Major Rivers (2MB) + Major Lakes (500KB) with blue styling and proper names. Rivers show global river systems, Lakes show natural/artificial lakes worldwide. Load from GitHub repo (user uploads required). Ocean Currents REMOVED (non-functional). All v2.9.27-v2.9.33 features preserved: Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes (RESOLVE 2017). Chart system fully operational. Map stable and tested. Ready for deployment! -->
+<!-- Geo Mapper v2.9.39 - URBAN AREAS ADDED! Natural Earth 10m overlays: Major Rivers (2MB), Major Lakes (500KB), Urban Areas (3MB) showing global population density. All working via jsDelivr CDN from public GitHub repo. Rivers show global river systems, Lakes show natural/artificial lakes, Urban Areas show dense human habitation worldwide. All v2.9.27-v2.9.38 features preserved: Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes (RESOLVE 2017). Chart system fully operational. Map stable and tested. Ready for deployment! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.38 - Rivers & Lakes</title>
+    <title>Geo Mapper v2.9.39 - Rivers, Lakes & Urban Areas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1050,7 +1050,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.38</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.39</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1152,6 +1152,10 @@
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-lakes" value="lakes" onchange="toggleOverlay('lakes')" style="width: auto; margin-right: 0.5rem;">
                             <span>💧 Major Lakes</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <input type="checkbox" id="overlay-urban-areas" value="urban-areas" onchange="toggleOverlay('urban-areas')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🏙️ Urban Areas (Population Density)</span>
                         </label>
                     </div>
                 </div>
@@ -2507,6 +2511,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let biomesData = null;  // Will load from GitHub like tectonic plates
         let riversData = null;  // Will load from GitHub
         let lakesData = null;  // Will load from GitHub
+        let urbanAreasData = null;  // Will load from GitHub
         let overlayOpacity = 0.7;
         
         // Chart variables
@@ -10174,6 +10179,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 case 'lakes':
                     layer = await loadLakesLayer();
                     break;
+                case 'urban-areas':
+                    layer = await loadUrbanAreasLayer();
+                    break;
             }
             
             if (layer) {
@@ -10666,6 +10674,55 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
                 
                 layers.push(lakePolygon);
+            });
+            
+            return L.layerGroup(layers);
+        }
+        
+        async function loadUrbanAreasLayer() {
+            if (!urbanAreasData) {
+                try {
+                    console.log('Loading urban areas from GitHub...');
+                    const githubUrl = 'https://cdn.jsdelivr.net/gh/navigatio1/geo-mapper@main/map/ne_10m_urban_areas.geojson';
+                    const response = await fetch(githubUrl);
+                    if (!response.ok) throw new Error('Failed to fetch urban areas data');
+                    urbanAreasData = await response.json();
+                    console.log('✅ Urban areas loaded from GitHub');
+                } catch (error) {
+                    console.error('Error loading urban areas:', error);
+                    alert('⚠️ Failed to load urban areas data.\n\nPlease ensure:\n1. ne_10m_urban_areas.geojson is uploaded to your GitHub repo\n2. Your network allows access to cdn.jsdelivr.net');
+                    return null;
+                }
+            }
+            
+            const layers = [];
+            
+            urbanAreasData.features.forEach(feature => {
+                const props = feature.properties;
+                
+                // Handle both Polygon and MultiPolygon
+                const urbanPolygon = L.geoJSON(feature, {
+                    style: {
+                        color: '#ff9900',
+                        fillColor: '#ffcc00',
+                        fillOpacity: 0.3,
+                        weight: 1,
+                        opacity: 0.5
+                    },
+                    pane: 'overlayPane'
+                });
+                
+                // Add popup with urban area info
+                if (props.name_en || props.area_sqkm) {
+                    const name = props.name_en || 'Urban Area';
+                    const area = props.area_sqkm ? ` (${Math.round(props.area_sqkm)} km²)` : '';
+                    urbanPolygon.bindPopup(`
+                        <strong>${name}</strong><br>
+                        <span style="color: #ff9900;">● Dense Population Area</span>${area}
+                    `);
+                }
+                
+                layers.push(urbanPolygon);
             });
             
             return L.layerGroup(layers);
@@ -12651,7 +12708,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.38 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.39 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
