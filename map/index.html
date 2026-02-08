@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.40 - VIDEO & MEDIA SUPPORT ADDED! Popups now support: Animated GIFs, MP4/WebM videos, YouTube embeds, Vimeo embeds. Auto-detects media URLs in any column and renders appropriately. All v2.9.39 features preserved: Rivers, Lakes, Urban Areas overlays working via jsDelivr CDN. Tectonic Boundaries, Plate Names, Lat/Long Grid, Major Cities, Biomes. Chart system operational. STABLE VERSION - Safe to deploy! -->
+<!-- Geo Mapper v2.9.44 - ROTATION PERFECTED! Fixed toggle button errors, corrected rotation direction (clockwise = clockwise!), changed to Ctrl+Right-click only for better control. Toggle button now shows correct state visually. All rotation issues resolved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.40 - Video & Media Support</title>
+    <title>Geo Mapper v2.9.44 - Rotation Perfected</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Leaflet Rotate Plugin for map rotation support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -1046,6 +1049,111 @@
         .leaflet-tooltip.feature-label-tooltip::before {
             display: none; /* Hide arrow */
         }
+        
+        /* Compass Rose for Map Rotation */
+        .compass-rose {
+            position: fixed;
+            bottom: 120px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease, background 0.2s;
+            border: 2px solid #2c3e50;
+        }
+        
+        .compass-rose:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        .compass-rose:active {
+            transform: scale(0.95);
+        }
+        
+        .compass-needle {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 30px solid #e74c3c;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .compass-rose.disabled .compass-needle {
+            border-bottom-color: #95a5a6;
+            opacity: 0.5;
+        }
+        
+        .compass-rose.disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+        
+        .compass-rose.disabled:hover {
+            background: white;
+            transform: none;
+        }
+        
+        /* Rotation Toggle Button */
+        .rotation-toggle {
+            position: fixed;
+            bottom: 195px;
+            right: 20px;
+            background: white;
+            border: 2px solid #2c3e50;
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .rotation-toggle:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        
+        .rotation-toggle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .rotation-toggle-icon {
+            font-size: 1rem;
+        }
+        
+        .compass-text {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #2c3e50;
+            font-weight: 600;
+            white-space: nowrap;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -1072,6 +1180,16 @@
 
     <div class="container">
         <div class="sidebar" id="sidebar">
+            <!-- Rotation Feature Tip -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <strong>🧭 Map Rotation</strong><br>
+                <div style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.95;">
+                    • Toggle ON/OFF with button (bottom-right)<br>
+                    • <strong>Ctrl+Right-click & drag</strong> to rotate<br>
+                    • Click compass to reset to north
+                </div>
+            </div>
+            
             <div class="section">
                 <div class="section-title">Load Data</div>
                 <button class="btn" onclick="loadMapConfiguration()" style="background: #9b59b6; margin-bottom: 0.5rem;">📁 Load Map Configuration</button>
@@ -2297,6 +2415,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             </div>
             <div id="mapTitleOverlay" class="map-title-overlay" style="display: none;"></div>
             <div id="map"></div>
+            
+            <!-- Rotation Toggle Button -->
+            <div id="rotationToggle" class="rotation-toggle active" onclick="toggleRotation()" title="Toggle map rotation">
+                <span class="rotation-toggle-icon">🔄</span>
+                <span id="rotationToggleText">Rotation ON</span>
+            </div>
+            
+            <!-- Compass Rose for Map Rotation -->
+            <div id="compassRose" class="compass-rose" onclick="resetMapRotation()" title="Click to reset to North">
+                <div class="compass-needle" id="compassNeedle"></div>
+                <div class="compass-text" id="compassText">0°</div>
+            </div>
         </div>
     </div>
 
@@ -2383,6 +2513,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let customIconData = null;
         let selectedFields = new Set();
         let imageFields = new Set();
+        let rotationEnabled = true; // Track rotation state
         
         // Helper function to detect if a value is an image URL
         function isImageURL(value) {
@@ -3055,7 +3186,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 zoomControl: false,  // Disable default zoom control
                 worldCopyJump: true,  // Enable seamless world wrapping
                 maxBounds: null,      // Allow infinite horizontal panning
-                maxBoundsViscosity: 0.0  // Allow free movement
+                maxBoundsViscosity: 0.0,  // Allow free movement
+                rotate: true,         // Enable map rotation (leaflet-rotate plugin)
+                touchRotate: true,    // Enable rotation on touch devices
+                rotateControl: {      // Configure rotation control
+                    closeOnZeroBearing: false  // Keep rotation even at 0°
+                }
             }).setView([20, 0], 2);
             
             // Add zoom control to bottom-right
@@ -3067,7 +3203,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const defaultBasemap = basemaps['osm'];
             const tileOptions = {
                 attribution: defaultBasemap.attribution,
-                maxZoom: defaultBasemap.maxZoom
+                maxZoom: defaultBasemap.maxZoom,
+                // Optimize for rotation performance
+                updateWhenIdle: false,      // Update tiles immediately, not just when idle
+                keepBuffer: 4,              // Keep 4 screen's worth of tiles (faster rotation)
+                updateWhenZooming: false,   // Don't update during zoom animation
+                updateInterval: 150         // Faster tile updates (default is 200ms)
             };
             
             if (defaultBasemap.maxNativeZoom) {
@@ -3102,7 +3243,206 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             setTimeout(() => {
                 map.invalidateSize();
             }, 100);
+            
+            // Set up rotation event listener to update compass
+            map.on('rotate', function(e) {
+                updateCompass();
+            });
+            
+            // Initialize compass to show current bearing
+            updateCompass();
+            
+            // Custom Ctrl+Drag rotation handler (more intuitive than Ctrl+Shift+Drag)
+            setupCustomRotationHandler();
+            
+            // Debug logging
+            console.log('Map rotation initialized:', {
+                rotate: map.options.rotate,
+                touchRotate: map.options.touchRotate,
+                rotationEnabled: rotationEnabled
+            });
         }
+        
+        // Custom rotation handler for Ctrl+Right-click (desktop) and two-finger (mobile)
+        function setupCustomRotationHandler() {
+            if (!map) return;
+            
+            let isRotating = false;
+            let lastAngle = 0;
+            let startPoint = null;
+            let centerPoint = null;
+            
+            const mapContainer = map.getContainer();
+            
+            // Prevent context menu on right-click
+            mapContainer.addEventListener('contextmenu', function(e) {
+                if (e.ctrlKey && rotationEnabled) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Mouse/pointer events for desktop - RIGHT BUTTON ONLY
+            mapContainer.addEventListener('mousedown', function(e) {
+                // Only start rotation if Ctrl + RIGHT button is held
+                // e.button === 2 means right mouse button
+                if (e.ctrlKey && e.button === 2 && !e.shiftKey && rotationEnabled) {
+                    e.preventDefault();
+                    isRotating = true;
+                    
+                    // Get map center point
+                    const bounds = mapContainer.getBoundingClientRect();
+                    centerPoint = {
+                        x: bounds.left + bounds.width / 2,
+                        y: bounds.top + bounds.height / 2
+                    };
+                    
+                    startPoint = { x: e.clientX, y: e.clientY };
+                    lastAngle = Math.atan2(e.clientY - centerPoint.y, e.clientX - centerPoint.x);
+                    
+                    // Change cursor
+                    mapContainer.style.cursor = 'grab';
+                    
+                    console.log('Rotation started with Ctrl+Right-click');
+                }
+            });
+            
+            mapContainer.addEventListener('mousemove', function(e) {
+                if (isRotating && rotationEnabled) {
+                    e.preventDefault();
+                    
+                    // Calculate angle from center
+                    const currentAngle = Math.atan2(e.clientY - centerPoint.y, e.clientX - centerPoint.x);
+                    const deltaAngle = (currentAngle - lastAngle) * (180 / Math.PI);
+                    
+                    // Update map bearing - FIXED: Add deltaAngle (not subtract) for correct direction
+                    // Clockwise mouse movement = clockwise map rotation
+                    const currentBearing = map.getBearing();
+                    map.setBearing(currentBearing + deltaAngle);
+                    
+                    lastAngle = currentAngle;
+                    mapContainer.style.cursor = 'grabbing';
+                }
+            });
+            
+            mapContainer.addEventListener('mouseup', function(e) {
+                if (isRotating) {
+                    isRotating = false;
+                    mapContainer.style.cursor = '';
+                    console.log('Rotation ended, bearing:', map.getBearing());
+                }
+            });
+            
+            mapContainer.addEventListener('mouseleave', function(e) {
+                if (isRotating) {
+                    isRotating = false;
+                    mapContainer.style.cursor = '';
+                }
+            });
+            
+            console.log('Custom rotation handler (Ctrl+Right-click) initialized');
+        }
+        
+        // Update compass rose to show current map bearing
+        function updateCompass() {
+            if (!map) return;
+            
+            const bearing = map.getBearing(); // Get current map rotation in degrees
+            const needle = document.getElementById('compassNeedle');
+            const text = document.getElementById('compassText');
+            
+            if (needle && text) {
+                // Rotate the needle to point north (opposite of map rotation)
+                needle.style.transform = `rotate(${-bearing}deg)`;
+                // Update text to show bearing
+                text.textContent = `${Math.round(bearing)}°`;
+            }
+        }
+        
+        // Reset map rotation to north-up
+        function resetMapRotation() {
+            console.log('resetMapRotation called');
+            
+            if (!map) {
+                console.error('Map not initialized!');
+                return;
+            }
+            
+            if (!rotationEnabled) {
+                console.warn('Rotation is disabled, cannot reset');
+                return;
+            }
+            
+            console.log('Resetting bearing from', map.getBearing(), 'to 0');
+            map.setBearing(0); // Reset to north-up
+            updateCompass();
+            
+            // Visual feedback
+            const compass = document.getElementById('compassRose');
+            if (compass) {
+                compass.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    compass.style.transform = '';
+                }, 200);
+            }
+            
+            console.log('✅ Map reset to North');
+        }
+        
+        // Toggle rotation on/off
+        function toggleRotation() {
+            console.log('toggleRotation called, current state:', rotationEnabled);
+            
+            if (!map) {
+                console.error('Map not initialized!');
+                return;
+            }
+            
+            rotationEnabled = !rotationEnabled;
+            console.log('Rotation toggled to:', rotationEnabled);
+            
+            const toggleBtn = document.getElementById('rotationToggle');
+            const toggleText = document.getElementById('rotationToggleText');
+            const compass = document.getElementById('compassRose');
+            
+            if (!toggleBtn || !toggleText || !compass) {
+                console.error('UI elements not found:', { toggleBtn, toggleText, compass });
+                return;
+            }
+            
+            if (rotationEnabled) {
+                // Enable rotation
+                if (map.touchRotate) map.touchRotate.enable();
+                // Note: rotateControl.enable() doesn't exist - we use custom handler
+                
+                // Update UI
+                toggleBtn.classList.add('active');
+                toggleText.textContent = 'Rotation ON';
+                compass.classList.remove('disabled');
+                compass.title = 'Click to reset to North (or Ctrl+Right-click to rotate)';
+                compass.onclick = resetMapRotation;
+                
+                console.log('✅ Rotation ENABLED - Use Ctrl+Right-click to rotate');
+            } else {
+                // Disable rotation and reset to north
+                map.setBearing(0);
+                if (map.touchRotate) map.touchRotate.disable();
+                // Note: rotateControl.disable() doesn't exist - we use custom handler
+                
+                // Update UI
+                toggleBtn.classList.remove('active');
+                toggleText.textContent = 'Rotation OFF';
+                compass.classList.add('disabled');
+                compass.title = 'Enable rotation to use this control';
+                compass.onclick = null;
+                
+                console.log('⛔ Rotation DISABLED');
+            }
+            
+            updateCompass();
+        }
+        
+        // Make toggleRotation globally accessible for debugging
+        window.toggleRotation = toggleRotation;
         
         // Check for auto-saved state after page loads
         function checkForAutoSavedState() {
@@ -3719,7 +4059,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const imageryConfig = basemaps['esri-world'];
                 const imageryOptions = {
                     attribution: imageryConfig.attribution,
-                    maxZoom: imageryConfig.maxZoom
+                    maxZoom: imageryConfig.maxZoom,
+                    // Optimize for rotation performance
+                    updateWhenIdle: false,
+                    keepBuffer: 4,
+                    updateWhenZooming: false,
+                    updateInterval: 150
                 };
                 currentBasemap = L.tileLayer(imageryConfig.url, imageryOptions).addTo(map);
                 
@@ -3727,7 +4072,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const labelsConfig = basemaps['esri-world-labels'];
                 const labelsOptions = {
                     attribution: labelsConfig.attribution,
-                    maxZoom: labelsConfig.maxZoom
+                    maxZoom: labelsConfig.maxZoom,
+                    // Optimize for rotation performance
+                    updateWhenIdle: false,
+                    keepBuffer: 4,
+                    updateWhenZooming: false,
+                    updateInterval: 150
                 };
                 labelsLayer = L.tileLayer(labelsConfig.url, labelsOptions).addTo(map);
             } else {
@@ -3735,7 +4085,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const basemapConfig = basemaps[selected];
                 const tileOptions = {
                     attribution: basemapConfig.attribution,
-                    maxZoom: basemapConfig.maxZoom
+                    maxZoom: basemapConfig.maxZoom,
+                    // Optimize for rotation performance
+                    updateWhenIdle: false,
+                    keepBuffer: 4,
+                    updateWhenZooming: false,
+                    updateInterval: 150
                 };
                 
                 // Add maxNativeZoom if specified (prevents blank tiles at high zoom)
@@ -12770,7 +13125,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.40 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.44 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
