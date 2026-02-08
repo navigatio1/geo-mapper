@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.9.44 - ROTATION PERFECTED! Fixed toggle button errors, corrected rotation direction (clockwise = clockwise!), changed to Ctrl+Right-click only for better control. Toggle button now shows correct state visually. All rotation issues resolved! -->
+<!-- Geo Mapper v2.9.47 - LEGEND & UI FIXES! Fixed legend for rivers/lakes/urban overlays, removed Biomes (not implemented), fixed symbol display for Fixed size mode, improved empty legend placeholder, changed "Overlay Layers" to "Overlays". All v2.9.46 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.44 - Rotation Perfected</title>
+    <title>Geo Mapper v2.9.47 - Legend & UI Fixes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <!-- Leaflet Rotate Plugin for map rotation support -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.min.css" />
+    <!-- Leaflet Rotate Plugin JS only - CSS not needed (custom rotation handler) -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
@@ -1140,6 +1139,40 @@
             font-size: 1rem;
         }
         
+        /* Rotation Toggle Tooltip */
+        .rotation-toggle-tooltip {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 10px;
+            background: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: normal;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            line-height: 1.5;
+        }
+        
+        .rotation-toggle:hover .rotation-toggle-tooltip {
+            opacity: 1;
+        }
+        
+        .rotation-toggle-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            border: 6px solid transparent;
+            border-top-color: rgba(44, 62, 80, 0.95);
+        }
+        
         .compass-text {
             position: absolute;
             bottom: -25px;
@@ -1158,7 +1191,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.40</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.47</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1180,20 +1213,9 @@
 
     <div class="container">
         <div class="sidebar" id="sidebar">
-            <!-- Rotation Feature Tip -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <strong>🧭 Map Rotation</strong><br>
-                <div style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.95;">
-                    • Toggle ON/OFF with button (bottom-right)<br>
-                    • <strong>Ctrl+Right-click & drag</strong> to rotate<br>
-                    • Click compass to reset to north
-                </div>
-            </div>
             
             <div class="section">
                 <div class="section-title">Load Data</div>
-                <button class="btn" onclick="loadMapConfiguration()" style="background: #9b59b6; margin-bottom: 0.5rem;">📁 Load Map Configuration</button>
-                <input type="file" id="configInput" accept=".json" style="display: none;">
                 <div class="file-upload" id="fileUpload">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">
@@ -1202,6 +1224,8 @@
                     </div>
                     <input type="file" id="fileInput" accept=".csv">
                 </div>
+                <button class="btn" onclick="loadMapConfiguration()" style="background: #9b59b6; margin-top: 0.5rem;">📁 Load saved configuration</button>
+                <input type="file" id="configInput" accept=".json" style="display: none;">
             </div>
 
             <!-- Fixed Lock in Changes button - always visible -->
@@ -1238,7 +1262,7 @@
             </details>
 
             <details class="section">
-                <summary class="section-title">📚 Overlay Layers</summary>
+                <summary class="section-title">🗺️ Overlays</summary>
                 <div class="section-content">
                 <div class="form-group">
                     <label>Select Overlays (multiple allowed)</label>
@@ -1258,10 +1282,6 @@
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-major-cities" value="major-cities" onchange="toggleOverlay('major-cities')" style="width: auto; margin-right: 0.5rem;">
                             <span>🏙️ Major Cities (Pop >7M Metro)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
-                            <input type="checkbox" id="overlay-biomes" value="biomes" onchange="toggleOverlay('biomes')" style="width: auto; margin-right: 0.5rem;">
-                            <span>🌍 Biomes (Terrestrial Ecosystems)</span>
                         </label>
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-rivers" value="rivers" onchange="toggleOverlay('rivers')" style="width: auto; margin-right: 0.5rem;">
@@ -1348,19 +1368,6 @@
                     </div>
                 </div>
                 
-                <div id="overlay-biomes-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0fff0; border-radius: 4px; border-left: 3px solid #27ae60;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">🌍 Biomes settings</div>
-                    <div class="form-group">
-                        <label for="biomesOpacity">Biomes Opacity (%)</label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" id="biomesOpacity" min="10" max="100" value="40" style="flex: 1;" oninput="reloadOverlay('biomes'); document.getElementById('biomesOpacityValue').textContent = this.value">
-                            <span id="biomesOpacityValue" style="min-width: 35px; text-align: right;">40</span>
-                        </div>
-                    </div>
-                    <div class="info-text" style="font-size: 0.75rem; margin-top: 0.5rem;">
-                        Download official RESOLVE Ecoregions 2017 from <a href="https://ecoregions.appspot.com/" target="_blank">ecoregions.appspot.com</a> and update GitHub URL in code. See BIOMES_DATA_GUIDE.md for instructions.
-                    </div>
-                </div>
                 
                 <div id="overlay-ocean-currents-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #e6f3ff; border-radius: 4px; border-left: 3px solid #2196F3;">
                     <div style="font-weight: 600; margin-bottom: 0.5rem;">🌊 Ocean currents settings</div>
@@ -2417,9 +2424,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             <div id="map"></div>
             
             <!-- Rotation Toggle Button -->
-            <div id="rotationToggle" class="rotation-toggle active" onclick="toggleRotation()" title="Toggle map rotation">
+            <div id="rotationToggle" class="rotation-toggle active" onclick="toggleRotation()">
                 <span class="rotation-toggle-icon">🔄</span>
                 <span id="rotationToggleText">Rotation ON</span>
+                <div class="rotation-toggle-tooltip">
+                    <strong>Map Rotation</strong><br>
+                    • Toggle map rotation<br>
+                    • Ctrl+Right-click & drag to rotate<br>
+                    • Click compass to reset to north
+                </div>
             </div>
             
             <!-- Compass Rose for Map Rotation -->
@@ -10457,6 +10470,33 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             html += '</div>';
                             html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.5rem;">18 major global currents with flow direction</div>';
                             break;
+                            
+                        case 'rivers':
+                            html += '<div class="legend-section-title">🏞️ Major Rivers</div>';
+                            html += '<div class="legend-item">';
+                            html += '<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="#4682B4" stroke-width="2"/></svg>';
+                            html += '<span>Rivers</span>';
+                            html += '</div>';
+                            html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.25rem;">Major world rivers</div>';
+                            break;
+                            
+                        case 'lakes':
+                            html += '<div class="legend-section-title">💧 Major Lakes</div>';
+                            html += '<div class="legend-item">';
+                            html += '<div style="width: 20px; height: 14px; background: rgba(70, 130, 180, 0.4); border: 1px solid #4682B4; border-radius: 2px;"></div>';
+                            html += '<span>Lakes</span>';
+                            html += '</div>';
+                            html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.25rem;">Major world lakes</div>';
+                            break;
+                            
+                        case 'urban-areas':
+                            html += '<div class="legend-section-title">🏙️ Urban Areas</div>';
+                            html += '<div class="legend-item">';
+                            html += '<div style="width: 20px; height: 14px; background: rgba(255, 69, 0, 0.3); border: 1px solid #FF4500; border-radius: 2px;"></div>';
+                            html += '<span>Population Density</span>';
+                            html += '</div>';
+                            html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.25rem;">Urban areas and settlements</div>';
+                            break;
                     }
                     html += '</div>';
                 }
@@ -10501,17 +10541,25 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 html += '</div>';
             }
             
-            // 4. Default symbol info (if no categories)
-            if (!colorByField && !hasContent) {
+            // 4. Default symbol info (shown when not using categories and either no data or fixed size)
+            if (!colorByField && markers.length > 0 && !sizeByField) {
                 const shape = document.getElementById('markerShape').value;
                 const color = document.getElementById('markerColor').value;
+                const strokeColor = document.getElementById('strokeColor').value;
+                const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                const defaultSize = parseInt(document.getElementById('fixedSize')?.value || 12);
                 
                 html += '<div class="legend-section">';
                 html += '<div class="legend-section-title">Map Symbols</div>';
-                const svgIcon = getMarkerIcon(shape, color, 12, '#2c3e50', 1, 0);
-                const iconUrl = svgIcon.options.iconUrl;
+                
+                // Use getMarkerIcon to create proper symbol without rotation
+                const icon = getMarkerIcon(shape, color, defaultSize, strokeColor, strokeWidth, 0);
+                const iconHtml = icon.options.html;
+                
                 html += `<div class="legend-item">
-                    <img src="${iconUrl}" class="legend-symbol" alt="marker">
+                    <div class="legend-symbol" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                        ${iconHtml}
+                    </div>
                     <span>Data Point</span>
                 </div>`;
                 html += '</div>';
@@ -10519,7 +10567,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
             
             if (!hasContent) {
-                html = '<div style="color: #7f8c8d; font-size: 0.875rem; padding: 1rem; text-align: center;">Legend is empty. Add data and configure styles to see legend items.</div>';
+                html = '<div style="color: #7f8c8d; font-size: 0.875rem; padding: 1rem; text-align: center;"><div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div><div>Legend is empty</div><div style="font-size: 0.75rem; margin-top: 0.25rem;">Upload data and configure styles to see legend items</div></div>';
             }
             
             content.innerHTML = html;
@@ -13125,7 +13173,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.44 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.47 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
