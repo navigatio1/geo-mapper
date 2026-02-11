@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<!-- Geo Mapper v2.9.47 - LEGEND & UI FIXES! Fixed legend for rivers/lakes/urban overlays, removed Biomes (not implemented), fixed symbol display for Fixed size mode, improved empty legend placeholder, changed "Overlay Layers" to "Overlays". All v2.9.46 features preserved! -->
+<!-- Geo Mapper v2.9.72 - REFINED COLORS! Updated hazard colors: earthquake=red, volcanoes=red/white, water hazards=bright blue/white, wildfire=orange/white. Professional white outlines 1px. Renamed Fire to Wildfire. -->
+<!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.47 - Legend & UI Fixes</title>
+    <title>Geo Mapper v2.9.72 - Refined Colors</title>
+    <!-- Font Awesome Free for professional disaster icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <!-- Leaflet Rotate Plugin JS only - CSS not needed (custom rotation handler) -->
@@ -312,7 +314,6 @@
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 0.75rem;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
@@ -331,7 +332,6 @@
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 0;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
             list-style: none;
             display: flex;
@@ -414,12 +414,18 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 0.875rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             transition: border-color 0.3s;
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: #3498db;
+        }
+        
+        /* Ensure all form elements use consistent font */
+        input, select, textarea, button {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         .color-size-group {
@@ -437,6 +443,7 @@
             border-radius: 4px;
             font-size: 0.875rem;
             font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             cursor: pointer;
             transition: background 0.3s;
         }
@@ -1054,8 +1061,8 @@
             position: fixed;
             bottom: 120px;
             right: 20px;
-            width: 60px;
-            height: 60px;
+            width: 48px;
+            height: 48px;
             background: white;
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -1080,9 +1087,9 @@
         .compass-needle {
             width: 0;
             height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 30px solid #e74c3c;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 24px solid #e74c3c;
             position: relative;
             transition: transform 0.3s ease;
         }
@@ -1108,35 +1115,49 @@
             bottom: 195px;
             right: 20px;
             background: white;
-            border: 2px solid #2c3e50;
-            border-radius: 6px;
-            padding: 0.5rem 0.75rem;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
             cursor: pointer;
             z-index: 1000;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             transition: all 0.2s;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #2c3e50;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
         }
         
         .rotation-toggle:hover {
-            background: #f0f0f0;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
         
         .rotation-toggle.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: #667eea;
+            border-color: #27ae60;
+            background: #f0fff4;
         }
         
         .rotation-toggle-icon {
-            font-size: 1rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .rotation-toggle-arrows {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Circular arrows using SVG */
+        .rotation-toggle svg {
+            width: 100%;
+            height: 100%;
         }
         
         /* Rotation Toggle Tooltip */
@@ -1191,7 +1212,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.47</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.72</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1214,8 +1235,9 @@
     <div class="container">
         <div class="sidebar" id="sidebar">
             
-            <div class="section">
-                <div class="section-title">Load Data</div>
+            <details class="section" open>
+                <summary class="section-title">📁 Load data</summary>
+                <div class="section-content">
                 <div class="file-upload" id="fileUpload">
                     <div class="upload-icon">📁</div>
                     <div class="upload-text">
@@ -1226,7 +1248,26 @@
                 </div>
                 <button class="btn" onclick="loadMapConfiguration()" style="background: #9b59b6; margin-top: 0.5rem;">📁 Load saved configuration</button>
                 <input type="file" id="configInput" accept=".json" style="display: none;">
-            </div>
+                
+                <!-- Georeference check moved inside LOAD DATA -->
+                <details class="section" id="columnSection" style="display: none; margin-top: 1rem; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    <summary class="section-title" style="font-size: 0.9rem;">🌍 Georeference check</summary>
+                    <div class="section-content">
+                    <div class="form-group">
+                        <label for="latColumn">Latitude Column</label>
+                        <select id="latColumn"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lonColumn">Longitude Column</label>
+                        <select id="lonColumn"></select>
+                    </div>
+                    <div class="info-text">
+                        ℹ️ Points plot automatically after column selection
+                    </div>
+                    </div>
+                </details>
+                </div>
+            </details>
 
             <!-- Fixed Lock in Changes button - always visible -->
             <div style="position: sticky; top: 0; z-index: 100; background: white; padding: 0.75rem 0; margin-bottom: 0.5rem; border-bottom: 2px solid #e0e0e0;">
@@ -1300,6 +1341,12 @@
                 
                 <!-- Global overlay opacity control -->
                 <div id="overlayGlobalSettings" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <div style="background: #e8f5e9; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.75rem; font-size: 0.85rem;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="showOverlayInLegend" checked onchange="toggleLegendItem('overlay')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🗝️ Show Overlays in Legend</span>
+                        </label>
+                    </div>
                     <div class="form-group">
                         <label for="overlayOpacity">All Overlays Visibility (%)</label>
                         <input type="range" id="overlayOpacity" value="70" min="10" max="100" oninput="updateOverlayOpacity(); document.getElementById('opacityValueOverlay').textContent = this.value">
@@ -1428,33 +1475,21 @@
                 </div>
             </details>
 
-            <details class="section" id="columnSection" style="display: none;">
-                <summary class="section-title">🌍 Georeferencing</summary>
+            <details class="section" id="symbolConfigSection" style="display: none;">
+                <summary class="section-title">⚙️ Symbol Configuration</summary>
                 <div class="section-content">
+                
+                <!-- Size by Field -->
                 <div class="form-group">
-                    <label for="latColumn">Latitude Column</label>
-                    <select id="latColumn"></select>
+                    <label for="sizeByField">Size by Field (optional)</label>
+                    <select id="sizeByField">
+                        <option value="">Fixed size</option>
+                    </select>
                 </div>
+                
+                <!-- Symbol Type moved from separate section -->
                 <div class="form-group">
-                    <label for="lonColumn">Longitude Column</label>
-                    <select id="lonColumn"></select>
-                </div>
-                <div class="form-group">
-                    <button class="btn" onclick="manualPlotPoints()" style="width: 100%; background: #27ae60; font-weight: 600; padding: 0.75rem;">
-                        📍 Plot Points on Map
-                    </button>
-                    <div class="info-text">
-                        ℹ️ Click this button after selecting lat/lon columns to display points on the map
-                    </div>
-                </div>
-                </div>
-            </details>
-
-            <details class="section" id="symbolTypeSection" style="display: none;">
-                <summary class="section-title">🔷 SYMBOL TYPE</summary>
-                <div class="section-content">
-                <div class="form-group">
-                    <label for="markerShape">Symbol shape</label>
+                    <label for="markerShape">Symbol type</label>
                     <select id="markerShape">
                         <optgroup label="Basic shapes">
                             <option value="circle">● Circle</option>
@@ -1477,11 +1512,11 @@
                         <optgroup label="Hazards">
                             <option value="volcano-active">🌋 Volcano (Active)</option>
                             <option value="volcano-dormant">🗻 Volcano (Dormant)</option>
-                            <option value="earthquake">Earthquake</option>
+                            <option value="earthquake">📉 Earthquake</option>
                             <option value="hurricane">🌀 Tropical Storm</option>
                             <option value="tsunami">🌊 Tsunami</option>
                             <option value="flood">💧 Flood</option>
-                            <option value="fire">🔥 Fire</option>
+                            <option value="fire">🔥 Wildfire</option>
                         </optgroup>
                         <optgroup label="Custom image">
                             <option value="custom">🖼️ Custom Image</option>
@@ -1501,21 +1536,27 @@
                     <button class="btn btn-secondary" onclick="showIconHistorySelector()" style="margin-top: 0.5rem; font-size: 0.85rem; width: 100%;">📜 Recent custom icons</button>
                     <div id="iconPreview" class="icon-preview" style="display: none;"></div>
                 </div>
-                </div>
-            </details>
-
-            <details class="section" id="symbolConfigSection" style="display: none;">
-                <summary class="section-title">⚙️ Symbol Configuration</summary>
-                <div class="section-content">
                 
-                <!-- Size by Field -->
-                <div class="form-group">
-                    <label for="sizeByField">Size by Field (optional)</label>
-                    <select id="sizeByField">
-                        <option value="">Fixed size</option>
-                    </select>
-                </div>
                 <div id="proportionalSizeSettings" style="display: none;">
+                    <!-- Color controls for proportional symbols -->
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e0e0e0;">
+                        <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol colour</div>
+                        <div class="color-size-group">
+                            <div class="form-group">
+                                <label for="proportionalMarkerColor">Fill color</label>
+                                <input type="color" id="proportionalMarkerColor" value="#3498db" onchange="plotPoints(false)">
+                            </div>
+                            <div class="form-group">
+                                <label for="proportionalStrokeColor">Outline color</label>
+                                <input type="color" id="proportionalStrokeColor" value="#2c3e50" onchange="plotPoints(false)">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="proportionalStrokeWidth">Outline width</label>
+                            <input type="number" id="proportionalStrokeWidth" value="2" min="0" max="5" onchange="plotPoints(false)">
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="sizeMethod">Sizing Method</label>
                         <select id="sizeMethod" onchange="toggleSizeMethod()">
@@ -1528,11 +1569,11 @@
                         <div class="color-size-group">
                             <div class="form-group">
                                 <label for="minSymbolSize">Min size</label>
-                                <input type="number" id="minSymbolSize" value="5" min="3" max="20">
+                                <input type="number" id="minSymbolSize" value="15" min="3" max="20">
                             </div>
                             <div class="form-group">
                                 <label for="maxSymbolSize">Max size</label>
-                                <input type="number" id="maxSymbolSize" value="20" min="10" max="50">
+                                <input type="number" id="maxSymbolSize" value="30" min="10" max="50">
                             </div>
                         </div>
                         <div class="info-text">
@@ -1604,7 +1645,7 @@
                     </div>
                 </div>
                 
-                <!-- Color by Field -->
+                <!-- Color by Field - ALWAYS VISIBLE -->
                 <div class="form-group" style="margin-top: 1.5rem;">
                     <label for="colorByField">Color by Field (categorical data)</label>
                     <select id="colorByField">
@@ -1633,12 +1674,9 @@
                     <button class="btn btn-secondary" onclick="resetCategoryStyles()" style="margin-top: 0.5rem; font-size: 0.875rem;">Reset to defaults</button>
                 </div>
                 
-                <!-- Symbol Appearance Controls -->
-                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
-                    <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol appearance</div>
-                    <div class="info-text" style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 4px solid #4caf50; font-size: 0.85rem;">
-                        ✨ <strong>Live preview:</strong> Changes update automatically. Click "Lock in changes" at the top to finalize.
-                    </div>
+                <!-- Symbol colour and size - ONLY for Fixed Size -->
+                <div id="fixedSizeStyleSection" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
+                    <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol colour and size</div>
 
                     <div id="shapeStyleSection">
                         <div class="color-size-group">
@@ -1648,7 +1686,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="markerSize">Size</label>
-                                <input type="number" id="markerSize" value="10" min="4" max="30">
+                                <input type="number" id="markerSize" value="15" min="4" max="30">
                             </div>
                         </div>
                         <div class="color-size-group">
@@ -1661,77 +1699,332 @@
                                 <input type="number" id="strokeWidth" value="2" min="0" max="5">
                             </div>
                         </div>
-                        
-                        <!-- Halo controls (always available) -->
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="haloEnabled" onchange="plotPoints()" style="margin-right: 0.5rem;">
-                                Add Halo (outer glow)
-                            </label>
-                        </div>
-                        <div id="haloControls" style="display: none; margin-top: 0.5rem;">
-                            <div class="color-size-group">
-                                <div class="form-group">
-                                    <label for="haloColor">Halo color</label>
-                                    <input type="color" id="haloColor" value="#ffffff" onchange="plotPoints()">
-                                </div>
-                                <div class="form-group">
-                                    <label for="haloSize">Halo size</label>
-                                    <input type="number" id="haloSize" value="12" min="4" max="60" onchange="plotPoints()">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="haloGlow" onchange="plotPoints()" style="margin-right: 0.5rem;">
-                                    Firefly glow (soft multi-layer)
-                                </label>
-                                <div class="info-text" style="font-size: 0.75rem; margin-top: 0.25rem;">
-                                    ℹ️ Creates soft, glowing effect like pulse animation
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="form-group" id="iconSizeControl" style="display: none;">
                         <label for="markerSize2">Icon Size (px)</label>
                         <input type="number" id="markerSize2" value="32" min="16" max="64">
                     </div>
-                    
-                    <!-- Rotate by Field moved to bottom -->
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="rotationField">Rotate symbol by bearing</label>
-                        <select id="rotationField">
-                            <option value="">No rotation</option>
-                        </select>
-                        <div class="info-text">
-                            ℹ️ Rotate symbols based on field values (e.g., wind direction)
+                </div>
+                
+                <!-- Halo controls - ALWAYS VISIBLE -->
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label>
+                        <input type="checkbox" id="haloEnabled" onchange="plotPoints(false)" style="margin-right: 0.5rem;">
+                        Add Halo (outer glow)
+                    </label>
+                </div>
+                <div id="haloControls" style="display: none; margin-top: 0.5rem;">
+                    <div class="color-size-group">
+                        <div class="form-group">
+                            <label for="haloColor">Halo color</label>
+                            <input type="color" id="haloColor" value="#ffffff" onchange="plotPoints()">
+                        </div>
+                        <div class="form-group">
+                            <label for="haloSize">Halo size</label>
+                            <input type="number" id="haloSize" value="12" min="4" max="60" onchange="plotPoints(false)">
                         </div>
                     </div>
-                    
-                    <div class="form-group" id="fixedRotationControl" style="display: none;">
-                        <label for="fixedRotation">Fixed Rotation (degrees)</label>
-                        <input type="number" id="fixedRotation" value="0" min="0" max="359" step="1">
-                        <div class="info-text">
-                            ℹ️ 0° = North, 90° = East, 180° = South, 270° = West
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="haloGlow" onchange="plotPoints(false)" style="margin-right: 0.5rem;">
+                            Firefly glow (soft multi-layer)
+                        </label>
+                        <div class="info-text" style="font-size: 0.75rem; margin-top: 0.25rem;">
+                            ℹ️ Creates soft, glowing effect like pulse animation
                         </div>
                     </div>
-                    
-                    <!-- Data Points Visibility Slider -->
-                    <div class="form-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                        <label for="pointsVisibility">Data Points Visibility (%)</label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" id="pointsVisibility" min="0" max="100" value="100" style="flex: 1;" oninput="updatePointsVisibility(); document.getElementById('pointsVisibilityValue').textContent = this.value">
-                            <span id="pointsVisibilityValue" style="min-width: 35px; text-align: right;">100</span>
-                        </div>
-                        <div class="info-text">
-                            ℹ️ Hide data points for presentations or screenshots
-                        </div>
+                </div>
+                
+                <!-- Rotate by Field - ALWAYS VISIBLE -->
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label for="rotationField">Rotate symbol by bearing</label>
+                    <select id="rotationField">
+                        <option value="">No rotation</option>
+                    </select>
+                    <div class="info-text">
+                        ℹ️ Rotate symbols based on field values (e.g., wind direction)
+                    </div>
+                </div>
+                
+                <div class="form-group" id="fixedRotationControl" style="display: none;">
+                    <label for="fixedRotation">Fixed Rotation (degrees)</label>
+                    <input type="number" id="fixedRotation" value="0" min="0" max="359" step="1">
+                    <div class="info-text">
+                        ℹ️ 0° = North, 90° = East, 180° = South, 270° = West
+                    </div>
+                </div>
+                
+                <!-- Data Points Visibility - ALWAYS VISIBLE -->
+                <div class="form-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <label for="pointsVisibility">Data Points Visibility (%)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="pointsVisibility" min="0" max="100" value="100" style="flex: 1;" oninput="updatePointsVisibility(); document.getElementById('pointsVisibilityValue').textContent = this.value">
+                        <span id="pointsVisibilityValue" style="min-width: 35px; text-align: right;">100</span>
+                    </div>
+                    <div class="info-text">
+                        ℹ️ Hide data points for presentations or screenshots
                     </div>
                 </div>
                 
                 </div>
             </details>
 
+            <details class="section" id="popupSection" style="display: none;">
+                <summary class="section-title">💬 Pop-up Configuration</summary>
+                <div class="section-content">
+                
+                <div class="form-group">
+                    <label for="popupTitle">Pop-up Title Template (optional)</label>
+                    <input type="text" id="popupTitle" placeholder="e.g., {NAME}, {COUNTRY}, {CONTINENT}" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.25rem;">Quick Insert Field:</label>
+                        <select id="fieldHelperTitle" onchange="insertFieldIntoPopupTitle()" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                            <option value="">-- Select field to insert --</option>
+                        </select>
+                    </div>
+                    <div class="info-text">
+                        ℹ️ Use {fieldname} as shown with input data (e.g. CSV file), which can be seen in 'DATA EDITOR'. Media data such as image URLs can be included in the same way.
+                    </div>
+                </div>
+
+                <div class="toggle-section" onclick="togglePopupTemplate()">
+                    <span>Custom pop-up template</span>
+                    <span class="arrow" id="templateArrow">▼</span>
+                </div>
+                <div id="popupTemplateContent" style="display: none;">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="useTemplate" style="width: auto; margin-right: 0.5rem;">
+                            Use custom template
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="popupTemplate">Template (use {fieldname} for data)</label>
+                        <div style="margin-bottom: 0.5rem;">
+                            <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.25rem;">Quick Insert Field:</label>
+                            <select id="fieldHelperTemplate" onchange="insertFieldIntoTemplate()" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                                <option value="">-- Select field to insert --</option>
+                            </select>
+                        </div>
+                        <textarea id="popupTemplate" rows="8" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.875rem;" placeholder="Example:
+Name: {name}
+Location: {city}, {country}
+Value: {population}
+
+Image: {image_url}
+
+Use {columnname} to insert data from your CSV columns.
+For image URLs, mark the field as an 'Image Field' below."></textarea>
+                    </div>
+                    <div class="info-text">
+                        ℹ️ Type your text and use {fieldname} with curly brackets to insert column data. Fields marked as "Image Fields" below will display as images when using {fieldname}.
+                    </div>
+                    
+                    <div class="form-group" style="background: #f0f8ff; padding: 0.75rem; border-radius: 4px; border: 1px solid #b3d9ff; margin-top: 1rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🔢 Tabs and titles</label>
+                        
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="enableSecondTab" style="width: auto; margin-right: 0.5rem;">
+                                <span>Enable second pop-up tab for graphics</span>
+                            </label>
+                            <div class="info-text" style="margin-top: 0.25rem;">
+                                When enabled, charts/images appear in a separate tab. When disabled, all content shows together.
+                            </div>
+                        </div>
+                        
+                        <div id="tabLabelsSection">
+                            <div class="info-text" style="margin-bottom: 0.5rem;">
+                                Customize tab labels (optional - tabs default to "1" and "2")
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <div>
+                                    <label for="popupTab1Label" style="font-size: 0.8rem; color: #666;">Tab 1 label (optional):</label>
+                                    <input type="text" id="popupTab1Label" value="" placeholder="e.g., Site data" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                                </div>
+                                <div>
+                                    <label for="popupTab2Label" style="font-size: 0.8rem; color: #666;">Tab 2 label (optional):</label>
+                                    <input type="text" id="popupTab2Label" value="" placeholder="e.g., Velocity chart" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toggle-section" onclick="togglePopupConfig()">
+                    <span>Select fields for non-custom pop-up</span>
+                    <span class="arrow" id="popupConfigArrow" style="transform: rotate(-90deg);">▼</span>
+                </div>
+                <div id="popupConfigContent" style="display: none;">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="showColumnHeadings" style="width: auto; margin-right: 0.5rem;">
+                            <span>Show field titles in pop-up</span>
+                        </label>
+                        <div class="info-text">
+                            ℹ️ When unchecked, only values are shown
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" onclick="selectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1;">Select all</button>
+                            <button class="btn btn-secondary" onclick="deselectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1; margin-top: 0;">Deselect all</button>
+                        </div>
+                    </div>
+                    <div class="checkbox-group" id="fieldCheckboxes"></div>
+                </div>
+                
+                <div class="toggle-section" onclick="togglePopupSizeConfig()">
+                    <span>Pop-up size</span>
+                    <span class="arrow" id="popupSizeArrow" style="transform: rotate(-90deg);">▼</span>
+                </div>
+                <div id="popupSizeContent" style="display: none;">
+                    <div class="form-group">
+                        <label for="popupWidth">Pop-up width (px)</label>
+                        <input type="number" id="popupWidth" value="300" min="200" max="600">
+                    </div>
+                    <div class="form-group">
+                        <label for="popupMaxHeight">Pop-up height (px)</label>
+                        <input type="number" id="popupMaxHeight" value="400" min="0" max="800">
+                        <div class="info-text">
+                            ℹ️ Set to 0 for no height limit
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </details>
+            <details class="section" id="chartSection" style="display: none;">
+                <summary class="section-title">📊 Charts</summary>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="enablePopupChart" onclick="toggleChartSettings()" style="width: auto; margin-right: 0.5rem;">
+                            <span>Show data chart in pop-up tab</span>
+                        </label>
+                    </div>
+                    
+                    <div id="chartSettingsPanel" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px;">
+                        <!-- Chart Type -->
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label for="chartType" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart type:</label>
+                            <select id="chartType" onchange="toggleChartTypeSettings()" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                <option value="bar">Column chart (vertical bars)</option>
+                                <option value="timeseries">Line chart</option>
+                            </select>
+                        </div>
+                        
+                        <!-- BAR/COLUMN CHART SETTINGS -->
+                        <div id="barChartSettings">
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="barChartSequenceField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
+                                <select id="barChartSequenceField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select sequence field --</option>
+                                </select>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Choose field related to sequence e.g. site; date; time
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="chartFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
+                                <select id="chartFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select numeric field --</option>
+                                </select>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
+                                </div>
+                            </div>
+                            
+                            <!-- Chart title moved here, right after Numerical field -->
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="chartTitleCustom" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
+                                <input type="text" id="chartTitleCustom" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Leave blank to use field name
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="showChartValues" checked style="width: auto; margin-right: 0.5rem;">
+                                    <span>Show values on hover</span>
+                                </label>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    📊 Display numeric values when hovering over data points
+                                </div>
+                            </div>
+                            
+                            <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
+                                📊 Chart will show ALL data points with current point marked
+                            </div>
+                            
+                            <!-- Comparison bar labels - only shown when bar-comparison is selected -->
+                            <div id="comparisonBarLabels" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0;">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Comparison bar labels (optional)</div>
+                                <div class="form-group" style="margin-bottom: 0.5rem;">
+                                    <label for="chartThisValueLabel" style="font-size: 0.85rem;">"This value" label:</label>
+                                    <input type="text" id="chartThisValueLabel" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0.5rem;">
+                                    <label for="chartPositiveLabel" style="font-size: 0.85rem;">Positive avg label:</label>
+                                    <input type="text" id="chartPositiveLabel" placeholder="e.g., Avg land-based elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="chartNegativeLabel" style="font-size: 0.85rem;">Negative avg label:</label>
+                                    <input type="text" id="chartNegativeLabel" placeholder="e.g., Avg submarine elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- TIME-SERIES SETTINGS -->
+                        <div id="timeSeriesSettings" style="display: none;">
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="timeFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
+                                <select id="timeFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select sequence field --</option>
+                                </select>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Choose field related to sequence e.g. site; date; time
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="timeSeriesValueField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
+                                <select id="timeSeriesValueField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                    <option value="">-- Select numeric field --</option>
+                                </select>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
+                                </div>
+                            </div>
+                            
+                            <!-- Chart title moved here, right after Numerical field -->
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label for="timeSeriesChartTitle" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
+                                <input type="text" id="timeSeriesChartTitle" placeholder="e.g., Atmospheric Pressure Over Time" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    Leave blank to auto-generate from field names
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-bottom: 0.75rem;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="showLineChartValues" checked style="width: auto; margin-right: 0.5rem;">
+                                    <span>Show values on hover</span>
+                                </label>
+                                <div class="info-text" style="margin-top: 0.25rem;">
+                                    📊 Display numeric values when hovering over data points
+                                </div>
+                            </div>
+                            
+                            <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
+                                📊 Chart will show ALL data points with current point marked
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
             <details class="section" id="timeAnimationSection" style="display: none;">
                 <summary class="section-title">⏱️ Time Animation</summary>
                 <div class="section-content">
@@ -1871,285 +2164,6 @@
                 </div>
             </details>
 
-            <details class="section" id="popupSection" style="display: none;">
-                <summary class="section-title">💬 Pop-up Configuration</summary>
-                <div class="section-content">
-                
-                <div class="form-group">
-                    <label for="popupTitle">Pop-up Title Template (optional)</label>
-                    <input type="text" id="popupTitle" placeholder="e.g., {NAME}, {COUNTRY}, {CONTINENT}" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
-                    <div style="margin-bottom: 0.5rem;">
-                        <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.25rem;">Quick Insert Field:</label>
-                        <select id="fieldHelperTitle" onchange="insertFieldIntoPopupTitle()" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
-                            <option value="">-- Select field to insert --</option>
-                        </select>
-                    </div>
-                    <div class="info-text">
-                        ℹ️ Use {fieldname} as shown with input data (e.g. CSV file), which can be seen by clicking 'Open Data Editor'. If data contains image URLs, these can be included in the same way.
-                    </div>
-                </div>
-
-                <div class="toggle-section" onclick="togglePopupTemplate()">
-                    <span>Custom pop-up template</span>
-                    <span class="arrow" id="templateArrow">▼</span>
-                </div>
-                <div id="popupTemplateContent" style="display: none;">
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="useTemplate" style="width: auto; margin-right: 0.5rem;">
-                            Use custom template
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label for="popupTemplate">Template (use {fieldname} for data)</label>
-                        <div style="margin-bottom: 0.5rem;">
-                            <label style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.25rem;">Quick Insert Field:</label>
-                            <select id="fieldHelperTemplate" onchange="insertFieldIntoTemplate()" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
-                                <option value="">-- Select field to insert --</option>
-                            </select>
-                        </div>
-                        <textarea id="popupTemplate" rows="8" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.875rem;" placeholder="Example:
-Name: {name}
-Location: {city}, {country}
-Value: {population}
-
-Image: {image_url}
-
-Use {columnname} to insert data from your CSV columns.
-For image URLs, mark the field as an 'Image Field' below."></textarea>
-                    </div>
-                    <div class="info-text">
-                        ℹ️ Type your text and use {fieldname} with curly brackets to insert column data. Fields marked as "Image Fields" below will display as images when using {fieldname}.
-                    </div>
-                    
-                    <div class="form-group" style="background: #f0f8ff; padding: 0.75rem; border-radius: 4px; border: 1px solid #b3d9ff; margin-top: 1rem;">
-                        <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">🔢 Tabs and titles</label>
-                        
-                        <div class="form-group" style="margin-bottom: 0.75rem;">
-                            <label style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" id="enableSecondTab" style="width: auto; margin-right: 0.5rem;">
-                                <span>Enable second pop-up tab for graphics</span>
-                            </label>
-                            <div class="info-text" style="margin-top: 0.25rem;">
-                                When enabled, charts/images appear in a separate tab. When disabled, all content shows together.
-                            </div>
-                        </div>
-                        
-                        <div id="tabLabelsSection">
-                            <div class="info-text" style="margin-bottom: 0.5rem;">
-                                Customize tab labels (optional - tabs default to "1" and "2")
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                                <div>
-                                    <label for="popupTab1Label" style="font-size: 0.8rem; color: #666;">Tab 1 label (optional):</label>
-                                    <input type="text" id="popupTab1Label" value="" placeholder="e.g., Site data" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
-                                </div>
-                                <div>
-                                    <label for="popupTab2Label" style="font-size: 0.8rem; color: #666;">Tab 2 label (optional):</label>
-                                    <input type="text" id="popupTab2Label" value="" placeholder="e.g., Velocity chart" style="width: 100%; padding: 0.4rem; font-size: 0.85rem;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="toggle-section" onclick="togglePopupConfig()">
-                    <span>Select fields for non-custom pop-up</span>
-                    <span class="arrow" id="popupConfigArrow" style="transform: rotate(-90deg);">▼</span>
-                </div>
-                <div id="popupConfigContent" style="display: none;">
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="showColumnHeadings" style="width: auto; margin-right: 0.5rem;">
-                            <span>Show field titles in pop-up</span>
-                        </label>
-                        <div class="info-text">
-                            ℹ️ When unchecked, only values are shown
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn" onclick="selectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1;">Select all</button>
-                            <button class="btn btn-secondary" onclick="deselectAllFields()" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; flex: 1; margin-top: 0;">Deselect all</button>
-                        </div>
-                    </div>
-                    <div class="checkbox-group" id="fieldCheckboxes"></div>
-                </div>
-                
-                <div class="toggle-section" onclick="togglePopupSizeConfig()">
-                    <span>Pop-up size</span>
-                    <span class="arrow" id="popupSizeArrow" style="transform: rotate(-90deg);">▼</span>
-                </div>
-                <div id="popupSizeContent" style="display: none;">
-                    <div class="form-group">
-                        <label for="popupWidth">Pop-up width (px)</label>
-                        <input type="number" id="popupWidth" value="300" min="200" max="600">
-                    </div>
-                    <div class="form-group">
-                        <label for="popupMaxHeight">Pop-up height (px)</label>
-                        <input type="number" id="popupMaxHeight" value="400" min="0" max="800">
-                        <div class="info-text">
-                            ℹ️ Set to 0 for no height limit
-                        </div>
-                    </div>
-                </div>
-                </div>
-            </details>
-
-            <details class="section" id="chartSection" style="display: none;">
-                <summary class="section-title">📊 Charts</summary>
-                <div class="section-content">
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="enablePopupChart" onclick="toggleChartSettings()" style="width: auto; margin-right: 0.5rem;">
-                            <span>Show data chart in pop-up tab</span>
-                        </label>
-                    </div>
-                    
-                    <div id="chartSettingsPanel" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px;">
-                        <!-- Chart Type -->
-                        <div class="form-group" style="margin-bottom: 0.75rem;">
-                            <label for="chartType" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart type:</label>
-                            <select id="chartType" onchange="toggleChartTypeSettings()" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                <option value="bar">Column chart (vertical bars)</option>
-                                <option value="timeseries">Line chart</option>
-                            </select>
-                        </div>
-                        
-                        <!-- BAR/COLUMN CHART SETTINGS -->
-                        <div id="barChartSettings">
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="barChartSequenceField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
-                                <select id="barChartSequenceField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select sequence field --</option>
-                                </select>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose field related to sequence e.g. site; date; time
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="chartFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
-                                <select id="chartFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select numeric field --</option>
-                                </select>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
-                                </div>
-                            </div>
-                            
-                            <!-- Chart title moved here, right after Numerical field -->
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="chartTitleCustom" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
-                                <input type="text" id="chartTitleCustom" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Leave blank to use field name
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="showChartValues" checked style="width: auto; margin-right: 0.5rem;">
-                                    <span>Show values on hover</span>
-                                </label>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    📊 Display numeric values when hovering over data points
-                                </div>
-                            </div>
-                            
-                            <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
-                                📊 Chart will show ALL data points with current point marked
-                            </div>
-                            
-                            <!-- Comparison bar labels - only shown when bar-comparison is selected -->
-                            <div id="comparisonBarLabels" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0;">
-                                <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Comparison bar labels (optional)</div>
-                                <div class="form-group" style="margin-bottom: 0.5rem;">
-                                    <label for="chartThisValueLabel" style="font-size: 0.85rem;">"This value" label:</label>
-                                    <input type="text" id="chartThisValueLabel" placeholder="e.g., Elevation (m)" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0.5rem;">
-                                    <label for="chartPositiveLabel" style="font-size: 0.85rem;">Positive avg label:</label>
-                                    <input type="text" id="chartPositiveLabel" placeholder="e.g., Avg land-based elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label for="chartNegativeLabel" style="font-size: 0.85rem;">Negative avg label:</label>
-                                    <input type="text" id="chartNegativeLabel" placeholder="e.g., Avg submarine elevation" style="width: 100%; padding: 0.3rem; font-size: 0.85rem;">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- TIME-SERIES SETTINGS -->
-                        <div id="timeSeriesSettings" style="display: none;">
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeFieldSelect" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Field for sequence:</label>
-                                <select id="timeFieldSelect" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select sequence field --</option>
-                                </select>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose field related to sequence e.g. site; date; time
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeSeriesValueField" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Numerical field:</label>
-                                <select id="timeSeriesValueField" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                    <option value="">-- Select numeric field --</option>
-                                </select>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Choose numerical field e.g. temperature; velocity; EQS; count; elevation
-                                </div>
-                            </div>
-                            
-                            <!-- Chart title moved here, right after Numerical field -->
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label for="timeSeriesChartTitle" style="font-weight: 600; margin-bottom: 0.25rem; display: block;">Chart title (optional):</label>
-                                <input type="text" id="timeSeriesChartTitle" placeholder="e.g., Atmospheric Pressure Over Time" style="width: 100%; padding: 0.4rem; font-size: 0.9rem;">
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    Leave blank to auto-generate from field names
-                                </div>
-                            </div>
-                            
-                            <div class="form-group" style="margin-bottom: 0.75rem;">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="showLineChartValues" checked style="width: auto; margin-right: 0.5rem;">
-                                    <span>Show values on hover</span>
-                                </label>
-                                <div class="info-text" style="margin-top: 0.25rem;">
-                                    📊 Display numeric values when hovering over data points
-                                </div>
-                            </div>
-                            
-                            <div class="info-text" style="background: #fff3cd; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;">
-                                📊 Chart will show ALL data points with current point marked
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </details>
-
-
-            <details class="section" id="saveExportSection" style="display: none;">
-                <summary class="section-title">💾 Save / Export</summary>
-                <div class="section-content">
-                <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
-                <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
-                <button class="btn" onclick="generateShareURL()" style="background: #e67e22; width: 100%; margin-bottom: 0.5rem;">🔗 Share Map</button>
-                <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; width: 100%; display: none; margin-bottom: 0.5rem;">📋 Copy URL to Share</button>
-                <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 1rem; background: #ecf0f1; border-radius: 4px; max-height: 300px; overflow-y: auto;">
-                    <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Share URL:</strong>
-                    <input type="text" id="shareURLInput" readonly style="width: 100%; padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.75rem; font-family: monospace; background: white; margin-bottom: 0.5rem; word-break: break-all; overflow-wrap: break-word;">
-                    <div id="urlWarning" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.75rem; color: #856404; word-break: break-word;"></div>
-                    <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #7f8c8d;">
-                        💡 <strong>Tip:</strong> URL is automatically compressed. For very large datasets, use GitHub Gist or "Save Map Configuration".
-                    </div>
-                </div>
-                <div class="info-text">
-                    Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.<br>
-                    <strong>Share Map:</strong> Creates a shareable URL with your data and settings embedded (compressed for shorter links)
-                </div>
-                </div>
-            </details>
 
             <details class="section">
                 <summary class="section-title">📏 Map Tools</summary>
@@ -2157,7 +2171,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 <!-- Distance Measurement -->
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e3f2fd; border-radius: 4px; border-left: 3px solid #2196f3;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">📐 Distance Measurement</div>
+                    <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">📐 Distance Measurement</div>
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <button class="btn" onclick="startDistanceMeasurement()" id="distanceStartBtn" style="flex: 1; background: #2196f3;">▶ Start</button>
                         <button class="btn" onclick="finishDistanceMeasurement()" id="distanceFinishBtn" style="flex: 1; background: #4caf50; display: none;">✓ Finish</button>
@@ -2173,7 +2187,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 <!-- Area Measurement -->
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">📐 Area Measurement</div>
+                    <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">📐 Area Measurement</div>
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <button class="btn" onclick="startAreaMeasurement()" style="flex: 1; background: #4caf50;">▶ Start</button>
                         <button class="btn" onclick="finishAreaMeasurement()" id="areaFinishBtn" style="flex: 1; background: #2196f3; display: none;">✓ Finish</button>
@@ -2189,7 +2203,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 <!-- Coordinate Display -->
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: #fff3e0; border-radius: 4px; border-left: 3px solid #ff9800;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem;">🌐 Georeference (Click Map)</div>
+                    <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">🌐 Georeference (Click Map)</div>
                     <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
                         <input type="checkbox" id="coordTrackingEnabled" onchange="toggleCoordTracking()" style="width: auto; margin-right: 0.5rem;">
                         <span>Find georeference</span>
@@ -2359,7 +2373,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             </details>
 
             <details class="section" id="editDataSection" style="display: none;">
-                <summary class="section-title">✏️ Edit Data</summary>
+                <summary class="section-title">✏️ Data editor</summary>
                 <div class="section-content">
                 <button class="btn" onclick="openDataEditor()" style="background: #9b59b6; margin-bottom: 0.5rem;">📝 Open Data Editor</button>
                 <div class="info-text">
@@ -2368,37 +2382,61 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 </div>
             </details>
 
+            <details class="section" id="saveExportSection" style="display: none;">
+                <summary class="section-title">💾 Save / export map</summary>
+                <div class="section-content">
+                <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
+                <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
+                <button class="btn" onclick="generateShareURL()" style="background: #e67e22; width: 100%; margin-bottom: 0.5rem;">🔗 Share Map</button>
+                <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; width: 100%; display: none; margin-bottom: 0.5rem;">📋 Copy URL to Share</button>
+                <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 1rem; background: #ecf0f1; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+                    <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Share URL:</strong>
+                    <input type="text" id="shareURLInput" readonly style="width: 100%; padding: 0.5rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.75rem; font-family: monospace; background: white; margin-bottom: 0.5rem; word-break: break-all; overflow-wrap: break-word;">
+                    <div id="urlWarning" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.75rem; color: #856404; word-break: break-word;"></div>
+                    <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #7f8c8d;">
+                        💡 <strong>Tip:</strong> URL is automatically compressed. For very large datasets, use GitHub Gist or "Save Map Configuration".
+                    </div>
+                </div>
+                <div class="info-text">
+                    Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.<br>
+                    <strong>Share Map:</strong> Creates a shareable URL with your data and settings embedded (compressed for shorter links)
+                </div>
+                </div>
+            </details>
+
             <details class="section" id="infoSection" style="display: none;">
-                <summary class="section-title">📊 Data Info</summary>
+                <summary class="section-title">📊 Map status</summary>
                 <div class="section-content">
                 <div class="info-box" id="infoBox"></div>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <button class="btn btn-secondary" onclick="checkAutoSaveStatus()" style="background: #3498db; width: 100%; font-size: 0.85rem; padding: 0.5rem; margin-bottom: 0.5rem;">🔍 Check Auto-Save Status</button>
+                    
+                    <!-- Diagnostic info - collapsible with nested details -->
+                    <details class="section" id="diagnosticSection" style="display: none; margin-bottom: 0.5rem;">
+                        <summary class="section-title" style="cursor: pointer; background: #3498db; color: white; padding: 0.75rem; border-radius: 4px; font-size: 0.875rem; font-weight: 600; margin-bottom: 0; list-style: none;">
+                            🔧 Diagnostic info
+                        </summary>
+                        <div class="section-content" style="background: #f8f9fa; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 0.5rem;">
+                            <button onclick="copyDiagnostics()" style="width: 100%; padding: 0.5rem; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; cursor: pointer; font-weight: 600;">
+                                📋 Copy diagnostics to clipboard
+                            </button>
+                            <details style="margin-top: 0.5rem;">
+                                <summary style="cursor: pointer; padding: 0.5rem; background: #3498db; color: white; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                                    View diagnostic details
+                                </summary>
+                                <div id="diagnosticOutput" style="margin-top: 0.5rem; padding: 0.75rem; background: white; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto;">
+                                    Waiting for file upload...
+                                </div>
+                            </details>
+                        </div>
+                    </details>
+                </div>
                 </div>
             </details>
             
             <!-- Clear Map button at bottom - subtle design -->
             <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                <button class="btn btn-secondary" onclick="checkAutoSaveStatus()" style="background: #3498db; width: 100%; font-size: 0.85rem; padding: 0.5rem; margin-bottom: 0.5rem;">🔍 Check Auto-Save Status</button>
-                
-                <!-- DIAGNOSTIC INFO - collapsible with nested details -->
-                <details class="section" id="diagnosticSection" style="display: none; margin-bottom: 0.5rem;">
-                    <summary class="section-title" style="cursor: pointer; background: #3498db; color: white; padding: 0.75rem; border-radius: 4px; font-size: 0.875rem; font-weight: 600; margin-bottom: 0; list-style: none;">
-                        🔧 Diagnostic Info
-                    </summary>
-                    <div class="section-content" style="background: #f8f9fa; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 4px; margin-top: 0.5rem;">
-                        <button onclick="copyDiagnostics()" style="width: 100%; padding: 0.5rem; background: #3498db; color: white; border: none; border-radius: 4px; font-size: 0.85rem; margin-bottom: 0.5rem; cursor: pointer; font-weight: 600;">
-                            📋 Copy diagnostics to clipboard
-                        </button>
-                        <details style="margin-top: 0.5rem;">
-                            <summary style="cursor: pointer; padding: 0.5rem; background: #3498db; color: white; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
-                                View diagnostic details
-                            </summary>
-                            <div id="diagnosticOutput" style="margin-top: 0.5rem; padding: 0.75rem; background: white; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; font-size: 0.75rem; white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto;">
-                                Waiting for file upload...
-                            </div>
-                        </details>
-                    </div>
-                </details>
-                
                 <button class="btn btn-secondary" onclick="confirmClearMap()" style="background: #95a5a6; width: 100%; font-size: 0.85rem; padding: 0.5rem; opacity: 0.7;">Clear Map</button>
                 <div class="info-text" style="margin-top: 0.25rem; font-size: 0.7rem; color: #7f8c8d; text-align: center;">
                     Removes all data and settings
@@ -2424,9 +2462,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             <div id="map"></div>
             
             <!-- Rotation Toggle Button -->
-            <div id="rotationToggle" class="rotation-toggle active" onclick="toggleRotation()">
-                <span class="rotation-toggle-icon">🔄</span>
-                <span id="rotationToggleText">Rotation ON</span>
+            <div id="rotationToggle" class="rotation-toggle" onclick="toggleRotation()">
+                <svg class="rotation-toggle-arrows" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Aligned perpendicular arrowheads - vertical sides both at x=24 -->
+                    <g id="rotationArrows" stroke="none" fill="#95a5a6">
+                        <!-- Top arrowhead (points right, vertical side at x=24) -->
+                        <path d="M 24 8 L 32 12 L 24 16 Z"/>
+                        
+                        <!-- Bottom arrowhead (points left, vertical side at x=24) -->
+                        <path d="M 24 40 L 16 36 L 24 32 Z"/>
+                    </g>
+                </svg>
+                <span class="rotation-toggle-icon" id="rotationToggleText" style="color: #95a5a6; position: absolute;">OFF</span>
                 <div class="rotation-toggle-tooltip">
                     <strong>Map Rotation</strong><br>
                     • Toggle map rotation<br>
@@ -2436,7 +2483,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             </div>
             
             <!-- Compass Rose for Map Rotation -->
-            <div id="compassRose" class="compass-rose" onclick="resetMapRotation()" title="Click to reset to North">
+            <div id="compassRose" class="compass-rose disabled" title="Enable rotation to use this control">
                 <div class="compass-needle" id="compassNeedle"></div>
                 <div class="compass-text" id="compassText">0°</div>
             </div>
@@ -2526,7 +2573,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let customIconData = null;
         let selectedFields = new Set();
         let imageFields = new Set();
-        let rotationEnabled = true; // Track rotation state
+        let rotationEnabled = false; // Track rotation state - default OFF
         
         // Helper function to detect if a value is an image URL
         function isImageURL(value) {
@@ -3202,9 +3249,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 maxBoundsViscosity: 0.0,  // Allow free movement
                 rotate: true,         // Enable map rotation (leaflet-rotate plugin)
                 touchRotate: true,    // Enable rotation on touch devices
-                rotateControl: {      // Configure rotation control
-                    closeOnZeroBearing: false  // Keep rotation even at 0°
-                }
+                rotateControl: false  // Disable built-in control (we have custom one)
             }).setView([20, 0], 2);
             
             // Add zoom control to bottom-right
@@ -3257,9 +3302,26 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 map.invalidateSize();
             }, 100);
             
-            // Set up rotation event listener to update compass
+            // Rotation update strategy - update marker rotations only (not full rebuild)
+            let rotationFramePending = false;
+            
+            // Set up rotation event listener with requestAnimationFrame sync
             map.on('rotate', function(e) {
+                // Always update compass immediately (lightweight)
                 updateCompass();
+                
+                // Schedule marker rotation update for next animation frame if not already scheduled
+                if (rotationEnabled && csvData && csvData.length > 0) {
+                    if (!rotationFramePending) {
+                        rotationFramePending = true;
+                        
+                        // Schedule for next frame (synced with browser repaint)
+                        requestAnimationFrame(function() {
+                            updateMarkerRotations(); // Just update rotations, don't rebuild!
+                            rotationFramePending = false; // Ready for next frame
+                        });
+                    }
+                }
             });
             
             // Initialize compass to show current bearing
@@ -3414,39 +3476,57 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             console.log('Rotation toggled to:', rotationEnabled);
             
             const toggleBtn = document.getElementById('rotationToggle');
-            const toggleText = document.getElementById('rotationToggleText');
             const compass = document.getElementById('compassRose');
+            const toggleIcon = toggleBtn.querySelector('.rotation-toggle-icon');
             
-            if (!toggleBtn || !toggleText || !compass) {
-                console.error('UI elements not found:', { toggleBtn, toggleText, compass });
+            if (!toggleBtn || !compass) {
+                console.error('UI elements not found:', { toggleBtn, compass });
                 return;
             }
             
             if (rotationEnabled) {
                 // Enable rotation
                 if (map.touchRotate) map.touchRotate.enable();
-                // Note: rotateControl.enable() doesn't exist - we use custom handler
                 
                 // Update UI
                 toggleBtn.classList.add('active');
-                toggleText.textContent = 'Rotation ON';
                 compass.classList.remove('disabled');
                 compass.title = 'Click to reset to North (or Ctrl+Right-click to rotate)';
                 compass.onclick = resetMapRotation;
+                
+                // Update text and arrow colors to green
+                const toggleText = document.getElementById('rotationToggleText');
+                const arrowGroup = document.getElementById('rotationArrows');
+                
+                toggleText.textContent = 'ON';
+                toggleText.style.color = '#27ae60';
+                
+                // Update arrow fills
+                const arrowPaths = arrowGroup.querySelectorAll('path');
+                arrowPaths.forEach(path => path.setAttribute('fill', '#27ae60'));
                 
                 console.log('✅ Rotation ENABLED - Use Ctrl+Right-click to rotate');
             } else {
                 // Disable rotation and reset to north
                 map.setBearing(0);
                 if (map.touchRotate) map.touchRotate.disable();
-                // Note: rotateControl.disable() doesn't exist - we use custom handler
                 
                 // Update UI
                 toggleBtn.classList.remove('active');
-                toggleText.textContent = 'Rotation OFF';
                 compass.classList.add('disabled');
                 compass.title = 'Enable rotation to use this control';
                 compass.onclick = null;
+                
+                // Update text and arrow colors to gray
+                const toggleText = document.getElementById('rotationToggleText');
+                const arrowGroup = document.getElementById('rotationArrows');
+                
+                toggleText.textContent = 'OFF';
+                toggleText.style.color = '#95a5a6';
+                
+                // Update arrow fills
+                const arrowPaths = arrowGroup.querySelectorAll('path');
+                arrowPaths.forEach(path => path.setAttribute('fill', '#95a5a6'));
                 
                 console.log('⛔ Rotation DISABLED');
             }
@@ -3884,7 +3964,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     
                     // Show all sections
                     document.getElementById('columnSection').style.display = 'block';
-                    document.getElementById('symbolTypeSection').style.display = 'block';
+                    // symbolTypeSection merged into symbolConfigSection
                     document.getElementById('symbolConfigSection').style.display = 'block';
                     document.getElementById('popupSection').style.display = 'block';
                     document.getElementById('chartSection').style.display = 'block';
@@ -4328,8 +4408,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
 
                 document.getElementById('columnSection').style.display = 'block';
                 document.getElementById('editDataSection').style.display = 'block';
-                document.getElementById('symbolTypeSection').style.display = 'block';
-                    document.getElementById('symbolConfigSection').style.display = 'block';
+                // symbolTypeSection merged into symbolConfigSection
+                document.getElementById('symbolConfigSection').style.display = 'block';
                 document.getElementById('popupSection').style.display = 'block';
                 document.getElementById('chartSection').style.display = 'block';
                 document.getElementById('drawingToolsSection').style.display = 'block';
@@ -6231,6 +6311,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             let rotation = fixedRotation;
             if (rotationField && row[rotationField]) {
                 rotation = parseFloat(row[rotationField]) || fixedRotation;
+            }
+            
+            // If map rotation is enabled, add map bearing to symbol rotation
+            // This makes arrows and directional symbols rotate with the map
+            if (rotationEnabled && map) {
+                const mapBearing = map.getBearing();
+                rotation = (rotation + mapBearing) % 360;
             }
             
             // Check if trail-only mode (hide markers, show only trail line)
@@ -8836,6 +8923,46 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             }
         }
         
+        // Smart default colors for disaster symbols
+        function setSmartDefaultColors(symbolType) {
+            const colorDefaults = {
+                // Hazards with intuitive colors - refined with white outlines
+                'volcano-active': { fill: '#FF0000', outline: '#FFFFFF', width: 1 },      // Red with white outline
+                'volcano-dormant': { fill: '#FF0000', outline: '#FFFFFF', width: 1 },     // Red with white outline
+                'earthquake': { fill: '#FF0000', outline: '#FFFFFF', width: 1 },          // Red with white outline
+                'hurricane': { fill: '#1100FF', outline: '#FFFFFF', width: 1 },           // Bright blue with white outline
+                'tsunami': { fill: '#1100FF', outline: '#FFFFFF', width: 1 },             // Bright blue with white outline
+                'flood': { fill: '#1100FF', outline: '#FFFFFF', width: 1 },               // Bright blue with white outline
+                'fire': { fill: '#FF6600', outline: '#FFFFFF', width: 1 },                // Orange with white outline
+                
+                // Pin with location red
+                'pin': { fill: '#E74C3C', outline: '#C0392B', width: 2 },                 // Location red
+                
+                // Arrows keep neutral blue
+                'arrow': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                'arrow-thick': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                'arrow-triangle': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                'arrow-double': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                'arrow-two-way': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                'arrow-two-way-thick': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                
+                // Basic shapes keep default blue
+                'default': { fill: '#3498db', outline: '#2c3e50', width: 2 }
+            };
+            
+            const colors = colorDefaults[symbolType] || colorDefaults['default'];
+            
+            // Update both fixed size and proportional color controls
+            document.getElementById('markerColor').value = colors.fill;
+            document.getElementById('strokeColor').value = colors.outline;
+            document.getElementById('proportionalMarkerColor').value = colors.fill;
+            document.getElementById('proportionalStrokeColor').value = colors.outline;
+            
+            // Update stroke width controls
+            document.getElementById('strokeWidth').value = colors.width;
+            document.getElementById('proportionalStrokeWidth').value = colors.width;
+        }
+        
         markerShapeSelect.addEventListener('change', function() {
             const customIconSection = document.getElementById('customIconSection');
             const shapeStyleSection = document.getElementById('shapeStyleSection');
@@ -8846,6 +8973,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             } else {
                 customIconSection.style.display = 'none';
                 shapeStyleSection.style.display = 'block';
+                
+                // Set smart default colors based on symbol type
+                setSmartDefaultColors(this.value);
             }
             updateIconSizeVisibility();
             
@@ -8856,11 +8986,39 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         });
         
         // Also listen to sizeByField changes
-        document.getElementById('sizeByField').addEventListener('change', updateIconSizeVisibility);
+        document.getElementById('sizeByField').addEventListener('change', function() {
+            updateIconSizeVisibility();
+            
+            // Toggle fixedSizeStyleSection visibility
+            const sizeByField = this.value;
+            const fixedSizeStyleSection = document.getElementById('fixedSizeStyleSection');
+            
+            if (sizeByField === '') {
+                // Fixed size - show the style section
+                fixedSizeStyleSection.style.display = 'block';
+            } else {
+                // Proportional/classified sizing - hide the style section
+                fixedSizeStyleSection.style.display = 'none';
+            }
+        });
         
         // Update legend when marker style changes
         const markerStyleControls = ['markerColor', 'strokeColor', 'strokeWidth'];
         markerStyleControls.forEach(controlId => {
+            const control = document.getElementById(controlId);
+            if (control) {
+                control.addEventListener('change', function() {
+                    // Update legend if data is plotted
+                    if (csvData && csvData.length > 0) {
+                        buildLegend();
+                    }
+                });
+            }
+        });
+        
+        // Update legend when proportional marker style changes
+        const proportionalStyleControls = ['proportionalMarkerColor', 'proportionalStrokeColor', 'proportionalStrokeWidth'];
+        proportionalStyleControls.forEach(controlId => {
             const control = document.getElementById(controlId);
             if (control) {
                 control.addEventListener('change', function() {
@@ -9070,29 +9228,39 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function getMarkerIcon(shape, color, size, strokeColor, strokeWidth, rotation = 0, haloEnabled = false, haloColor = '#ffffff', haloSize = 12, haloGlow = false) {
             // Handle custom icon with rotation (and halo)
             if (shape === 'custom' && customIconData) {
+                // Calculate ALL container and positioning values ONCE before generating any HTML
+                const containerExpansion = haloEnabled ? (haloGlow ? haloSize*3 : haloSize*2) : 0;
+                const containerSize = size + containerExpansion;
+                const iconOffset = containerExpansion / 2;
+                const iconCenterX = iconOffset + size/2;
+                const iconCenterY = iconOffset + size/2;
+                
+                // Now generate halo HTML using the pre-calculated iconCenter coordinates
                 let haloHtml = '';
                 if (haloEnabled) {
                     if (haloGlow) {
-                        // Firefly glow effect - multiple layers
+                        // Firefly glow effect - multiple layers centered on icon center
                         haloHtml = `
-                            <div style="position: absolute; width: ${haloSize*3}px; height: ${haloSize*3}px; left: ${-haloSize*1.5 + size/2}px; top: ${-haloSize*1.5 + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.15;"></div>
-                            <div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${-haloSize + size/2}px; top: ${-haloSize + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.3;"></div>
-                            <div style="position: absolute; width: ${haloSize}px; height: ${haloSize}px; left: ${-haloSize/2 + size/2}px; top: ${-haloSize/2 + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5;"></div>
+                            <div style="position: absolute; width: ${haloSize*3}px; height: ${haloSize*3}px; left: ${iconCenterX - haloSize*1.5}px; top: ${iconCenterY - haloSize*1.5}px; border-radius: 50%; background: ${haloColor}; opacity: 0.15; pointer-events: none;"></div>
+                            <div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${iconCenterX - haloSize}px; top: ${iconCenterY - haloSize}px; border-radius: 50%; background: ${haloColor}; opacity: 0.3; pointer-events: none;"></div>
+                            <div style="position: absolute; width: ${haloSize}px; height: ${haloSize}px; left: ${iconCenterX - haloSize/2}px; top: ${iconCenterY - haloSize/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5; pointer-events: none;"></div>
                         `;
                     } else {
-                        // Simple circular halo
-                        haloHtml = `<div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${-haloSize + size/2}px; top: ${-haloSize + size/2}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5;"></div>`;
+                        // Simple circular halo, centered on icon center
+                        haloHtml = `<div style="position: absolute; width: ${haloSize*2}px; height: ${haloSize*2}px; left: ${iconCenterX - haloSize}px; top: ${iconCenterY - haloSize}px; border-radius: 50%; background: ${haloColor}; opacity: 0.5; pointer-events: none;"></div>`;
                     }
                 }
-                const iconHtml = `<div style="position: relative; width: ${size}px; height: ${size}px;">${haloHtml}<div style="width: ${size}px; height: ${size}px; transform: rotate(${rotation}deg); transform-origin: center center; position: relative; z-index: 2;">
+                
+                // Generate icon HTML using the same pre-calculated values
+                const iconHtml = `<div style="position: relative; width: ${containerSize}px; height: ${containerSize}px;">${haloHtml}<div style="width: ${size}px; height: ${size}px; position: absolute; left: ${iconOffset}px; top: ${iconOffset}px; transform: rotate(${rotation}deg); transform-origin: center center; z-index: 2;">
                     <img src="${customIconData}" style="width: 100%; height: 100%; display: block;">
                 </div></div>`;
                 
                 return L.divIcon({
                     html: iconHtml,
                     className: 'custom-marker-rotated',
-                    iconSize: [size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0), size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0)],
-                    iconAnchor: [(size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0))/2, (size + (haloEnabled && haloGlow ? haloSize*3 : haloEnabled ? haloSize*2 : 0))/2],
+                    iconSize: [containerSize, containerSize],
+                    iconAnchor: [iconCenterX, iconCenterY],  // Pin to icon center - same coordinates used for halos
                     popupAnchor: [0, -size/2]
                 });
             }
@@ -9124,7 +9292,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Handle shape-based icons with rotation (centered at new center point)
             const svgShapes = {
                 // Basic Shapes - improved
-                circle: `<circle cx="${center}" cy="${center}" r="${size*0.85}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`,
+                circle: `<circle cx="${center}" cy="${center}" r="${center*0.85}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`,
                 square: `<rect x="${center - size*0.8}" y="${center - size*0.8}" width="${size*1.6}" height="${size*1.6}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
                 triangle: `<polygon points="${center},${center - size*0.8} ${center - size*0.8},${center + size*0.8} ${center + size*0.8},${center + size*0.8}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
                 diamond: `<polygon points="${center},${center - size*0.8} ${center - size*0.8},${center} ${center},${center + size*0.8} ${center + size*0.8},${center}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}" transform="rotate(${rotation} ${center} ${center})"/>`,
@@ -9134,109 +9302,73 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 // Arrows - improved (centered)
                 arrow: `<g transform="rotate(${rotation} ${center} ${center})"><path d="M ${center} ${center - size*0.8} L ${center} ${center + size*0.6} M ${center} ${center - size*0.8} L ${center - size*0.5} ${center - size*0.3} M ${center} ${center - size*0.8} L ${center + size*0.5} ${center - size*0.3}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
-                'arrow-thick': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size*0.3} ${size*0.8} L ${size*0.65} ${size*0.8} L ${size*0.65} ${size*1.7} L ${size*1.35} ${size*1.7} L ${size*1.35} ${size*0.8} L ${size*1.7} ${size*0.8} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
-                'arrow-triangle': `<g transform="rotate(${rotation} ${size} ${size})"><polygon points="${size},${size*0.2} ${size*0.2},${size*1.7} ${size*1.8},${size*1.7}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
-                'arrow-double': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size} ${size*1.7} M ${size} ${size*0.2} L ${size*0.5} ${size*0.7} M ${size} ${size*0.2} L ${size*1.5} ${size*0.7} M ${size} ${size*0.5} L ${size*0.5} ${size} M ${size} ${size*0.5} L ${size*1.5} ${size}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
-                'arrow-two-way': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*1.8} ${size} M ${size*0.2} ${size} L ${size*0.7} ${size*0.5} M ${size*0.2} ${size} L ${size*0.7} ${size*1.5} M ${size*1.8} ${size} L ${size*1.3} ${size*0.5} M ${size*1.8} ${size} L ${size*1.3} ${size*1.5}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
-                'arrow-two-way-thick': `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*0.8} ${size*0.3} L ${size*0.8} ${size*0.65} L ${size*1.2} ${size*0.65} L ${size*1.2} ${size*0.3} L ${size*1.8} ${size} L ${size*1.2} ${size*1.7} L ${size*1.2} ${size*1.35} L ${size*0.8} ${size*1.35} L ${size*0.8} ${size*1.7} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
+                'arrow-thick': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size*0.3} ${size*0.8} L ${size*0.65} ${size*0.8} L ${size*0.65} ${size*1.7} L ${size*1.35} ${size*1.7} L ${size*1.35} ${size*0.8} L ${size*1.7} ${size*0.8} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
+                'arrow-triangle': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><polygon points="${size},${size*0.2} ${size*0.2},${size*1.7} ${size*1.8},${size*1.7}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
+                'arrow-double': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size} ${size*1.7} M ${size} ${size*0.2} L ${size*0.5} ${size*0.7} M ${size} ${size*0.2} L ${size*1.5} ${size*0.7} M ${size} ${size*0.5} L ${size*0.5} ${size} M ${size} ${size*0.5} L ${size*1.5} ${size}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+                'arrow-two-way': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*1.8} ${size} M ${size*0.2} ${size} L ${size*0.7} ${size*0.5} M ${size*0.2} ${size} L ${size*0.7} ${size*1.5} M ${size*1.8} ${size} L ${size*1.3} ${size*0.5} M ${size*1.8} ${size} L ${size*1.3} ${size*1.5}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+                'arrow-two-way-thick': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*0.8} ${size*0.3} L ${size*0.8} ${size*0.65} L ${size*1.2} ${size*0.65} L ${size*1.2} ${size*0.3} L ${size*1.8} ${size} L ${size*1.2} ${size*1.7} L ${size*1.2} ${size*1.35} L ${size*0.8} ${size*1.35} L ${size*0.8} ${size*1.7} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 
-                // Hazards - redesigned to match emoji appearance
-                'volcano-active': `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Mountain body -->
-                    <path d="M ${size*0.2} ${size*1.75} L ${size*0.6} ${size*0.75} L ${size} ${size*0.2} L ${size*1.4} ${size*0.75} L ${size*1.8} ${size*1.75} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <!-- Lava flow left -->
-                    <path d="M ${size*0.85} ${size*0.3} Q ${size*0.75} ${size*0.5} ${size*0.7} ${size*0.75} L ${size*0.6} ${size*0.75}" fill="#ff4500" stroke="none"/>
-                    <!-- Lava flow right -->
-                    <path d="M ${size*1.15} ${size*0.3} Q ${size*1.25} ${size*0.5} ${size*1.3} ${size*0.75} L ${size*1.4} ${size*0.75}" fill="#ff4500" stroke="none"/>
-                    <!-- Smoke/ash particles -->
-                    <circle cx="${size*0.85}" cy="${size*0.15}" r="${size*0.13}" fill="#999" opacity="0.6"/>
-                    <circle cx="${size}" cy="${size*0.05}" r="${size*0.15}" fill="#777" opacity="0.7"/>
-                    <circle cx="${size*1.15}" cy="${size*0.15}" r="${size*0.13}" fill="#999" opacity="0.6"/>
-                    <!-- Bright lava at peak -->
-                    <circle cx="${size}" cy="${size*0.25}" r="${size*0.08}" fill="#ffeb3b"/>
+                // Hazards - Using Font Awesome Free icons (professional, 100% free for schools)
+                // Font Awesome icons are rendered as HTML with font, not SVG paths
+                'volcano-active': 'FONT_AWESOME:fa-volcano:f770',
+                'volcano-dormant': 'FONT_AWESOME:fa-mountain:f6fc',
+                
+                // Earthquake - Simple 3 concentric circles (ISO standard emergency symbol)
+                earthquake: `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})">
+                    <!-- Epicenter - filled circle -->
+                    <circle cx="${size}" cy="${size}" r="${Math.max(size*0.15, 2)}" fill="${color}"/>
+                    <!-- Seismic wave rings - concentric circles -->
+                    <circle cx="${size}" cy="${size}" r="${Math.max(size*0.4, 4)}" fill="none" stroke="${color}" stroke-width="${Math.max(strokeWidth*1.5, 1.5)}"/>
+                    <circle cx="${size}" cy="${size}" r="${Math.max(size*0.65, 6)}" fill="none" stroke="${color}" stroke-width="${Math.max(strokeWidth, 1)}" opacity="0.7"/>
+                    <circle cx="${size}" cy="${size}" r="${Math.max(size*0.85, 8)}" fill="none" stroke="${color}" stroke-width="${Math.max(strokeWidth*0.8, 0.8)}" opacity="0.5"/>
                 </g>`,
                 
-                'volcano-dormant': `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Mountain body -->
-                    <path d="M ${size*0.2} ${size*1.75} L ${size*0.6} ${size*0.75} L ${size} ${size*0.2} L ${size*1.4} ${size*0.75} L ${size*1.8} ${size*1.75} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <!-- Snow cap - larger, more prominent -->
-                    <path d="M ${size*0.75} ${size*0.5} L ${size} ${size*0.2} L ${size*1.25} ${size*0.5} Q ${size*1.15} ${size*0.6} ${size} ${size*0.55} Q ${size*0.85} ${size*0.6} ${size*0.75} ${size*0.5} Z" fill="white" opacity="0.95"/>
-                    <!-- Snow highlights -->
-                    <circle cx="${size*0.9}" cy="${size*0.4}" r="${size*0.06}" fill="white" opacity="0.8"/>
-                    <circle cx="${size*1.1}" cy="${size*0.4}" r="${size*0.06}" fill="white" opacity="0.8"/>
-                </g>`,
-                
-                earthquake: `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Circular base representing epicenter -->
-                    <circle cx="${size}" cy="${size}" r="${size*0.75}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth*1.5}"/>
-                    <!-- Seismic waves - concentric broken rings -->
-                    <path d="M ${size*0.4} ${size} A ${size*0.6} ${size*0.6} 0 0 1 ${size*1.6} ${size}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" opacity="0.6" stroke-dasharray="4,4"/>
-                    <path d="M ${size*0.25} ${size} A ${size*0.75} ${size*0.75} 0 0 1 ${size*1.75} ${size}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" opacity="0.4" stroke-dasharray="5,5"/>
-                    <!-- Ground crack - zigzag through center -->
-                    <path d="M ${size*0.35} ${size*0.9} L ${size*0.5} ${size*1.1} L ${size*0.65} ${size*0.9} L ${size*0.8} ${size*1.1} L ${size*0.95} ${size*0.9} L ${size*1.1} ${size*1.1} L ${size*1.25} ${size*0.9} L ${size*1.4} ${size*1.1} L ${size*1.55} ${size*0.9} L ${size*1.7} ${size*1.1}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                </g>`,
-                
-                hurricane: `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Outer cloud mass -->
-                    <circle cx="${size}" cy="${size}" r="${size*0.85}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <!-- Spiral arms - more pronounced -->
-                    <path d="M ${size} ${size*0.3} Q ${size*1.45} ${size*0.5} ${size*1.7} ${size} Q ${size*1.45} ${size*1.5} ${size} ${size*1.7} Q ${size*0.55} ${size*1.5} ${size*0.3} ${size} Q ${size*0.55} ${size*0.5} ${size} ${size*0.3}" fill="none" stroke="white" stroke-width="${strokeWidth*3}" stroke-linecap="round" opacity="0.8"/>
-                    <!-- Eye of the storm -->
-                    <circle cx="${size}" cy="${size}" r="${size*0.28}" fill="${strokeColor}"/>
-                    <!-- Inner eye detail -->
-                    <circle cx="${size}" cy="${size}" r="${size*0.15}" fill="${color}" opacity="0.3"/>
-                </g>`,
-                
-                tsunami: `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Large wave crest -->
-                    <path d="M ${size*0.1} ${size*1.4} Q ${size*0.3} ${size*0.6} ${size*0.6} ${size*1.1} Q ${size*0.75} ${size*1.35} ${size*0.9} ${size*1.1} Q ${size*1.05} ${size*0.85} ${size*1.2} ${size*1.1} Q ${size*1.4} ${size*1.4} ${size*1.6} ${size*1.2} Q ${size*1.75} ${size*0.95} ${size*1.9} ${size*1.3}" fill="none" stroke="${color}" stroke-width="${strokeWidth*4}" stroke-linecap="round"/>
-                    <!-- Wave body/foam -->
-                    <path d="M ${size*0.15} ${size*1.55} Q ${size*0.4} ${size*0.95} ${size*0.65} ${size*1.35} Q ${size*0.85} ${size*1.6} ${size*1.05} ${size*1.35} Q ${size*1.25} ${size*1.15} ${size*1.45} ${size*1.35} Q ${size*1.65} ${size*1.55} ${size*1.85} ${size*1.45}" fill="${color}" opacity="0.4"/>
-                    <!-- Droplets above wave -->
-                    <circle cx="${size*0.5}" cy="${size*0.5}" r="${size*0.12}" fill="${color}"/>
-                    <circle cx="${size*0.7}" cy="${size*0.35}" r="${size*0.1}" fill="${color}" opacity="0.8"/>
-                    <circle cx="${size*0.9}" cy="${size*0.45}" r="${size*0.11}" fill="${color}"/>
-                    <circle cx="${size*1.3}" cy="${size*0.4}" r="${size*0.09}" fill="${color}" opacity="0.8"/>
-                </g>`,
-                
-                flood: `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Water body - irregular shape -->
-                    <ellipse cx="${size}" cy="${size*1.3}" rx="${size*0.95}" ry="${size*0.55}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <!-- Water ripples -->
-                    <ellipse cx="${size*0.6}" cy="${size*1.3}" rx="${size*0.3}" ry="${size*0.15}" fill="none" stroke="white" stroke-width="${strokeWidth*0.5}" opacity="0.5"/>
-                    <ellipse cx="${size*1.4}" cy="${size*1.35}" rx="${size*0.25}" ry="${size*0.12}" fill="none" stroke="white" stroke-width="${strokeWidth*0.5}" opacity="0.5"/>
-                    <!-- Rain drops - angled -->
-                    <line x1="${size*0.3}" y1="${size*0.5}" x2="${size*0.35}" y2="${size*0.85}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                    <line x1="${size*0.55}" y1="${size*0.35}" x2="${size*0.6}" y2="${size*0.7}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                    <line x1="${size*0.8}" y1="${size*0.45}" x2="${size*0.85}" y2="${size*0.8}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                    <line x1="${size*1.05}" y1="${size*0.3}" x2="${size*1.1}" y2="${size*0.65}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                    <line x1="${size*1.3}" y1="${size*0.5}" x2="${size*1.35}" y2="${size*0.85}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                    <line x1="${size*1.55}" y1="${size*0.4}" x2="${size*1.6}" y2="${size*0.75}" stroke="${color}" stroke-width="${strokeWidth*2}" stroke-linecap="round"/>
-                </g>`,
-                
-                fire: `<g transform="rotate(${rotation} ${size} ${size})">
-                    <!-- Main flame body - orange/red -->
-                    <path d="M ${size} ${size*1.75} Q ${size*0.4} ${size*1.45} ${size*0.5} ${size*0.85} Q ${size*0.6} ${size*0.5} ${size} ${size*0.2} Q ${size*1.4} ${size*0.5} ${size*1.5} ${size*0.85} Q ${size*1.6} ${size*1.45} ${size} ${size*1.75} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>
-                    <!-- Inner flame - yellow/white hot core -->
-                    <path d="M ${size} ${size*1.5} Q ${size*0.65} ${size*1.28} ${size*0.72} ${size*0.82} Q ${size*0.78} ${size*0.6} ${size} ${size*0.45} Q ${size*1.22} ${size*0.6} ${size*1.28} ${size*0.82} Q ${size*1.35} ${size*1.28} ${size} ${size*1.5} Z" fill="#ffeb3b" opacity="0.95"/>
-                    <!-- Innermost flame - bright white -->
-                    <path d="M ${size} ${size*1.25} Q ${size*0.8} ${size*1.1} ${size*0.85} ${size*0.85} Q ${size*0.88} ${size*0.7} ${size} ${size*0.65} Q ${size*1.12} ${size*0.7} ${size*1.15} ${size*0.85} Q ${size*1.2} ${size*1.1} ${size} ${size*1.25} Z" fill="white" opacity="0.7"/>
-                    <!-- Flame flickers at top -->
-                    <ellipse cx="${size*0.92}" cy="${size*0.35}" rx="${size*0.08}" ry="${size*0.12}" fill="#ffeb3b" opacity="0.6"/>
-                    <ellipse cx="${size*1.08}" cy="${size*0.3}" rx="${size*0.07}" ry="${size*0.11}" fill="#ffeb3b" opacity="0.6"/>
-                </g>`,
+                hurricane: 'FONT_AWESOME:fa-hurricane:f751',
+                tsunami: 'FONT_AWESOME:fa-water:f773',
+                flood: 'FONT_AWESOME:fa-house-flood-water:f74f',
+                fire: 'FONT_AWESOME:fa-fire:f06d',
                 
                 // Other
-                pin: `<g transform="rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} Q ${size*0.35} ${size*0.2} ${size*0.35} ${size*0.7} Q ${size*0.35} ${size} ${size} ${size*1.75} Q ${size*1.65} ${size} ${size*1.65} ${size*0.7} Q ${size*1.65} ${size*0.2} ${size} ${size*0.2} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/><circle cx="${size}" cy="${size*0.6}" r="${size*0.3}" fill="white" opacity="0.9"/></g>`
+                pin: 'FONT_AWESOME:fa-location-dot:f3c5'
             };
+
+            // Check if this is a Font Awesome icon
+            if (typeof svgShapes[shape] === 'string' && svgShapes[shape].startsWith('FONT_AWESOME:')) {
+                const parts = svgShapes[shape].split(':');
+                const faClass = parts[1]; // e.g., 'fa-hurricane'
+                const unicode = parts[2]; // e.g., 'f751'
+                
+                // Create HTML with Font Awesome icon
+                const iconSize = size * 2;
+                const iconHtml = `
+                    <div style="position: relative; width: ${iconSize}px; height: ${iconSize}px;">
+                        ${haloShape ? `<div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                            <svg width="${svgSize}" height="${svgSize}" xmlns="http://www.w3.org/2000/svg">${haloShape}</svg>
+                        </div>` : ''}
+                        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(${rotation}deg); transform-origin: center center;">
+                            <i class="fa-solid ${faClass}" style="font-size: ${size}px; color: ${color}; -webkit-text-stroke: ${strokeWidth}px ${strokeColor};"></i>
+                        </div>
+                    </div>
+                `;
+                
+                return L.divIcon({
+                    html: iconHtml,
+                    className: 'custom-marker',
+                    iconSize: [iconSize, iconSize],
+                    iconAnchor: [iconSize/2, iconSize/2],
+                    popupAnchor: [0, -iconSize/2]
+                });
+            }
 
             const svg = `<svg width="${svgSize}" height="${svgSize}" xmlns="http://www.w3.org/2000/svg">${haloShape}${svgShapes[shape]}</svg>`;
             
+            // Note: For SVG icons, marker is centered at (center, center) where center = svgSize/2
+            // The iconAnchor pins this center point to the geographic location
             return L.divIcon({
                 html: svg,
                 className: 'custom-marker',
                 iconSize: [svgSize, svgSize],
-                iconAnchor: [svgSize/2, svgSize/2],
+                iconAnchor: [center, center],  // Pin marker center to geographic location
                 popupAnchor: [0, -svgSize/2]
             });
         }
@@ -9318,7 +9450,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                                     <option value="volcano-dormant" ${style.symbol === 'volcano-dormant' ? 'selected' : ''}>🗻 Volcano Dormant</option>
                                     <option value="earthquake" ${style.symbol === 'earthquake' ? 'selected' : ''}>Earthquake</option>
                                     <option value="hurricane" ${style.symbol === 'hurricane' ? 'selected' : ''}>🌀 Hurricane</option>
-                                    <option value="fire" ${style.symbol === 'fire' ? 'selected' : ''}>🔥 Fire</option>
+                                    <option value="fire" ${style.symbol === 'fire' ? 'selected' : ''}>🔥 Wildfire</option>
                                 </select>
                             </div>
                             <div>
@@ -10298,8 +10430,34 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             let html = '';
             let hasContent = false;
             
-            // 1. Category Styles (if using Color by Field)
+            // 1. Default symbol info FIRST (shown when not using categories and either no data or fixed size)
             const colorByField = document.getElementById('colorByField').value;
+            const sizeByField = document.getElementById('sizeByField').value;
+            if (!colorByField && markers.length > 0 && !sizeByField) {
+                const shape = document.getElementById('markerShape').value;
+                const color = document.getElementById('markerColor').value;
+                const strokeColor = document.getElementById('strokeColor').value;
+                const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                const defaultSize = parseInt(document.getElementById('fixedSize')?.value || 12);
+                
+                html += '<div class="legend-section">';
+                html += '<div class="legend-section-title">Map Symbols</div>';
+                
+                // Use getMarkerIcon to create proper symbol without rotation
+                const icon = getMarkerIcon(shape, color, defaultSize, strokeColor, strokeWidth, 0);
+                const iconHtml = icon.options.html;
+                
+                html += `<div class="legend-item">
+                    <div class="legend-symbol" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                        ${iconHtml}
+                    </div>
+                    <span>Data Point</span>
+                </div>`;
+                html += '</div>';
+                hasContent = true;
+            }
+            
+            // 2. Category Styles (if using Color by Field)
             if (colorByField && Object.keys(categoryStyles).length > 0 && showInLegend.categories) {
                 hasContent = true;
                 const legendTitle = legendTitles.category || colorByField;
@@ -10325,8 +10483,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 html += '</div>';
             }
             
-            // 2. Size by Field (if using proportional symbols)
-            const sizeByField = document.getElementById('sizeByField').value;
+            // 3. Size by Field (if using proportional symbols)
             if (sizeByField && showInLegend.size) {
                 hasContent = true;
                 const legendTitle = legendTitles.size || sizeByField;
@@ -10341,11 +10498,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     const sizes = sizeClassification.sizes;
                     const dp = parseInt(document.getElementById('classDecimalPlaces')?.value || 1);
                     
-                    // Get current symbol settings
+                    // Get current symbol settings from PROPORTIONAL controls
                     const shape = document.getElementById('markerShape').value;
-                    const color = document.getElementById('markerColor').value;
-                    const strokeColor = document.getElementById('strokeColor').value;
-                    const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                    const color = document.getElementById('proportionalMarkerColor').value;
+                    const strokeColor = document.getElementById('proportionalStrokeColor').value;
+                    const strokeWidth = parseInt(document.getElementById('proportionalStrokeWidth').value);
                     
                     // Vertical stacking - each category on its own line
                     html += '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
@@ -10373,11 +10530,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     const minSize = parseInt(document.getElementById('minSymbolSize').value);
                     const maxSize = parseInt(document.getElementById('maxSymbolSize').value);
                     
-                    // Get current symbol settings
+                    // Get current symbol settings from PROPORTIONAL controls
                     const shape = document.getElementById('markerShape').value;
-                    const color = document.getElementById('markerColor').value;
-                    const strokeColor = document.getElementById('strokeColor').value;
-                    const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                    const color = document.getElementById('proportionalMarkerColor').value;
+                    const strokeColor = document.getElementById('proportionalStrokeColor').value;
+                    const strokeWidth = parseInt(document.getElementById('proportionalStrokeWidth').value);
                     
                     html += '<div style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 0.5rem;">Symbol size represents data values</div>';
                     
@@ -10409,7 +10566,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 html += '</div>';
             }
             
-            // 3. Active Overlays (supports multiple)
+            // 4. Active Overlays (supports multiple) - NOW AFTER SYMBOLS
             Object.entries(activeOverlays).forEach(([overlayType, layer]) => {
                 if (layer && showInLegend.overlay) {
                     hasContent = true;
@@ -10492,8 +10649,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         case 'urban-areas':
                             html += '<div class="legend-section-title">🏙️ Urban Areas</div>';
                             html += '<div class="legend-item">';
-                            html += '<div style="width: 20px; height: 14px; background: rgba(255, 69, 0, 0.3); border: 1px solid #FF4500; border-radius: 2px;"></div>';
-                            html += '<span>Population Density</span>';
+                            html += '<div style="width: 20px; height: 14px; background: rgba(255, 204, 0, 0.3); border: 1px solid #ff9900; border-radius: 2px;"></div>';
+                            html += '<span>Large urban areas</span>';
                             html += '</div>';
                             html += '<div style="font-size: 0.65rem; color: #7f8c8d; margin-top: 0.25rem;">Urban areas and settlements</div>';
                             break;
@@ -10539,31 +10696,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         break;
                 }
                 html += '</div>';
-            }
-            
-            // 4. Default symbol info (shown when not using categories and either no data or fixed size)
-            if (!colorByField && markers.length > 0 && !sizeByField) {
-                const shape = document.getElementById('markerShape').value;
-                const color = document.getElementById('markerColor').value;
-                const strokeColor = document.getElementById('strokeColor').value;
-                const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
-                const defaultSize = parseInt(document.getElementById('fixedSize')?.value || 12);
-                
-                html += '<div class="legend-section">';
-                html += '<div class="legend-section-title">Map Symbols</div>';
-                
-                // Use getMarkerIcon to create proper symbol without rotation
-                const icon = getMarkerIcon(shape, color, defaultSize, strokeColor, strokeWidth, 0);
-                const iconHtml = icon.options.html;
-                
-                html += `<div class="legend-item">
-                    <div class="legend-symbol" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-                        ${iconHtml}
-                    </div>
-                    <span>Data Point</span>
-                </div>`;
-                html += '</div>';
-                hasContent = true;
             }
             
             if (!hasContent) {
@@ -12150,15 +12282,24 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             try {
                 addDiagnostic('Reading form values...');
                 const shape = document.getElementById('markerShape').value;
-                const color = document.getElementById('markerColor').value;
+                const sizeByField = document.getElementById('sizeByField').value;
+                
+                // Use proportional color controls if sizing by field, otherwise use fixed size controls
+                const color = sizeByField ? 
+                    document.getElementById('proportionalMarkerColor').value : 
+                    document.getElementById('markerColor').value;
+                const strokeColor = sizeByField ? 
+                    document.getElementById('proportionalStrokeColor').value : 
+                    document.getElementById('strokeColor').value;
+                const strokeWidth = sizeByField ? 
+                    parseInt(document.getElementById('proportionalStrokeWidth').value) : 
+                    parseInt(document.getElementById('strokeWidth').value);
+                
                 const size = parseInt(document.getElementById('markerSize').value);
-                const strokeColor = document.getElementById('strokeColor').value;
-                const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
                 const haloEnabled = document.getElementById('haloEnabled')?.checked || false;
                 const haloColor = document.getElementById('haloColor')?.value || '#ffffff';
                 const haloSize = parseInt(document.getElementById('haloSize')?.value) || 12;
                 const haloGlow = document.getElementById('haloGlow')?.checked || false;
-                const sizeByField = document.getElementById('sizeByField').value;
                 const rotationField = document.getElementById('rotationField').value;
                 const fixedRotation = parseInt(document.getElementById('fixedRotation').value);
                 const useTemplate = document.getElementById('useTemplate').checked;
@@ -12240,6 +12381,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         if (isNaN(rotation)) rotation = fixedRotation;
                     }
                     
+                    // If map rotation is enabled, add map bearing to symbol rotation
+                    // This makes arrows and directional symbols rotate with the map
+                    if (rotationEnabled && map) {
+                        const mapBearing = map.getBearing();
+                        rotation = (rotation + mapBearing) % 360;
+                    }
+                    
                     // Create icon with category styles or defaults
                     const icon = getMarkerIcon(finalShape, finalColor, Math.round(markerSize), strokeColor, strokeWidth, rotation, haloEnabled, haloColor, haloSize, haloGlow);
                     
@@ -12259,6 +12407,22 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     }
                     
                     marker = L.marker([lat, lon], { icon: icon });
+                    
+                    // Store rotation metadata for fast updates during map rotation
+                    marker._rotationData = {
+                        baseRotation: fixedRotation, // Fixed rotation value
+                        rotationField: rotationField, // Field name for bearing data
+                        bearingValue: rotationField && row[rotationField] !== null && row[rotationField] !== undefined ? parseFloat(row[rotationField]) : 0,
+                        shape: finalShape,
+                        color: finalColor,
+                        size: Math.round(markerSize),
+                        strokeColor: strokeColor,
+                        strokeWidth: strokeWidth,
+                        haloEnabled: haloEnabled,
+                        haloColor: haloColor,
+                        haloSize: haloSize,
+                        haloGlow: haloGlow
+                    };
                     
                     // Create popup content
                     const popupContent = createPopupContent(row);
@@ -12412,6 +12576,46 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 button.style.background = '';
             }, 2000);
         }
+        
+        // Lightweight function to update only marker rotations during map rotation
+        // 100× faster than plotPoints because it doesn't rebuild everything
+        function updateMarkerRotations() {
+            if (!map || !rotationEnabled || markers.length === 0) return;
+            
+            const mapBearing = map.getBearing();
+            
+            // Update each marker's rotation
+            markers.forEach(marker => {
+                // Skip halo circle markers (they don't rotate)
+                if (!marker._rotationData) return;
+                
+                const data = marker._rotationData;
+                
+                // Calculate new rotation: base rotation + bearing + map rotation
+                let newRotation = data.baseRotation;
+                if (data.rotationField && !isNaN(data.bearingValue)) {
+                    newRotation = data.bearingValue;
+                }
+                newRotation = (newRotation + mapBearing) % 360;
+                
+                // Create new icon with updated rotation
+                const newIcon = getMarkerIcon(
+                    data.shape,
+                    data.color,
+                    data.size,
+                    data.strokeColor,
+                    data.strokeWidth,
+                    newRotation,
+                    data.haloEnabled,
+                    data.haloColor,
+                    data.haloSize,
+                    data.haloGlow
+                );
+                
+                // Update marker icon
+                marker.setIcon(newIcon);
+            });
+        }
 
         function clearMarkers() {
             markers.forEach(marker => marker.remove());
@@ -12543,7 +12747,7 @@ Press OK to copy full config to console.`;
             document.getElementById('popupSection').style.display = 'none';
             document.getElementById('infoSection').style.display = 'none';
             document.getElementById('saveExportSection').style.display = 'none';
-            document.getElementById('symbolTypeSection').style.display = 'none';
+            // symbolTypeSection merged into symbolConfigSection
             document.getElementById('symbolConfigSection').style.display = 'none';
             document.getElementById('editDataSection').style.display = 'none';
             document.getElementById('timeAnimationSection').style.display = 'none';
@@ -13173,7 +13377,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.47 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.72 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
