@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.9.90 - ANALYSIS TOOLS: FILTER! New Analysis Tools section with powerful Filter tool. Filter points by any field with 12 operators (equals, contains, >, <, starts with, is empty, etc.). Multiple filters with AND logic. Shows "X of Y points" count. Non-destructive - all features work perfectly! First of 3 analysis tools. -->
+<!-- Geo Mapper v2.9.91 - CONCENTRIC BUFFERS! Enhanced Buffer Tool with multiple radii support - enter comma-separated values (e.g., "5,10,15,20") for concentric rings with graduated opacity (innermost=darkest, outermost=lightest). Optional radius labels: always visible on circle edge OR hover-only (your choice!). Miles abbreviated to "mi" for cleaner display. Perfect for emergency zones, service tiers, risk analysis! Moved Analysis Tools above Map Tools. Second of 3 analysis tools! -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.90 - Analysis Tools: Filter</title>
+    <title>Geo Mapper v2.9.91 - Concentric Buffers</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1081,6 +1081,23 @@
             display: none; /* Hide arrow */
         }
         
+        /* Buffer Zone Tooltip Styling */
+        .leaflet-tooltip.buffer-tooltip {
+            background: rgba(52, 152, 219, 0.9) !important;
+            border: 1px solid rgba(41, 128, 185, 0.8) !important;
+            border-radius: 3px !important;
+            padding: 3px 7px !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            color: white !important;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
+            white-space: nowrap !important;
+        }
+        
+        .leaflet-tooltip.buffer-tooltip::before {
+            display: none !important; /* Hide the arrow pointer */
+        }
+        
         /* Compass Rose for Map Rotation */
         .compass-rose {
             position: fixed;
@@ -1237,7 +1254,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.90</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.91</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1301,67 +1318,6 @@
                     Click to apply and save all changes
                 </div>
             </div>
-
-            <!-- Analysis Tools Section -->
-            <details class="section">
-                <summary class="section-title">🔧 Analysis Tools</summary>
-                <div class="section-content">
-                    
-                    <!-- Filter Tool -->
-                    <div style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: #27ae60;">🔍 Filter Points</div>
-                        
-                        <div class="form-group">
-                            <label for="filterField">Field to filter</label>
-                            <select id="filterField" style="width: 100%;">
-                                <option value="">Select field...</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="filterOperator">Condition</label>
-                            <select id="filterOperator" style="width: 100%;">
-                                <option value="equals">Equals (=)</option>
-                                <option value="not_equals">Not Equals (≠)</option>
-                                <option value="contains">Contains</option>
-                                <option value="not_contains">Doesn't Contain</option>
-                                <option value="greater">Greater Than (>)</option>
-                                <option value="greater_equal">Greater or Equal (≥)</option>
-                                <option value="less">Less Than (<)</option>
-                                <option value="less_equal">Less or Equal (≤)</option>
-                                <option value="starts_with">Starts With</option>
-                                <option value="ends_with">Ends With</option>
-                                <option value="is_empty">Is Empty</option>
-                                <option value="not_empty">Is Not Empty</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group" id="filterValueGroup">
-                            <label for="filterValue">Value</label>
-                            <input type="text" id="filterValue" placeholder="Enter value..." style="width: 100%;">
-                        </div>
-                        
-                        <button class="btn" onclick="addFilter()" style="background: #27ae60; width: 100%;">+ Add Filter</button>
-                    </div>
-                    
-                    <!-- Active Filters -->
-                    <div id="activeFiltersContainer" style="display: none; background: #fff3cd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #ffc107;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <strong style="color: #856404;">Active Filters:</strong>
-                            <button onclick="clearAllFilters()" style="background: #dc3545; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">Clear All</button>
-                        </div>
-                        <div id="activeFiltersList" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        </div>
-                        <div id="filterStats" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #ffeaa7; font-size: 0.85rem; color: #856404;">
-                        </div>
-                    </div>
-                    
-                    <div class="info-text">
-                        💡 Filters are combined with AND logic<br>
-                        (all conditions must be met)
-                    </div>
-                </div>
-            </details>
 
             <details class="section">
                 <summary class="section-title">🗺️ Basemap</summary>
@@ -2266,6 +2222,149 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             </details>
 
 
+            <!-- Analysis Tools Section -->
+            <details class="section">
+                <summary class="section-title">🔧 Analysis Tools</summary>
+                <div class="section-content">
+                    
+                    <!-- Filter Tool -->
+                    <div style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: #27ae60;">🔍 Filter Points</div>
+                        
+                        <div class="form-group">
+                            <label for="filterField">Field to filter</label>
+                            <select id="filterField" style="width: 100%;">
+                                <option value="">Select field...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="filterOperator">Condition</label>
+                            <select id="filterOperator" style="width: 100%;">
+                                <option value="equals">Equals (=)</option>
+                                <option value="not_equals">Not Equals (≠)</option>
+                                <option value="contains">Contains</option>
+                                <option value="not_contains">Doesn't Contain</option>
+                                <option value="greater">Greater Than (>)</option>
+                                <option value="greater_equal">Greater or Equal (≥)</option>
+                                <option value="less">Less Than (<)</option>
+                                <option value="less_equal">Less or Equal (≤)</option>
+                                <option value="starts_with">Starts With</option>
+                                <option value="ends_with">Ends With</option>
+                                <option value="is_empty">Is Empty</option>
+                                <option value="not_empty">Is Not Empty</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group" id="filterValueGroup">
+                            <label for="filterValue">Value</label>
+                            <input type="text" id="filterValue" placeholder="Enter value..." style="width: 100%;">
+                        </div>
+                        
+                        <button class="btn" onclick="addFilter()" style="background: #27ae60; width: 100%;">+ Add Filter</button>
+                    </div>
+                    
+                    <!-- Active Filters -->
+                    <div id="activeFiltersContainer" style="display: none; background: #fff3cd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #ffc107;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="color: #856404;">Active Filters:</strong>
+                            <button onclick="clearAllFilters()" style="background: #dc3545; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">Clear All</button>
+                        </div>
+                        <div id="activeFiltersList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        </div>
+                        <div id="filterStats" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #ffeaa7; font-size: 0.85rem; color: #856404;">
+                        </div>
+                    </div>
+                    
+                    <div class="info-text">
+                        💡 Filters are combined with AND logic<br>
+                        (all conditions must be met)
+                    </div>
+                    
+                    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e0e0e0;">
+                    
+                    <!-- Buffer Tool -->
+                    <div style="background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: #1976d2;">⭕ Buffer Zones</div>
+                        
+                        <div class="form-group">
+                            <label for="bufferRadius">Radius (comma-separated for concentric)</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="bufferRadius" value="10" style="flex: 1;" placeholder="e.g. 5,10,15,20">
+                                <select id="bufferUnit" style="width: 80px;">
+                                    <option value="km">km</option>
+                                    <option value="miles">miles</option>
+                                    <option value="m">meters</option>
+                                </select>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem;">
+                                Single: "10" or Multiple: "5,10,15,20"
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="bufferFilteredOnly" style="width: auto; margin-right: 0.5rem;">
+                                Buffer only filtered points
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="bufferShowLabels" style="width: auto; margin-right: 0.5rem;">
+                                Show radius labels
+                            </label>
+                            <div style="font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem; margin-left: 1.5rem;">
+                                Unchecked: hover only • Checked: always visible
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label for="bufferFillColor" style="font-size: 0.85rem;">Fill Color</label>
+                                <input type="color" id="bufferFillColor" value="#3498db" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label for="bufferOpacity" style="font-size: 0.85rem;">Opacity (%)</label>
+                                <input type="number" id="bufferOpacity" value="30" min="0" max="100" style="width: 100%;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label for="bufferStrokeColor" style="font-size: 0.85rem;">Stroke Color</label>
+                                <input type="color" id="bufferStrokeColor" value="#2980b9" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label for="bufferStrokeWidth" style="font-size: 0.85rem;">Stroke Width</label>
+                                <input type="number" id="bufferStrokeWidth" value="2" min="0" max="10" style="width: 100%;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" onclick="applyBuffers()" style="background: #1976d2; flex: 1;">🎯 Apply Buffers</button>
+                            <button class="btn" onclick="clearBuffers()" style="background: #dc3545; width: 80px;">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Active Buffers Info -->
+                    <div id="activeBuffersContainer" style="display: none; background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #1976d2;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #1565c0;">Buffers Active</strong>
+                                <div id="bufferStats" style="font-size: 0.85rem; color: #1565c0; margin-top: 0.25rem;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-text">
+                        💡 Buffers show areas within X distance of points<br>
+                        Overlapping areas indicate proximity
+                    </div>
+                </div>
+            </details>
+
             <details class="section">
                 <summary class="section-title">📏 Map Tools</summary>
                 <div class="section-content">
@@ -2679,6 +2778,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         // Analysis Tools: Filter state
         let activeFilters = [];
         let filterIdCounter = 0;
+        
+        // Analysis Tools: Buffer state
+        let bufferLayer = null;
+        let buffersActive = false;
+        let bufferCircles = [];
         
         // Helper function to detect if a value is an image URL
         function isImageURL(value) {
@@ -5155,6 +5259,220 @@ Total rows: ${csvData.length}${corsNote}`);
                 });
             }
         });
+
+        // =====================================
+        // ANALYSIS TOOLS: BUFFER FUNCTIONS
+        // =====================================
+        
+        function applyBuffers() {
+            // Clear existing buffers first
+            clearBuffers();
+            
+            // Get buffer parameters
+            const radiusInput = document.getElementById('bufferRadius').value.trim();
+            const unit = document.getElementById('bufferUnit').value;
+            const filteredOnly = document.getElementById('bufferFilteredOnly').checked;
+            const showLabels = document.getElementById('bufferShowLabels').checked;
+            const fillColor = document.getElementById('bufferFillColor').value;
+            const baseOpacity = parseFloat(document.getElementById('bufferOpacity').value) / 100;
+            const strokeColor = document.getElementById('bufferStrokeColor').value;
+            const strokeWidth = parseFloat(document.getElementById('bufferStrokeWidth').value);
+            
+            // Parse comma-separated radii
+            const radiiStrings = radiusInput.split(',').map(s => s.trim()).filter(s => s);
+            const radii = radiiStrings.map(s => parseFloat(s)).filter(r => !isNaN(r) && r > 0);
+            
+            if (radii.length === 0) {
+                alert('Please enter at least one valid radius greater than 0');
+                return;
+            }
+            
+            // Sort radii from largest to smallest for proper layering (draw big ones first)
+            radii.sort((a, b) => b - a);
+            
+            // Create buffer layer if it doesn't exist
+            if (!bufferLayer) {
+                bufferLayer = L.layerGroup().addTo(map);
+            }
+            
+            // Get coordinates
+            const latCol = document.getElementById('latColumn').value;
+            const lonCol = document.getElementById('lonColumn').value;
+            
+            if (!latCol || !lonCol) {
+                alert('Please ensure latitude and longitude columns are selected');
+                return;
+            }
+            
+            let bufferCount = 0;
+            bufferCircles = [];
+            
+            // Create buffers for each point
+            csvData.forEach((row, index) => {
+                // Skip if filtering and point doesn't match filters
+                if (filteredOnly && activeFilters.length > 0) {
+                    const passesAllFilters = activeFilters.every(filter => matchesFilter(row, filter));
+                    if (!passesAllFilters) {
+                        return; // Skip this point
+                    }
+                }
+                
+                const lat = parseFloat(row[latCol]);
+                const lon = parseFloat(row[lonCol]);
+                
+                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    // Create concentric circle buffers
+                    radii.forEach((radius, ringIndex) => {
+                        // Convert radius to meters for Leaflet
+                        let radiusInMeters;
+                        switch(unit) {
+                            case 'km':
+                                radiusInMeters = radius * 1000;
+                                break;
+                            case 'miles':
+                                radiusInMeters = radius * 1609.34;
+                                break;
+                            case 'm':
+                                radiusInMeters = radius;
+                                break;
+                            default:
+                                radiusInMeters = radius * 1000;
+                        }
+                        
+                        // Calculate graduated opacity
+                        // Largest ring (ringIndex=0) gets lowest opacity
+                        // Smallest ring (ringIndex=radii.length-1) gets highest opacity
+                        const opacityMultiplier = radii.length > 1 
+                            ? 0.4 + (0.6 * ringIndex / (radii.length - 1))  // Range: 0.4 to 1.0
+                            : 1.0;  // Single ring uses full opacity
+                        const graduatedOpacity = baseOpacity * opacityMultiplier;
+                        
+                        // Create circle buffer
+                        const circle = L.circle([lat, lon], {
+                            radius: radiusInMeters,
+                            fillColor: fillColor,
+                            fillOpacity: graduatedOpacity,
+                            color: strokeColor,
+                            weight: strokeWidth,
+                            interactive: false // Don't interfere with markers
+                        }).addTo(bufferLayer);
+                        
+                        bufferCircles.push(circle);
+                        
+                        // Create radius label (abbreviated for space)
+                        const radiusDisplay = unit === 'km' 
+                            ? `${radius} km` 
+                            : unit === 'miles' 
+                                ? `${radius} mi`  // Abbreviated!
+                                : `${radius} m`;
+                        
+                        if (showLabels) {
+                            // PERMANENT LABELS on circle edge
+                            // Distribute labels at 8 positions (45° apart) to avoid overlap with concentric rings
+                            
+                            // Use different angle for each ring (0°, 45°, 90°, 135°, 180°, 225°, 270°, 315°)
+                            // Cycle through 8 positions
+                            const anglePositions = [45, 90, 135, 180, 225, 270, 315, 0]; // NE, E, SE, S, SW, W, NW, N
+                            const angle = anglePositions[ringIndex % 8];
+                            const angleRad = angle * Math.PI / 180;
+                            
+                            // Calculate position on circle edge at the chosen angle
+                            // Convert meters to approximate degrees
+                            // 1 degree latitude ≈ 111,320 meters
+                            const latOffset = (radiusInMeters / 111320) * Math.cos(angleRad);
+                            const lonOffset = (radiusInMeters / (111320 * Math.cos(lat * Math.PI / 180))) * Math.sin(angleRad);
+                            
+                            const labelLat = lat + latOffset;
+                            const labelLon = lon + lonOffset;
+                            
+                            // Determine label direction based on angle for better positioning
+                            let direction = 'right';
+                            if (angle >= 315 || angle < 45) direction = 'bottom';      // N to NE
+                            else if (angle >= 45 && angle < 135) direction = 'left';   // NE to SE
+                            else if (angle >= 135 && angle < 225) direction = 'top';   // SE to SW
+                            else direction = 'right';                                  // SW to NW
+                            
+                            // Create permanent tooltip at edge position
+                            const label = L.tooltip({
+                                permanent: true,
+                                direction: direction,
+                                className: 'buffer-tooltip',
+                                offset: [0, 0]
+                            })
+                            .setLatLng([labelLat, labelLon])
+                            .setContent(radiusDisplay)
+                            .addTo(bufferLayer);
+                            
+                            bufferCircles.push(label);
+                        } else {
+                            // HOVER-ONLY LABELS on the circle itself
+                            circle.bindTooltip(radiusDisplay, {
+                                permanent: false,
+                                direction: 'center',
+                                className: 'buffer-tooltip'
+                            });
+                            
+                            // Make circle interactive for hover
+                            circle.setStyle({ interactive: true });
+                        }
+
+                    });
+                    
+                    bufferCount++;
+                }
+            });
+            
+            buffersActive = true;
+            updateBufferUI(bufferCount, radii, unit);
+            
+            // Bring marker layer to front so markers are clickable
+            if (markerLayer) {
+                markerLayer.bringToFront();
+            }
+        }
+        
+        function clearBuffers() {
+            if (bufferLayer) {
+                bufferLayer.clearLayers();
+            }
+            bufferCircles = [];
+            buffersActive = false;
+            updateBufferUI(0, 0, 'km');
+        }
+        
+        function updateBufferUI(count, radii, unit) {
+            const container = document.getElementById('activeBuffersContainer');
+            const stats = document.getElementById('bufferStats');
+            
+            if (count === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            
+            // Abbreviate unit for display
+            const displayUnit = unit === 'miles' ? 'mi' : unit;
+            
+            // Handle both single radius and multiple radii
+            let radiusText;
+            if (Array.isArray(radii)) {
+                if (radii.length === 1) {
+                    radiusText = `${radii[0]} ${displayUnit}`;
+                } else {
+                    // Sort for display (smallest to largest)
+                    const sortedRadii = [...radii].sort((a, b) => a - b);
+                    radiusText = `${sortedRadii.join(', ')} ${displayUnit}`;
+                }
+            } else {
+                radiusText = `${radii} ${displayUnit}`;
+            }
+            
+            const ringCount = Array.isArray(radii) ? radii.length : 1;
+            const ringText = ringCount > 1 ? ` (${ringCount} concentric rings)` : '';
+            
+            stats.innerHTML = `${count} point${count !== 1 ? 's' : ''} buffered at ${radiusText}${ringText}`;
+        }
 
         function downloadUpdatedCSV() {
             if (!csvData || csvData.length === 0) {
@@ -14372,7 +14690,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.90 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.91 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
