@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.9.82 - CATEGORY ICON FIX + DEBUG! Fixed category name escaping, added comprehensive debugging to track icon upload/usage. Each category now properly stores and retrieves its own custom icon. -->
+<!-- Geo Mapper v2.9.89 - CORS-AWARE IMAGE TESTING! Enhanced image URL testing to distinguish CORS blocks from real failures. Now shows: ✅ Valid, 🔒 CORS blocked (works in popups!), ❌ Truly broken. Detects Wikimedia, news sites, etc. Blue highlight for CORS URLs. Perfect clarity on what actually needs fixing! -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.82 - Category Icon Fix + Debug</title>
+    <title>Geo Mapper v2.9.89 - CORS-Aware Testing</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -836,6 +836,31 @@
             outline: none;
             border-color: #3498db;
         }
+        
+        /* Image URL validation styles */
+        .data-table td.url-empty {
+            background-color: #f8f9fa;
+        }
+        
+        .data-table td.url-invalid {
+            background-color: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .data-table td.url-failed {
+            background-color: #f8d7da;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .data-table td.url-cors {
+            background-color: #cfe2ff;
+            border-left: 3px solid #0d6efd;
+        }
+        
+        .data-table td.url-valid {
+            background-color: #d4edda;
+            border-left: 3px solid #28a745;
+        }
 
         .add-column-section {
             background: #f8f9fa;
@@ -1212,7 +1237,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.82</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.89</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1677,6 +1702,10 @@
                 <!-- Symbol colour and size - ONLY for Fixed Size -->
                 <div id="fixedSizeStyleSection" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
                     <div style="font-size: 0.875rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem;">Symbol colour and size</div>
+                    
+                    <div id="categoryCustomIconNote" style="display: none; background: #fff3cd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem; border-left: 4px solid #ffc107;">
+                        ℹ️ <strong>Note:</strong> Category custom icons use their own size controls. Adjust icon size in each category card above.
+                    </div>
 
                     <div style="background: #e8f5e9; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem;">
                         <label style="display: flex; align-items: center; cursor: pointer;">
@@ -4524,6 +4553,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         // Data Editor Functions
+        // Data Editor sorting state
+        let sortState = {
+            column: null,
+            direction: null  // null, 'asc', or 'desc'
+        };
+        
+        // Image URL validation cache
+        let imageValidationCache = {};
+        
         function openDataEditor() {
             const modal = document.getElementById('dataEditorModal');
             const tableHead = document.getElementById('dataTableHead');
@@ -4536,21 +4574,101 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 columnSelect.add(new Option(col, col));
             });
             
-            // Build table header
+            // Build table header with sort controls
             let headerHTML = '<tr>';
             columns.forEach((col, index) => {
-                headerHTML += `<th onclick="toggleColumnExpand(${index})" title="Click to expand/collapse column">${col} <button onclick="event.stopPropagation(); deleteColumn(${index})" style="background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; margin-left: 8px; cursor: pointer; font-size: 0.75rem;">×</button></th>`;
+                // Check if this is an image URL column
+                const isImageColumn = col.toLowerCase().includes('image') && col.toLowerCase().includes('url');
+                
+                // Sort indicator
+                let sortIndicator = '';
+                if (sortState.column === index) {
+                    sortIndicator = sortState.direction === 'asc' ? ' ▲' : ' ▼';
+                }
+                
+                // Image column indicator
+                const imageIndicator = isImageColumn ? ' 🖼️' : '';
+                
+                headerHTML += `<th>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span onclick="sortByColumn(${index})" style="cursor: pointer; flex: 1;" title="Click to sort">
+                            ${col}${sortIndicator}${imageIndicator}
+                        </span>
+                        ${isImageColumn ? `<button onclick="event.stopPropagation(); testImageColumn(${index})" style="background: #3498db; color: white; border: none; border-radius: 3px; padding: 2px 6px; margin: 0 4px; cursor: pointer; font-size: 0.7rem;" title="Test image URLs">🔍</button>` : ''}
+                        <button onclick="event.stopPropagation(); deleteColumn(${index})" style="background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 0.75rem;">×</button>
+                    </div>
+                </th>`;
             });
             headerHTML += '</tr>';
             tableHead.innerHTML = headerHTML;
             
-            // Build table body
+            // Build table body with validation indicators
             let bodyHTML = '';
-            csvData.forEach((row, rowIndex) => {
+            
+            // Apply sorting if active
+            let displayData = [...csvData];
+            if (sortState.column !== null) {
+                const colName = columns[sortState.column];
+                displayData.sort((a, b) => {
+                    const aVal = a[colName] || '';
+                    const bVal = b[colName] || '';
+                    
+                    // Try numeric comparison first
+                    const aNum = parseFloat(aVal);
+                    const bNum = parseFloat(bVal);
+                    
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return sortState.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                    }
+                    
+                    // Fallback to string comparison
+                    const comparison = String(aVal).localeCompare(String(bVal));
+                    return sortState.direction === 'asc' ? comparison : -comparison;
+                });
+            }
+            
+            displayData.forEach((row, displayIndex) => {
+                // Find original row index
+                const originalRowIndex = csvData.indexOf(row);
+                
                 bodyHTML += '<tr>';
                 columns.forEach((col, colIndex) => {
                     const value = row[col] !== undefined && row[col] !== null ? row[col] : '';
-                    bodyHTML += `<td data-col="${colIndex}"><input type="text" value="${escapeHtml(value)}" onchange="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)"></td>`;
+                    const isImageColumn = col.toLowerCase().includes('image') && col.toLowerCase().includes('url');
+                    
+                    // Validate image URLs
+                    let validationClass = '';
+                    let validationTitle = '';
+                    
+                    if (isImageColumn) {
+                        if (!value || value.trim() === '') {
+                            validationClass = ' url-empty';
+                            validationTitle = 'Empty URL';
+                        } else if (!isValidImageURL(value)) {
+                            validationClass = ' url-invalid';
+                            validationTitle = 'Invalid URL format';
+                        } else if (imageValidationCache[value]) {
+                            // Check new object-based cache
+                            const cached = imageValidationCache[value];
+                            if (cached.status === 'loaded') {
+                                validationClass = ' url-valid';
+                                validationTitle = 'Valid image URL - loaded successfully';
+                            } else if (cached.status === 'cors') {
+                                validationClass = ' url-cors';
+                                validationTitle = 'CORS blocked (likely works in popups)';
+                            } else if (cached.status === 'failed') {
+                                validationClass = ' url-failed';
+                                validationTitle = 'Failed to load - ' + (cached.reason || 'unknown error');
+                            } else if (cached.status === 'invalid') {
+                                validationClass = ' url-invalid';
+                                validationTitle = 'Invalid URL format';
+                            }
+                        }
+                    }
+                    
+                    bodyHTML += `<td data-col="${colIndex}" class="${validationClass}" title="${validationTitle}">
+                        <input type="text" value="${escapeHtml(value)}" onchange="updateCell(${originalRowIndex}, '${escapeHtml(col)}', this.value); openDataEditor();">
+                    </td>`;
                 });
                 bodyHTML += '</tr>';
             });
@@ -4559,24 +4677,180 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             modal.style.display = 'block';
         }
         
-        function toggleColumnExpand(colIndex) {
-            const table = document.getElementById('dataTable');
-            const headers = table.querySelectorAll('th');
-            const cells = table.querySelectorAll(`td[data-col="${colIndex}"]`);
-            
-            // Toggle header
-            if (headers[colIndex]) {
-                headers[colIndex].classList.toggle('expanded');
+        function sortByColumn(colIndex) {
+            if (sortState.column === colIndex) {
+                // Cycle through: null -> asc -> desc -> null
+                if (sortState.direction === null) {
+                    sortState.direction = 'asc';
+                } else if (sortState.direction === 'asc') {
+                    sortState.direction = 'desc';
+                } else {
+                    sortState.direction = null;
+                    sortState.column = null;
+                }
+            } else {
+                sortState.column = colIndex;
+                sortState.direction = 'asc';
             }
             
-            // Toggle all cells in this column
-            cells.forEach(cell => {
-                cell.classList.toggle('expanded');
+            openDataEditor();
+        }
+        
+        function isValidImageURL(url) {
+            if (!url || url.trim() === '') return false;
+            
+            // Must start with http:// or https://
+            if (!url.match(/^https?:\/\//i)) return false;
+            
+            // Should end with common image extension (but not required for dynamic URLs)
+            const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg|ico)/i;
+            const hasExtension = imageExtensions.test(url);
+            
+            // Also accept URLs that might be dynamic (contain parameters)
+            const hasDynamicParams = url.includes('?') || url.includes('wikimedia') || url.includes('imgur');
+            
+            return hasExtension || hasDynamicParams;
+        }
+        
+        async function testImageColumn(colIndex) {
+            const colName = columns[colIndex];
+            const button = event.target;
+            
+            // Disable button
+            button.disabled = true;
+            button.textContent = '⏳';
+            
+            // Clear cache for this column
+            const uniqueURLs = new Set();
+            csvData.forEach(row => {
+                const url = row[colName];
+                if (url && url.trim() !== '') {
+                    uniqueURLs.add(url.trim());
+                }
+            });
+            
+            // Test each unique URL
+            let tested = 0;
+            const total = uniqueURLs.size;
+            
+            const results = {
+                valid: 0,
+                invalid: 0,
+                corsBlocked: 0,
+                failed: 0,
+                empty: 0
+            };
+            
+            for (const url of uniqueURLs) {
+                tested++;
+                button.textContent = `${tested}/${total}`;
+                
+                if (!url || url.trim() === '') {
+                    results.empty++;
+                    continue;
+                }
+                
+                if (!isValidImageURL(url)) {
+                    results.invalid++;
+                    imageValidationCache[url] = { status: 'invalid' };
+                    continue;
+                }
+                
+                // Try to load the image
+                const testResult = await testImageLoad(url);
+                imageValidationCache[url] = testResult;
+                
+                if (testResult.status === 'loaded') {
+                    results.valid++;
+                } else if (testResult.status === 'cors') {
+                    results.corsBlocked++;
+                } else {
+                    results.failed++;
+                }
+            }
+            
+            // Count empty cells
+            csvData.forEach(row => {
+                const url = row[colName];
+                if (!url || url.trim() === '') {
+                    results.empty++;
+                }
+            });
+            
+            // Build detailed results message
+            const totalTested = results.valid + results.corsBlocked + results.failed + results.invalid;
+            const corsNote = results.corsBlocked > 0 ? 
+                `\n\n💡 CORS-blocked images will likely work in popups!\n   (Wikimedia, news sites commonly block JS testing)` : '';
+            
+            alert(`Image URL Test Results for "${colName}":
+            
+✅ Valid & Loaded: ${results.valid}
+⚠️ Invalid Format: ${results.invalid}
+🔒 CORS Blocked: ${results.corsBlocked}
+❌ Truly Broken: ${results.failed}
+⭕ Empty: ${results.empty}
+━━━━━━━━━━━━━━━━━━━━
+Tested: ${totalTested}
+Total rows: ${csvData.length}${corsNote}`);
+            
+            // Re-enable button and refresh display
+            button.disabled = false;
+            button.textContent = '🔍';
+            openDataEditor();
+        }
+        
+        function testImageLoad(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                
+                // Detect CORS-strict domains
+                const isCORSDomain = 
+                    url.includes('wikimedia.org') ||
+                    url.includes('wikipedia.org') ||
+                    url.includes('wp.com') ||
+                    url.includes('nytimes.com') ||
+                    url.includes('wsj.com') ||
+                    url.includes('theguardian.com') ||
+                    url.includes('bbc.co.uk') ||
+                    url.includes('reuters.com') ||
+                    url.includes('gettyimages.com') ||
+                    url.includes('shutterstock.com');
+                
+                const timeout = setTimeout(() => {
+                    img.src = '';
+                    // Timeout likely means CORS or slow server
+                    if (isCORSDomain) {
+                        resolve({ status: 'cors', reason: 'Timeout (likely CORS)' });
+                    } else {
+                        resolve({ status: 'failed', reason: 'Timeout' });
+                    }
+                }, 5000);  // 5 second timeout
+                
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    resolve({ status: 'loaded' });
+                };
+                
+                img.onerror = (e) => {
+                    clearTimeout(timeout);
+                    // Error loading - could be CORS, 404, or network issue
+                    if (isCORSDomain) {
+                        resolve({ status: 'cors', reason: 'CORS policy' });
+                    } else {
+                        resolve({ status: 'failed', reason: 'Failed to load (404 or network error)' });
+                    }
+                };
+                
+                img.src = url;
             });
         }
 
         function closeDataEditor() {
             document.getElementById('dataEditorModal').style.display = 'none';
+            
+            // Reset sort state
+            sortState.column = null;
+            sortState.direction = null;
             
             // Save current selections before refreshing
             const currentLatCol = document.getElementById('latColumn').value;
@@ -9452,6 +9726,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Handle custom icon with rotation (and halo) - check for category-specific icon first
             if (shape === 'custom') {
                 let iconData = null;
+                let isGlobalCustom = false;
                 
                 // Check for category-specific custom icon
                 if (categoryValue) {
@@ -9464,14 +9739,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         if (categoryStyles[categoryValue].customIconData) {
                             iconData = categoryStyles[categoryValue].customIconData;
                             console.log(`✓ Using category-specific custom icon for: "${categoryValue}"`);
+                        } else {
+                            // Category has custom selected but no icon uploaded - use circle as default
+                            console.log(`⚠️ Category "${categoryValue}" has custom selected but no icon uploaded - using circle as default`);
+                            shape = 'circle';  // Fall back to circle
                         }
                     }
                 }
                 
-                // Fall back to global custom icon if no category-specific icon
-                if (!iconData && customIconData) {
+                // Only check global custom icon if this is NOT a category (for main symbol selector)
+                if (!iconData && !categoryValue && customIconData) {
                     iconData = customIconData;
-                    console.log('✓ Using global custom icon (no category icon found)');
+                    isGlobalCustom = true;
+                    console.log('✓ Using global custom icon');
                 }
                 
                 if (iconData) {
@@ -9651,6 +9931,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
 
         // Category styling functions
+        let categoryOrder = [];  // Store original category order
+        
         function detectAndBuildCategoryLegend() {
             const colorByField = document.getElementById('colorByField').value;
             
@@ -9659,16 +9941,26 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 return;
             }
             
-            // Extract unique categories
-            const categories = new Set();
+            // Extract unique categories IN ORDER OF APPEARANCE
+            const categories = [];
+            const seen = new Set();
             csvData.forEach(row => {
                 const value = row[colorByField];
                 if (value !== null && value !== undefined && value !== '') {
-                    categories.add(String(value).trim());
+                    const catValue = String(value).trim();
+                    if (!seen.has(catValue)) {
+                        categories.push(catValue);
+                        seen.add(catValue);
+                    }
                 }
             });
             
-            const uniqueCategories = Array.from(categories).sort();
+            // Store category order if not already stored
+            if (categoryOrder.length === 0) {
+                categoryOrder = [...categories];
+            }
+            
+            const uniqueCategories = categories;
             
             if (uniqueCategories.length === 0) {
                 document.getElementById('categoryLegend').style.display = 'none';
@@ -9682,9 +9974,10 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         symbol: 'circle',
                         color: defaultColorPalette[index % defaultColorPalette.length],
                         haloEnabled: false,
-                        haloSize: 5,
+                        haloSize: 2,  // Reduced from 3
                         haloColor: '#ffffff',
-                        haloOpacity: 50
+                        haloOpacity: 50,
+                        customIconSize: 30  // New: custom icon size control
                     };
                 }
             });
@@ -9772,10 +10065,17 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                                     <div style="font-size: 0.65rem; color: #999; margin-top: 0.25rem;">PNG or JPG, max 100KB</div>
                                 </div>
                             ` : ''}
-                            <div>
-                                <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Color</label>
-                                <input type="color" value="${style.color}" onchange="updateCategoryStyle('${escapedCat}', 'color', this.value)" style="width: 100%; height: 28px;">
-                            </div>
+                            ${style.symbol === 'custom' && style.customIconData ? `
+                                <div>
+                                    <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Icon Size</label>
+                                    <input type="number" value="${style.customIconSize || 30}" min="15" max="60" onchange="updateCategoryStyle('${escapedCat}', 'customIconSize', parseInt(this.value))" style="width: 100%; padding: 0.25rem; font-size: 0.75rem;">
+                                </div>
+                            ` : `
+                                <div>
+                                    <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Color</label>
+                                    <input type="color" value="${style.color}" onchange="updateCategoryStyle('${escapedCat}', 'color', this.value)" style="width: 100%; height: 28px;">
+                                </div>
+                            `}
                         </div>
                         <div style="margin-top: 0.5rem;">
                             <label style="font-size: 0.75rem; display: flex; align-items: center; cursor: pointer;">
@@ -9787,7 +10087,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
                                 <div>
                                     <label style="font-size: 0.7rem;">Size</label>
-                                    <input type="number" value="${style.haloSize}" min="1" max="20" onchange="updateCategoryStyle('${escapedCat}', 'haloSize', parseInt(this.value))" style="width: 100%; padding: 0.2rem; font-size: 0.75rem;">
+                                    <input type="number" value="${style.haloSize}" min="1" max="5" onchange="updateCategoryStyle('${escapedCat}', 'haloSize', parseInt(this.value))" style="width: 100%; padding: 0.2rem; font-size: 0.75rem;">
                                 </div>
                                 <div>
                                     <label style="font-size: 0.7rem;">Color</label>
@@ -9804,6 +10104,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             });
             
             container.innerHTML = html;
+            
+            // Show/hide note about category custom icons
+            const anyCategoryUsesCustomIcon = categories.some(cat => {
+                const style = categoryStyles[cat];
+                return style && style.symbol === 'custom' && style.customIconData;
+            });
+            const customIconNote = document.getElementById('categoryCustomIconNote');
+            if (customIconNote) {
+                customIconNote.style.display = anyCategoryUsesCustomIcon ? 'block' : 'none';
+            }
             
             // Check if any category is using 'custom' symbol - if so, show custom icon upload section
             const anyCategoryUsesCustom = categories.some(cat => {
@@ -9843,8 +10153,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
             }
             
-            // Show/hide custom icon section if symbol property changed
+            // Rebuild category UI if symbol property changed (to show/hide file picker)
             if (property === 'symbol') {
+                const colorByField = document.getElementById('colorByField').value;
+                if (colorByField && csvData) {
+                    const uniqueCategories = [...new Set(csvData.map(row => String(row[colorByField]).trim()))].filter(cat => cat);
+                    console.log(`🔄 Rebuilding category UI because symbol changed for "${category}"`);
+                    buildCategoryLegendUI(uniqueCategories);
+                }
+                
+                // Also show/hide the global custom icon section
                 const anyCategoryUsesCustom = Object.values(categoryStyles).some(style => 
                     style && style.symbol === 'custom'
                 );
@@ -10868,14 +11186,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 Object.keys(categoryStyles).sort().forEach(category => {
                     const style = categoryStyles[category];
                     
-                    // Get the actual icon using getMarkerIcon
-                    const icon = getMarkerIcon(style.symbol, style.color, 24, '#2c3e50', 1, 0);
+                    // Get the actual icon using getMarkerIcon, passing category name for custom icons
+                    const iconSize = style.symbol === 'custom' && style.customIconData ? (style.customIconSize || 30) : 24;
+                    const icon = getMarkerIcon(style.symbol, style.color, iconSize, '#2c3e50', 1, 0, false, '#ffffff', 12, false, category);
                     
-                    // Extract the SVG from the divIcon HTML
+                    // Extract the SVG/HTML from the divIcon
                     const iconHtml = icon.options.html;
                     
                     html += `<div class="legend-item">
-                        <div class="legend-symbol" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                        <div class="legend-symbol" style="width: ${iconSize}px; height: ${iconSize}px; display: flex; align-items: center; justify-content: center;">
                             ${iconHtml}
                         </div>
                         <span>${category}</span>
@@ -12769,7 +13088,14 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     } else {
                         // Use appropriate base size depending on marker type
                         if (finalShape === 'custom') {
-                            markerSize = parseInt(document.getElementById('markerSize2').value);
+                            // Check if category has custom icon uploaded
+                            if (categoryStyle && categoryStyle.customIconData) {
+                                // Has custom icon - use custom icon size
+                                markerSize = categoryStyle.customIconSize || 30;
+                            } else {
+                                // No custom icon uploaded - use normal marker size (will show circle)
+                                markerSize = size;
+                            }
                         } else {
                             markerSize = size;
                         }
@@ -12796,7 +13122,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     let marker;
                     if (categoryStyle && categoryStyle.haloEnabled) {
                         // Create halo circle marker first
-                        const haloRadius = Math.round(markerSize) + categoryStyle.haloSize;
+                        // CRITICAL FIX: Use icon RADIUS (markerSize/2) not full markerSize!
+                        const iconRadius = Math.round(markerSize / 2);
+                        const haloRadius = iconRadius + categoryStyle.haloSize;
                         const haloOpacity = categoryStyle.haloOpacity / 100;
                         const haloMarker = L.circleMarker([lat, lon], {
                             radius: haloRadius,
@@ -13778,7 +14106,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.82 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.89 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
