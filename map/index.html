@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.9.91 - CONCENTRIC BUFFERS! Enhanced Buffer Tool with multiple radii support - enter comma-separated values (e.g., "5,10,15,20") for concentric rings with graduated opacity (innermost=darkest, outermost=lightest). Optional radius labels: always visible on circle edge OR hover-only (your choice!). Miles abbreviated to "mi" for cleaner display. Perfect for emergency zones, service tiers, risk analysis! Moved Analysis Tools above Map Tools. Second of 3 analysis tools! -->
+<!-- Geo Mapper v2.9.97 - SESSION-ONLY BOOKMARKS! No more localStorage persistence - bookmarks only live during current session. Export to save permanently, import to restore. Fresh HTML always starts clean. Plus all v2.9.96 fixes: toggle button stays visible, imported bookmarks show in tabs! -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.9.91 - Concentric Buffers</title>
+    <title>Geo Mapper v2.9.97 - Session-Only Bookmarks (No localStorage)</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -92,6 +92,105 @@
             font-size: 1.5rem;
             font-weight: 600;
             margin: 0;
+        }
+        
+        /* Bookmark Quick Tabs */
+        .bookmark-tabs-container {
+            background: #34495e;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            padding-left: calc(320px + 60px); /* Sidebar width + eye icon width + gap */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            max-height: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        /* When sidebar is collapsed, only account for eye icon */
+        .sidebar.collapsed ~ .bookmark-tabs-container,
+        .bookmark-tabs-container.sidebar-collapsed {
+            padding-left: calc(50px + 10px); /* Eye icon width + small gap */
+        }
+        
+        /* Mobile: No sidebar offset */
+        @media (max-width: 768px) {
+            .bookmark-tabs-container {
+                padding-left: 1rem !important;
+            }
+        }
+        
+        /* Hide tabs content but keep toggle button visible */
+        .bookmark-tabs-content-hidden {
+            display: none !important;
+        }
+        
+        /* When no bookmarks exist, hide entire container */
+        .bookmark-tabs-container.no-bookmarks {
+            display: none;
+        }
+        
+        .bookmark-tabs-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .bookmark-tabs-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .bookmark-tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+        
+        .bookmark-tab-toggle {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 3px;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .bookmark-tab-toggle:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .bookmark-tab {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .bookmark-tab:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+        
+        .bookmark-tab.active {
+            background: #3498db;
+            border-color: #3498db;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .bookmark-tabs-empty {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            font-style: italic;
         }
 
         .container {
@@ -1254,8 +1353,16 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.91</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.9.97</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
+    </div>
+    
+    <!-- Bookmark Quick Tabs -->
+    <div id="bookmarkTabsContainer" class="bookmark-tabs-container no-bookmarks">
+        <button class="bookmark-tab-toggle" onclick="toggleBookmarkTabs()" title="Show/Hide bookmark tabs">🔖</button>
+        <div id="bookmarkTabsContent" class="bookmark-tabs-content-hidden" style="display: flex; gap: 0.5rem; align-items: center; flex: 1; overflow-x: auto;">
+            <span class="bookmark-tabs-empty">No bookmarks yet - save a view to create tabs</span>
+        </div>
     </div>
     
     <!-- Search Panel -->
@@ -2228,8 +2335,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 <div class="section-content">
                     
                     <!-- Filter Tool -->
-                    <div style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: #27ae60;">🔍 Filter Points</div>
+                    <details style="background: #e8f5e9; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <summary style="font-weight: 600; margin-bottom: 0.5rem; color: #27ae60; cursor: pointer; list-style-position: outside; padding-left: 0.5rem;">🔍 Filter Points</summary>
                         
                         <div class="form-group">
                             <label for="filterField">Field to filter</label>
@@ -2262,7 +2369,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         </div>
                         
                         <button class="btn" onclick="addFilter()" style="background: #27ae60; width: 100%;">+ Add Filter</button>
-                    </div>
+                    </details>
                     
                     <!-- Active Filters -->
                     <div id="activeFiltersContainer" style="display: none; background: #fff3cd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #ffc107;">
@@ -2281,11 +2388,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         (all conditions must be met)
                     </div>
                     
-                    <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e0e0e0;">
-                    
                     <!-- Buffer Tool -->
-                    <div style="background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: #1976d2;">⭕ Buffer Zones</div>
+                    <details style="background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; margin-top: 1rem;">
+                        <summary style="font-weight: 600; margin-bottom: 0.5rem; color: #1976d2; cursor: pointer; list-style-position: outside; padding-left: 0.5rem;">⭕ Buffer Zones</summary>
                         
                         <div class="form-group">
                             <label for="bufferRadius">Radius (comma-separated for concentric)</label>
@@ -2345,7 +2450,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             <button class="btn" onclick="applyBuffers()" style="background: #1976d2; flex: 1;">🎯 Apply Buffers</button>
                             <button class="btn" onclick="clearBuffers()" style="background: #dc3545; width: 80px;">Clear</button>
                         </div>
-                    </div>
+                    </details>
                     
                     <!-- Active Buffers Info -->
                     <div id="activeBuffersContainer" style="display: none; background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #1976d2;">
@@ -2587,6 +2692,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 <div class="section-content">
                 <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
                 <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
+                
+                <!-- NEW: Analysis Export Buttons -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #2c3e50;">📊 Export Analysis Results</div>
+                    <button class="btn" onclick="exportFilteredData()" style="background: #27ae60; margin-bottom: 0.5rem; font-size: 0.85rem;">📄 Export Filtered Data (CSV)</button>
+                    <button class="btn" onclick="exportBuffersGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem; font-size: 0.85rem;">⭕ Export Buffers (GeoJSON)</button>
+                    <div class="info-text" style="font-size: 0.75rem;">
+                        Export filtered data for use in Excel/other apps, or buffer zones for GIS software
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
                 <button class="btn" onclick="generateShareURL()" style="background: #e67e22; width: 100%; margin-bottom: 0.5rem;">🔗 Share Map</button>
                 <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; width: 100%; display: none; margin-bottom: 0.5rem;">📋 Copy URL to Share</button>
                 <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 1rem; background: #ecf0f1; border-radius: 4px; max-height: 300px; overflow-y: auto;">
@@ -2597,10 +2714,41 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         💡 <strong>Tip:</strong> URL is automatically compressed. For very large datasets, use GitHub Gist or "Save Map Configuration".
                     </div>
                 </div>
+                </div>
                 <div class="info-text">
                     Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.<br>
                     <strong>Share Map:</strong> Creates a shareable URL with your data and settings embedded (compressed for shorter links)
                 </div>
+                </div>
+            </details>
+            
+            <!-- NEW: Bookmarks Section -->
+            <details class="section">
+                <summary class="section-title">🔖 Bookmarks</summary>
+                <div class="section-content">
+                    <div style="font-size: 0.85rem; margin-bottom: 0.75rem; color: #7f8c8d;">
+                        Save different views of your map with all settings, filters, and buffers
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <input type="text" id="bookmarkName" placeholder="Enter bookmark name..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem;">
+                        <button class="btn" onclick="saveBookmark()" style="background: #27ae60; width: 100%;">💾 Save Current View as Bookmark</button>
+                    </div>
+                    
+                    <div id="bookmarksList" style="display: none; margin-bottom: 1rem; max-height: 300px; overflow-y: auto;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Saved Bookmarks:</div>
+                        <div id="bookmarksContainer"></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" onclick="exportBookmarks()" style="background: #3498db; flex: 1; font-size: 0.85rem;">📤 Export All</button>
+                        <button class="btn" onclick="importBookmarks()" style="background: #9b59b6; flex: 1; font-size: 0.85rem;">📥 Import</button>
+                    </div>
+                    <input type="file" id="bookmarkImportInput" accept=".json" style="display: none;">
+                    
+                    <div class="info-text" style="margin-top: 0.75rem;">
+                        Bookmarks save: zoom, position, filters, buffers, overlays, and all settings. Export to transfer between computers.
+                    </div>
                 </div>
             </details>
 
@@ -3349,13 +3497,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.getElementById('sidebarToggle');
+            const bookmarkTabs = document.getElementById('bookmarkTabsContainer');
             
             if (sidebar.classList.contains('collapsed')) {
                 sidebar.classList.remove('collapsed');
+                if (bookmarkTabs) bookmarkTabs.classList.remove('sidebar-collapsed');
                 toggle.textContent = '👁️'; // Open eye
                 toggle.title = 'Click to hide control panel';
             } else {
                 sidebar.classList.add('collapsed');
+                if (bookmarkTabs) bookmarkTabs.classList.add('sidebar-collapsed');
                 toggle.textContent = '👁️‍🗨️'; // Eye with speech bubble (hidden)
                 toggle.title = 'Click to show control panel';
             }
@@ -5596,6 +5747,532 @@ Total rows: ${csvData.length}${corsNote}`);
             };
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
+
+        // =====================================
+        // NEW: EXPORT & BOOKMARK FUNCTIONS
+        // (Completely separate from existing save/load)
+        // =====================================
+        
+        function exportFilteredData() {
+            if (!csvData || csvData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            // Get filtered data based on active filters
+            let dataToExport;
+            if (activeFilters.length > 0) {
+                dataToExport = csvData.filter(row => {
+                    return activeFilters.every(filter => matchesFilter(row, filter));
+                });
+                
+                if (dataToExport.length === 0) {
+                    alert('No data matches the current filters');
+                    return;
+                }
+            } else {
+                // No filters active - export all data
+                const confirmExport = confirm('No filters are active. Export ALL data?');
+                if (!confirmExport) return;
+                dataToExport = csvData;
+            }
+            
+            // Build CSV content
+            const headers = columns.join(',');
+            const rows = dataToExport.map(row => {
+                return columns.map(col => {
+                    const value = row[col] || '';
+                    // Escape quotes and wrap in quotes if contains comma or quote
+                    if (value.toString().includes(',') || value.toString().includes('"')) {
+                        return `"${value.toString().replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                }).join(',');
+            });
+            
+            const csvContent = headers + '\n' + rows.join('\n');
+            
+            // Get current date for filename
+            const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const filename = `filtered-data-${dateStr}.csv`;
+            
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log(`Exported ${dataToExport.length} filtered rows to ${filename}`);
+        }
+        
+        function exportBuffersGeoJSON() {
+            if (!buffersActive || bufferCircles.length === 0) {
+                alert('No buffer zones active. Apply buffers first.');
+                return;
+            }
+            
+            // Create GeoJSON structure
+            const features = [];
+            
+            bufferCircles.forEach((item, index) => {
+                // Skip labels (tooltips), only process circles
+                if (item instanceof L.Circle) {
+                    const center = item.getLatLng();
+                    const radius = item.getRadius();
+                    
+                    // Create polygon approximation of circle (36 points)
+                    const points = [];
+                    const numPoints = 36;
+                    for (let i = 0; i <= numPoints; i++) {
+                        const angle = (i / numPoints) * 2 * Math.PI;
+                        const dx = radius * Math.cos(angle);
+                        const dy = radius * Math.sin(angle);
+                        
+                        // Convert meters to approximate degrees
+                        const latOffset = dy / 111320;
+                        const lonOffset = dx / (111320 * Math.cos(center.lat * Math.PI / 180));
+                        
+                        points.push([
+                            center.lng + lonOffset,
+                            center.lat + latOffset
+                        ]);
+                    }
+                    
+                    features.push({
+                        type: 'Feature',
+                        properties: {
+                            radius: radius,
+                            center_lat: center.lat,
+                            center_lon: center.lng,
+                            unit: 'meters'
+                        },
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [points]
+                        }
+                    });
+                }
+            });
+            
+            const geojson = {
+                type: 'FeatureCollection',
+                features: features
+            };
+            
+            // Download
+            const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            const filename = `buffers-${dateStr}.geojson`;
+            
+            const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log(`Exported ${features.length} buffer zones to ${filename}`);
+        }
+        
+        // Bookmark system (separate from main save/load)
+        function saveBookmark() {
+            const name = document.getElementById('bookmarkName').value.trim();
+            if (!name) {
+                alert('Please enter a bookmark name');
+                return;
+            }
+            
+            // Create bookmark object
+            const bookmark = {
+                name: name,
+                timestamp: new Date().toISOString(),
+                zoom: map.getZoom(),
+                center: map.getCenter(),
+                filters: activeFilters,
+                bufferSettings: buffersActive ? {
+                    radius: document.getElementById('bufferRadius').value,
+                    unit: document.getElementById('bufferUnit').value,
+                    filteredOnly: document.getElementById('bufferFilteredOnly').checked,
+                    showLabels: document.getElementById('bufferShowLabels').checked,
+                    fillColor: document.getElementById('bufferFillColor').value,
+                    opacity: document.getElementById('bufferOpacity').value,
+                    strokeColor: document.getElementById('bufferStrokeColor').value,
+                    strokeWidth: document.getElementById('bufferStrokeWidth').value
+                } : null,
+                basemap: document.getElementById('basemapSelect').value,
+                overlays: Object.keys(activeOverlays).filter(key => activeOverlays[key] !== null)
+            };
+            
+            // Add to in-memory bookmarks array
+            bookmarks.push(bookmark);
+            
+            // Update UI
+            document.getElementById('bookmarkName').value = '';
+            loadBookmarksList();
+            alert(`Bookmark "${name}" saved!`);
+        }
+        
+        function loadBookmarksList() {
+            const container = document.getElementById('bookmarksContainer');
+            const list = document.getElementById('bookmarksList');
+            
+            try {
+                if (bookmarks.length === 0) {
+                    list.style.display = 'none';
+                    return;
+                }
+                
+                list.style.display = 'block';
+                
+                let html = '';
+                bookmarks.forEach((bookmark, index) => {
+                    const date = new Date(bookmark.timestamp).toLocaleDateString();
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0;">
+                            <div style="flex: 1;">
+                                <strong style="font-size: 0.9rem;">${escapeHtml(bookmark.name)}</strong>
+                                <div style="font-size: 0.75rem; color: #7f8c8d;">${date}</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="loadBookmark(${index})" style="background: #3498db; color: white; border: none; padding: 0.35rem 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">Load</button>
+                                <button onclick="renameBookmark(${index})" style="background: #9b59b6; color: white; border: none; padding: 0.35rem 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Rename bookmark">✏️</button>
+                                <button onclick="updateBookmark(${index})" style="background: #27ae60; color: white; border: none; padding: 0.35rem 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Update with current view">↻</button>
+                                <button onclick="deleteBookmark(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.35rem 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;">×</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+                // Also refresh quick tabs
+                refreshBookmarkTabs();
+            } catch (e) {
+                console.error('Failed to load bookmarks:', e);
+                list.style.display = 'none';
+            }
+        }
+        
+        function loadBookmark(index) {
+            try {
+                const bookmark = bookmarks[index];
+                
+                if (!bookmark) {
+                    throw new Error(`Bookmark at index ${index} not found`);
+                }
+                
+                if (!bookmark.center || !bookmark.zoom) {
+                    throw new Error('Bookmark missing required location data');
+                }
+                
+                // Restore view
+                map.setView(bookmark.center, bookmark.zoom);
+                
+                // Restore basemap
+                if (bookmark.basemap) {
+                    const basemapSelect = document.getElementById('basemapSelect');
+                    if (basemapSelect) {
+                        basemapSelect.value = bookmark.basemap;
+                        changeBasemap();
+                    }
+                }
+                
+                // Restore filters
+                clearAllFilters();
+                if (bookmark.filters && bookmark.filters.length > 0) {
+                    activeFilters = bookmark.filters;
+                    filterIdCounter = Math.max(...bookmark.filters.map(f => f.id)) + 1;
+                    updateFilterUI();
+                    applyFilters();
+                }
+                
+                // Restore buffers
+                clearBuffers();
+                if (bookmark.bufferSettings) {
+                    const radiusInput = document.getElementById('bufferRadius');
+                    const unitSelect = document.getElementById('bufferUnit');
+                    const filteredOnlyCheckbox = document.getElementById('bufferFilteredOnly');
+                    const showLabelsCheckbox = document.getElementById('bufferShowLabels');
+                    const fillColorInput = document.getElementById('bufferFillColor');
+                    const opacityInput = document.getElementById('bufferOpacity');
+                    const strokeColorInput = document.getElementById('bufferStrokeColor');
+                    const strokeWidthInput = document.getElementById('bufferStrokeWidth');
+                    
+                    if (radiusInput) radiusInput.value = bookmark.bufferSettings.radius;
+                    if (unitSelect) unitSelect.value = bookmark.bufferSettings.unit;
+                    if (filteredOnlyCheckbox) filteredOnlyCheckbox.checked = bookmark.bufferSettings.filteredOnly;
+                    if (showLabelsCheckbox) showLabelsCheckbox.checked = bookmark.bufferSettings.showLabels;
+                    if (fillColorInput) fillColorInput.value = bookmark.bufferSettings.fillColor;
+                    if (opacityInput) opacityInput.value = bookmark.bufferSettings.opacity;
+                    if (strokeColorInput) strokeColorInput.value = bookmark.bufferSettings.strokeColor;
+                    if (strokeWidthInput) strokeWidthInput.value = bookmark.bufferSettings.strokeWidth;
+                    
+                    // Apply buffers with slight delay to ensure inputs are set
+                    setTimeout(() => applyBuffers(), 100);
+                }
+                
+                console.log(`✓ Loaded bookmark: ${bookmark.name}`);
+            } catch (e) {
+                console.error('Failed to load bookmark:', e);
+                alert(`Failed to load bookmark: ${e.message}`);
+            }
+        }
+        
+        function deleteBookmark(index) {
+            if (!confirm('Delete this bookmark?')) return;
+            
+            try {
+                bookmarks.splice(index, 1);
+                loadBookmarksList();
+                refreshBookmarkTabs();
+            } catch (e) {
+                console.error('Failed to delete bookmark:', e);
+            }
+        }
+        
+        function renameBookmark(index) {
+            try {
+                const bookmark = bookmarks[index];
+                
+                if (!bookmark) return;
+                
+                const newName = prompt(`Rename bookmark "${bookmark.name}" to:`, bookmark.name);
+                
+                // User cancelled or entered empty name
+                if (!newName || newName.trim() === '') return;
+                
+                // Update the name
+                bookmark.name = newName.trim();
+                bookmarks[index] = bookmark;
+                
+                loadBookmarksList();
+                refreshBookmarkTabs();
+                alert(`Bookmark renamed to "${newName.trim()}"!`);
+            } catch (e) {
+                console.error('Failed to rename bookmark:', e);
+                alert('Failed to rename bookmark');
+            }
+        }
+        
+        function updateBookmark(index) {
+            try {
+                const oldBookmark = bookmarks[index];
+                
+                if (!oldBookmark) return;
+                
+                if (!confirm(`Update bookmark "${oldBookmark.name}" with current view?`)) return;
+                
+                // Get current map state (same as saveBookmark but without the name)
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                
+                // Get active filters
+                const currentFilters = [...activeFilters];
+                
+                // Get buffer settings if active
+                let bufferSettings = null;
+                if (buffersActive) {
+                    bufferSettings = {
+                        radius: document.getElementById('bufferRadius').value,
+                        unit: document.getElementById('bufferUnit').value,
+                        filteredOnly: document.getElementById('bufferFilteredOnly').checked,
+                        showLabels: document.getElementById('bufferShowLabels').checked,
+                        fillColor: document.getElementById('bufferFillColor').value,
+                        opacity: parseInt(document.getElementById('bufferOpacity').value),
+                        strokeColor: document.getElementById('bufferStrokeColor').value,
+                        strokeWidth: parseInt(document.getElementById('bufferStrokeWidth').value)
+                    };
+                }
+                
+                // Get current basemap
+                let currentBasemap = 'osm';
+                if (satelliteLayer && map.hasLayer(satelliteLayer)) currentBasemap = 'satellite';
+                else if (topoLayer && map.hasLayer(topoLayer)) currentBasemap = 'topo';
+                
+                // Get active overlays
+                const activeOverlaysArray = [];
+                if (plateLayer && map.hasLayer(plateLayer)) activeOverlaysArray.push('plates');
+                if (countriesLayer && map.hasLayer(countriesLayer)) activeOverlaysArray.push('countries');
+                
+                // Update the bookmark (keep original name, update everything else)
+                bookmarks[index] = {
+                    name: oldBookmark.name,
+                    timestamp: new Date().toISOString(),
+                    zoom: zoom,
+                    center: center,
+                    filters: currentFilters,
+                    bufferSettings: bufferSettings,
+                    basemap: currentBasemap,
+                    overlays: activeOverlaysArray
+                };
+                
+                loadBookmarksList();
+                refreshBookmarkTabs();
+                alert(`Bookmark "${oldBookmark.name}" updated!`);
+            } catch (e) {
+                console.error('Failed to update bookmark:', e);
+                alert('Failed to update bookmark');
+            }
+        }
+        
+        function exportBookmarks() {
+            try {
+                if (bookmarks.length === 0) {
+                    alert('No bookmarks to export');
+                    return;
+                }
+                
+                const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                const filename = `geo-mapper-bookmarks-${dateStr}.json`;
+                
+                const dataStr = JSON.stringify(bookmarks, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+                alert(`Exported ${bookmarks.length} bookmark(s) to ${filename}`);
+            } catch (e) {
+                console.error('Export failed:', e);
+                alert('Failed to export bookmarks');
+            }
+        }
+        
+        function importBookmarks() {
+            document.getElementById('bookmarkImportInput').click();
+        }
+        
+        // ===================================
+        // BOOKMARK QUICK TABS FUNCTIONS
+        // ===================================
+        
+        let currentBookmarkIndex = -1; // Track active bookmark
+        let tabsVisible = false; // Track tab bar visibility
+        let firstTabsLoad = true; // Track if this is the first load
+        let bookmarks = []; // In-memory bookmarks (NOT persisted to localStorage)
+        
+        function refreshBookmarkTabs() {
+            const container = document.getElementById('bookmarkTabsContainer');
+            const content = document.getElementById('bookmarkTabsContent');
+            
+            try {
+                if (bookmarks.length === 0) {
+                    // No bookmarks - hide entire container
+                    container.classList.add('no-bookmarks');
+                    content.classList.add('bookmark-tabs-content-hidden');
+                    content.innerHTML = '<span class="bookmark-tabs-empty">No bookmarks yet - save a view to create tabs</span>';
+                    tabsVisible = false;
+                    firstTabsLoad = false;
+                    return;
+                }
+                
+                // Has bookmarks - show container
+                container.classList.remove('no-bookmarks');
+                
+                // Show/hide content based on visibility state
+                if (firstTabsLoad || tabsVisible) {
+                    content.classList.remove('bookmark-tabs-content-hidden');
+                    tabsVisible = true;
+                } else {
+                    content.classList.add('bookmark-tabs-content-hidden');
+                }
+                firstTabsLoad = false;
+                
+                // Build tabs
+                let html = '';
+                bookmarks.forEach((bookmark, index) => {
+                    const active = index === currentBookmarkIndex ? 'active' : '';
+                    html += `<button class="bookmark-tab ${active}" onclick="loadBookmarkFromTab(${index})" title="${escapeHtml(bookmark.name)}">${escapeHtml(bookmark.name)}</button>`;
+                });
+                
+                content.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to refresh bookmark tabs:', e);
+                content.innerHTML = '<span class="bookmark-tabs-empty">Error loading bookmarks</span>';
+            }
+        }
+        
+        function toggleBookmarkTabs() {
+            const content = document.getElementById('bookmarkTabsContent');
+            
+            // Only toggle if there are bookmarks
+            if (bookmarks.length === 0) {
+                alert('No bookmarks to display. Save a view first!');
+                return;
+            }
+            
+            // Toggle content visibility
+            if (content.classList.contains('bookmark-tabs-content-hidden')) {
+                content.classList.remove('bookmark-tabs-content-hidden');
+                tabsVisible = true;
+            } else {
+                content.classList.add('bookmark-tabs-content-hidden');
+                tabsVisible = false;
+            }
+        }
+        
+        function loadBookmarkFromTab(index) {
+            currentBookmarkIndex = index;
+            loadBookmark(index);
+            refreshBookmarkTabs(); // Update active state
+        }
+        
+        // Initialize bookmark import handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('bookmarkImportInput');
+            if (input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        try {
+                            const imported = JSON.parse(event.target.result);
+                            
+                            // Replace in-memory bookmarks array
+                            bookmarks = imported;
+                            
+                            loadBookmarksList();
+                            
+                            // Force tabs visible after import
+                            tabsVisible = true;
+                            firstTabsLoad = true; // Treat import like first load
+                            refreshBookmarkTabs();
+                            
+                            alert(`Imported ${imported.length} bookmark(s)`);
+                        } catch (err) {
+                            console.error('Import failed:', err);
+                            alert('Failed to import bookmarks. Invalid file format.');
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            }
+            
+            // Load bookmarks list on startup
+            loadBookmarksList();
+            
+            // Set initial bookmark tabs position based on sidebar state
+            const sidebar = document.getElementById('sidebar');
+            const bookmarkTabs = document.getElementById('bookmarkTabsContainer');
+            if (sidebar && bookmarkTabs) {
+                if (sidebar.classList.contains('collapsed')) {
+                    bookmarkTabs.classList.add('sidebar-collapsed');
+                }
+            }
+        });
 
         // Create popup content for a data row
         function generateChartForPopup(row) {
@@ -10659,7 +11336,7 @@ Total rows: ${csvData.length}${corsNote}`);
                                 <span>Add Halo</span>
                             </label>
                         </div>
-                        <div id="haloSettings_${index}" style="display: ${style.haloEnabled ? 'block' : 'none'}; margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 3px;">
+                        <div id="haloSettings_${escapedCat.replace(/[^a-zA-Z0-9]/g, '_')}" style="display: ${style.haloEnabled ? 'block' : 'none'}; margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 3px;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
                                 <div>
                                     <label style="font-size: 0.7rem;">Size</label>
@@ -10721,9 +11398,8 @@ Total rows: ${csvData.length}${corsNote}`);
             
             // Show/hide halo settings
             if (property === 'haloEnabled') {
-                const categories = Object.keys(categoryStyles);
-                const index = categories.indexOf(category);
-                const haloSettings = document.getElementById('haloSettings_' + index);
+                const safeCatId = category.replace(/[^a-zA-Z0-9]/g, '_');
+                const haloSettings = document.getElementById('haloSettings_' + safeCatId);
                 if (haloSettings) {
                     haloSettings.style.display = value ? 'block' : 'none';
                 }
@@ -14690,7 +15366,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.9.91 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.9.97 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
