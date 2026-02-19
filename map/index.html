@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.10.24 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
+<!-- Geo Mapper v2.10.35 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.24</title>
+    <title>Geo Mapper v2.10.35</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1425,7 +1425,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.24</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.35</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2131,11 +2131,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 <div id="popupSizeContent" style="display: none;">
                     <div class="form-group">
                         <label for="popupWidth">Pop-up width (px)</label>
-                        <input type="number" id="popupWidth" value="300" min="200" max="600">
+                        <input type="number" id="popupWidth" value="480" min="200" max="800">
                     </div>
                     <div class="form-group">
                         <label for="popupMaxHeight">Pop-up height (px)</label>
-                        <input type="number" id="popupMaxHeight" value="400" min="0" max="800">
+                        <input type="number" id="popupMaxHeight" value="0" min="0" max="800">
                         <div class="info-text">
                             ℹ️ Set to 0 for no height limit
                         </div>
@@ -2728,6 +2728,23 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                 </div>
 
+                <!-- Drawing Pop-up Size -->
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #f0f4ff; border-radius: 6px; border: 1px solid #c5cae9;">
+                    <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.6rem; color: #3949ab;">📐 Drawing Pop-up Size</div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label for="drawingPopupWidth" style="font-size:0.82rem;">Width (px)</label>
+                        <input type="number" id="drawingPopupWidth" value="480" min="200" max="900"
+                            style="width:100%;padding:0.35rem;border:1px solid #ccc;border-radius:4px;"
+                            oninput="rebindAllDrawingPopups()">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="drawingPopupMaxHeight" style="font-size:0.82rem;">Max height (px) — 0 = no limit</label>
+                        <input type="number" id="drawingPopupMaxHeight" value="0" min="0" max="900"
+                            style="width:100%;padding:0.35rem;border:1px solid #ccc;border-radius:4px;"
+                            oninput="rebindAllDrawingPopups()">
+                    </div>
+                </div>
+
                 <div id="drawnFeaturesSection" style="margin-top: 1rem;">
                     <div class="section-title" style="font-size: 0.9rem;">Drawn Features</div>
                     <div id="drawnFeaturesList" style="font-size: 0.875rem; color: #7f8c8d;">
@@ -2743,8 +2760,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         </div>
                     </div>
                     
-                    <div style="margin-top: 0.5rem;">
-                        <button class="btn" onclick="openExportDrawingsPanel()" style="background: #3498db; font-size: 0.85rem; width: 100%;">📥 Export Drawings…</button>
+                    <div style="margin-top: 0.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;">
+                        <button class="btn" onclick="openExportDrawingsPanel()" style="background: #3498db; font-size: 0.82rem;">📥 Export…</button>
+                        <label class="btn" style="background: #27ae60; font-size: 0.82rem; text-align:center; cursor:pointer; margin:0;">
+                            📂 Import…
+                            <input type="file" accept=".geojson,.json,.gpx" style="display:none;" onchange="importDrawings(this)">
+                        </label>
                     </div>
                     <button class="btn btn-secondary" onclick="clearAllDrawnFeatures()" style="margin-top: 0.5rem; background: #e74c3c; width: 100%;">🗑️ Clear Saved Drawings</button>
                 </div>
@@ -2761,52 +2782,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 </div>
             </details>
 
-            <details class="section" id="editDataSection" style="display: none;">
-                <summary class="section-title">✏️ Data editor</summary>
-                <div class="section-content">
-                <button class="btn" onclick="openDataEditor()" style="background: #9b59b6; margin-bottom: 0.5rem;">📝 Open Data Editor</button>
-                <div class="info-text">
-                    ℹ️ Add new columns, edit values, or update your data after uploading. Includes Find/Replace for fixing encoding errors.
-                </div>
-                </div>
-            </details>
-
-            <details class="section" id="saveExportSection" style="display: none;">
-                <summary class="section-title">💾 Save / export map</summary>
-                <div class="section-content">
-                <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
-                <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
-                
-                <!-- NEW: Analysis Export Buttons -->
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #2c3e50;">📊 Export Analysis Results</div>
-                    <button class="btn" onclick="exportFilteredData()" style="background: #27ae60; margin-bottom: 0.5rem; font-size: 0.85rem;">📄 Export Filtered Data (CSV)</button>
-                    <button class="btn" onclick="exportBuffersGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem; font-size: 0.85rem;">⭕ Export Buffers (GeoJSON)</button>
-                    <div class="info-text" style="font-size: 0.75rem;">
-                        Export filtered data for use in Excel/other apps, or buffer zones for GIS software
-                    </div>
-                </div>
-                
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
-                    <button class="btn" onclick="generateShareURL()" style="background: #e67e22; font-size: 0.82rem; padding: 0.45rem 0.5rem;">🔗 Share Map</button>
-                    <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; font-size: 0.82rem; padding: 0.45rem 0.5rem; display: none;">📋 Copy URL</button>
-                </div>
-                <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #ecf0f1; border-radius: 4px;">
-                    <strong style="display: block; margin-bottom: 0.4rem; font-size: 0.8rem;">Share URL:</strong>
-                    <input type="text" id="shareURLInput" readonly style="width: 100%; padding: 0.4rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.72rem; font-family: monospace; background: white; margin-bottom: 0.4rem; word-break: break-all; overflow-wrap: break-word;">
-                    <div id="urlWarning" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.75rem; color: #856404; word-break: break-word;"></div>
-                    <div style="margin-top: 0.5rem; font-size: 0.72rem; color: #7f8c8d;">
-                        💡 URL is compressed automatically. For very large datasets, use "Save Map Configuration" instead.
-                    </div>
-                </div>
-                </div>
-                <div class="info-text">
-                    Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.
-                </div>
-                </div>
-            </details>
-            
             <!-- NEW: Bookmarks Section -->
             <details class="section">
                 <summary class="section-title">🔖 Bookmarks</summary>
@@ -2846,6 +2821,52 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     <div class="info-text" style="margin-top: 0.75rem;">
                         Bookmarks save: zoom, position, filters, buffers, overlays, and all settings. Export to transfer between computers.
                     </div>
+                </div>
+            </details>
+
+            <details class="section" id="saveExportSection" style="display: none;">
+                <summary class="section-title">💾 Save / export map</summary>
+                <div class="section-content">
+                <button class="btn" onclick="saveMapConfiguration()" style="background: #27ae60; margin-bottom: 0.5rem;">💾 Save Map Configuration</button>
+                <button class="btn" onclick="exportGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem;">🗺️ Export as GeoJSON</button>
+                
+                <!-- NEW: Analysis Export Buttons -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #2c3e50;">📊 Export Analysis Results</div>
+                    <button class="btn" onclick="exportFilteredData()" style="background: #27ae60; margin-bottom: 0.5rem; font-size: 0.85rem;">📄 Export Filtered Data (CSV)</button>
+                    <button class="btn" onclick="exportBuffersGeoJSON()" style="background: #3498db; margin-bottom: 0.5rem; font-size: 0.85rem;">⭕ Export Buffers (GeoJSON)</button>
+                    <div class="info-text" style="font-size: 0.75rem;">
+                        Export filtered data for use in Excel/other apps, or buffer zones for GIS software
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
+                    <button class="btn" onclick="generateShareURL()" style="background: #e67e22; font-size: 0.82rem; padding: 0.45rem 0.5rem;">🔗 Share Map</button>
+                    <button class="btn" onclick="copyShareURL()" id="copyShareBtn" style="background: #16a085; font-size: 0.82rem; padding: 0.45rem 0.5rem; display: none;">📋 Copy URL</button>
+                </div>
+                <div id="shareURLDisplay" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #ecf0f1; border-radius: 4px;">
+                    <strong style="display: block; margin-bottom: 0.4rem; font-size: 0.8rem;">Share URL:</strong>
+                    <input type="text" id="shareURLInput" readonly style="width: 100%; padding: 0.4rem; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 0.72rem; font-family: monospace; background: white; margin-bottom: 0.4rem; word-break: break-all; overflow-wrap: break-word;">
+                    <div id="urlWarning" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 0.75rem; color: #856404; word-break: break-word;"></div>
+                    <div style="margin-top: 0.5rem; font-size: 0.72rem; color: #7f8c8d;">
+                        💡 URL is compressed automatically. For very large datasets, use "Save Map Configuration" instead.
+                    </div>
+                </div>
+                </div>
+                <div class="info-text">
+                    Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.
+                </div>
+                </div>
+            </details>
+            
+            <details class="section" id="editDataSection" style="display: none;">
+                <summary class="section-title">✏️ Data editor</summary>
+                <div class="section-content">
+                <button class="btn" onclick="openDataEditor()" style="background: #9b59b6; margin-bottom: 0.5rem;">📝 Open Data Editor</button>
+                <div class="info-text">
+                    ℹ️ Add new columns, edit values, or update your data after uploading. Includes Find/Replace for fixing encoding errors.
+                </div>
                 </div>
             </details>
 
@@ -3004,7 +3025,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                             Find what: 
                             <button onclick="document.getElementById('findText').value = ' '; return false;" style="background: #e74c3c; color: white; border: none; border-radius: 3px; padding: 2px 6px; margin-left: 4px; cursor: pointer; font-size: 0.7rem;">Quick:  </button>
                         </label>
-                        <input type="text" id="findText" placeholder="e.g.,  , Â©, â€™" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem;">
+                        <input type="text" id="findText" placeholder="Leave empty to find empty cells" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.875rem;">
                     </div>
                     <div>
                         <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Replace with:</label>
@@ -3448,8 +3469,23 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     timeFieldSelect: document.getElementById('timeFieldSelect')?.value || '',
                     timeSeriesValueField: document.getElementById('timeSeriesValueField')?.value || '',
                     timeSeriesChartTitle: document.getElementById('timeSeriesChartTitle')?.value || '',
+                    drawingPopupWidth: document.getElementById('drawingPopupWidth')?.value || '480',
+                    drawingPopupMaxHeight: document.getElementById('drawingPopupMaxHeight')?.value || '0',
                     // Bookmarks
-                    bookmarks: bookmarks
+                    bookmarks: bookmarks,
+                    // Drawn features (serialise data only, layers are rebuilt on restore)
+                    drawnFeaturesData: drawnFeatures.map(f => ({
+                        type: f.type,
+                        latlng: f.latlng,
+                        latlngs: f.latlngs,
+                        label: f.label || '',
+                        showLabelOnMap: f.showLabelOnMap !== false,
+                        popupHtml: f.popupHtml || '',
+                        style: f.style,
+                        customImageData: f.customImageData || null,
+                        customImageSize: f.customImageSize || 40,
+                        visible: f.visible !== false
+                    }))
                 }
             };
         }
@@ -7833,12 +7869,14 @@ Total rows: ${csvData.length}${corsNote}`);
             const selectedColumn = document.getElementById('findReplaceColumn').value;
             const selectedRow = document.getElementById('findReplaceRow').value;
             
-            if (!findText) {
-                alert('Please enter text to find');
+            // Allow empty findText — means "find empty cells"
+            if (findText === '' && replaceText === '') {
+                alert('Please enter text to find or replace with (or both)');
                 return;
             }
             
             let replacementCount = 0;
+            const searchingForEmpty = findText === '';
             
             // Determine which columns to search
             const columnsToSearch = selectedColumn ? [selectedColumn] : columns;
@@ -7860,11 +7898,17 @@ Total rows: ${csvData.length}${corsNote}`);
                 if (rowIndex >= 0 && rowIndex < csvData.length) {
                     const row = csvData[rowIndex];
                     columnsToSearch.forEach(col => {
-                        if (row[col] !== null && row[col] !== undefined) {
-                            const originalValue = String(row[col]);
-                            const newValue = originalValue.split(findText).join(replaceText);
-                            
-                            if (originalValue !== newValue) {
+                        const cellValue = (row[col] === null || row[col] === undefined) ? '' : String(row[col]);
+                        
+                        if (searchingForEmpty) {
+                            // Replace empty cells only
+                            if (cellValue === '') {
+                                row[col] = replaceText;
+                                replacementCount++;
+                            }
+                        } else {
+                            const newValue = cellValue.split(findText).join(replaceText);
+                            if (cellValue !== newValue) {
                                 row[col] = newValue;
                                 replacementCount++;
                             }
@@ -9792,8 +9836,11 @@ Total rows: ${csvData.length}${corsNote}`);
                     <div style="background: #f8f9fa; border-radius: 4px; margin-bottom: 0.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem;">
                             <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                <button onclick="toggleFeatureControls(${index})" style="background: none; border: none; cursor: pointer; padding: 0; font-size: 0.9rem; color: #7f8c8d;" title="Show/hide controls">
-                                    <span id="featureToggle${index}">▶</span>
+                                <button onclick="toggleFeatureControls(${index})" 
+                                    id="featureStyleBtn${index}"
+                                    style="background: #8e44ad; color: white; border: none; border-radius: 3px; padding: 0.2rem 0.45rem; cursor: pointer; font-size: 0.72rem; white-space:nowrap;" 
+                                    title="Style controls (colour, width, fill)">
+                                    <span id="featureToggle${index}">🎨</span>
                                 </button>
                                 <span style="flex: 1;">${icon} ${feature.type.charAt(0).toUpperCase() + feature.type.slice(1)} ${index + 1}${label}</span>
                             </div>
@@ -9804,16 +9851,37 @@ Total rows: ${csvData.length}${corsNote}`);
                                 <button onclick="deleteDrawnFeature(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;" title="Delete">🗑️</button>
                             </div>
                         </div>
-                        <div id="featureControls${index}" style="display: none; padding: 0 0.5rem 0.5rem 0.5rem; border-top: 1px solid #dee2e6;">
-                            <div style="margin-top: 0.5rem;">
-                                <label style="display: flex; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem;">
-                                    <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="toggleFeatureVisibility(${index}, this.checked)" style="margin-right: 0.5rem;">
-                                    Visible
+                        <div id="featureControls${index}" style="display: none; padding: 0.5rem; border-top: 1px solid #dee2e6; font-size: 0.82rem;">
+                            <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                <input type="checkbox" ${isVisible ? 'checked' : ''} onchange="toggleFeatureVisibility(${index}, this.checked)" style="margin-right: 0.5rem;">
+                                Visible
+                            </label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.75rem;">
+                                <label>Line colour
+                                    <input type="color" value="${feature.style?.color || '#3498db'}"
+                                        oninput="updateFeatureLineColor(${index}, this.value)"
+                                        style="width:100%;height:26px;padding:1px;border:1px solid #ccc;border-radius:3px;cursor:pointer;">
                                 </label>
-                                ${feature.type === 'polygon' ? `
-                                    <label style="display: block; font-size: 0.85rem; margin-bottom: 0.25rem;">Fill opacity: <span id="fillOpacityValue${index}">${Math.round(fillOpacity * 100)}%</span></label>
-                                    <input type="range" min="0" max="100" value="${fillOpacity * 100}" oninput="updateFeatureFillOpacity(${index}, this.value)" style="width: 100%;">
-                                ` : ''}
+                                <label>Line width
+                                    <input type="number" value="${feature.style?.width || 2}" min="1" max="20"
+                                        oninput="updateFeatureLineWidth(${index}, this.value)"
+                                        style="width:100%;padding:0.3rem;border:1px solid #ccc;border-radius:3px;">
+                                </label>
+                                ${(feature.type === 'polygon' || feature.type === 'marker') ? `
+                                <label>Fill colour
+                                    <input type="color" value="${feature.style?.fillColor || feature.style?.color || '#3498db'}"
+                                        oninput="updateFeatureFillColor(${index}, this.value)"
+                                        style="width:100%;height:26px;padding:1px;border:1px solid #ccc;border-radius:3px;cursor:pointer;">
+                                </label>` : ''}
+                                ${feature.type === 'polygon' || feature.type === 'marker' ? `
+                                <label>Fill opacity
+                                    <div style="display:flex;align-items:center;gap:4px;">
+                                        <input type="range" min="0" max="100" value="${Math.round(fillOpacity * 100)}"
+                                            oninput="updateFeatureFillOpacity(${index}, this.value); document.getElementById('fillOpVal${index}').textContent=this.value+'%'"
+                                            style="flex:1;">
+                                        <span id="fillOpVal${index}" style="min-width:32px;text-align:right;">${Math.round(fillOpacity * 100)}%</span>
+                                    </div>
+                                </label>` : ''}
                             </div>
                         </div>
                     </div>
@@ -9847,13 +9915,16 @@ Total rows: ${csvData.length}${corsNote}`);
         function toggleFeatureControls(index) {
             const controlsDiv = document.getElementById(`featureControls${index}`);
             const toggleIcon = document.getElementById(`featureToggle${index}`);
+            const styleBtn = document.getElementById(`featureStyleBtn${index}`);
             
             if (controlsDiv.style.display === 'none') {
                 controlsDiv.style.display = 'block';
-                toggleIcon.textContent = '▼';
+                toggleIcon.textContent = '🎨';
+                if (styleBtn) styleBtn.style.background = '#6c3483';
             } else {
                 controlsDiv.style.display = 'none';
-                toggleIcon.textContent = '▶';
+                toggleIcon.textContent = '🎨';
+                if (styleBtn) styleBtn.style.background = '#8e44ad';
             }
         }
         
@@ -9885,16 +9956,55 @@ Total rows: ${csvData.length}${corsNote}`);
         
         function updateFeatureFillOpacity(index, value) {
             const feature = drawnFeatures[index];
-            if (!feature || !feature.layer || feature.type !== 'polygon') return;
-            
+            if (!feature || !feature.layer) return;
             const opacity = value / 100;
             feature.style = feature.style || {};
             feature.style.fillOpacity = opacity;
-            
-            feature.layer.setStyle({ fillOpacity: opacity });
-            
-            // Update display
-            document.getElementById(`fillOpacityValue${index}`).textContent = `${Math.round(opacity * 100)}%`;
+            if (feature.layer.setStyle) feature.layer.setStyle({ fillOpacity: opacity });
+            // legacy span id (keep for back-compat)
+            const legacyEl = document.getElementById('fillOpacityValue' + index);
+            if (legacyEl) legacyEl.textContent = Math.round(opacity * 100) + '%';
+        }
+
+        function updateFeatureLineColor(index, color) {
+            const feature = drawnFeatures[index];
+            if (!feature || !feature.layer) return;
+            feature.style = feature.style || {};
+            feature.style.color = color;
+            if (feature.layer.setStyle) {
+                feature.layer.setStyle({ color });
+                // Update arrows to match
+                if (feature.layer._endArrow) feature.layer._endArrow.setStyle({ color, fillColor: color });
+                if (feature.layer._startArrow) feature.layer._startArrow.setStyle({ color, fillColor: color });
+            }
+        }
+
+        function updateFeatureLineWidth(index, value) {
+            const feature = drawnFeatures[index];
+            if (!feature || !feature.layer) return;
+            const w = Math.max(1, parseInt(value) || 2);
+            feature.style = feature.style || {};
+            feature.style.width = w;
+            if (feature.layer.setStyle) feature.layer.setStyle({ weight: w });
+        }
+
+        function updateFeatureFillColor(index, color) {
+            const feature = drawnFeatures[index];
+            if (!feature || !feature.layer) return;
+            feature.style = feature.style || {};
+            feature.style.fillColor = color;
+            if (feature.layer.setStyle) {
+                // polygon / polyline
+                feature.layer.setStyle({ fillColor: color });
+            } else if (feature.layer._icon) {
+                // custom image marker — no fill to change
+            } else if (feature.layer.setStyle) {
+                feature.layer.setStyle({ fillColor: color });
+            }
+            // circleMarker
+            if (typeof feature.layer.setStyle === 'function') {
+                feature.layer.setStyle({ fillColor: color });
+            }
         }
         
         function updateFeatureArrowStyle(index, newArrowStyle) {
@@ -10015,110 +10125,156 @@ Total rows: ${csvData.length}${corsNote}`);
             }
         }
 
-        function editFeatureLabel(index) {
+        function getDrawingPopupOptions() {
+            const w = parseInt(document.getElementById('drawingPopupWidth')?.value) || 480;
+            const h = parseInt(document.getElementById('drawingPopupMaxHeight')?.value) || 0;
+            const opts = { minWidth: w, maxWidth: w };
+            if (h > 0) opts.maxHeight = h;
+            return opts;
+        }
+
+        function rebindAllDrawingPopups() {
+            const opts = getDrawingPopupOptions();
+            drawnFeatures.forEach(feature => {
+                if (!feature.layer) return;
+                const popupContent = feature.popupHtml || (!feature.showLabelOnMap && feature.label ? feature.label : '');
+                if (!popupContent) return;
+                const full = feature.label && feature.popupHtml
+                    ? '<strong>' + feature.label + '</strong><hr style="margin:0.4rem 0;">' + feature.popupHtml
+                    : popupContent;
+                feature.layer.unbindPopup();
+                feature.layer.bindPopup(full, opts);
+            });
+        }
+
+                function insertPopupLink() {
+            const url = prompt('Enter URL:');
+            if (!url) return;
+            const text = prompt('Link text (leave blank to use URL):') || url;
+            document.execCommand('insertHTML', false, `<a href="${url}" target="_blank">${text}</a>`);
+        }
+
+        function insertPopupImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = `<img src="${e.target.result}" style="max-width:100%;border-radius:4px;margin:4px 0;">`;
+                document.getElementById('featurePopupEditor').focus();
+                document.execCommand('insertHTML', false, img);
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+                function editFeatureLabel(index) {
             const feature = drawnFeatures[index];
             const currentLabel = feature.label || '';
-            const currentShowOnMap = feature.showLabelOnMap !== false; // Default true
-            
-            // Create custom dialog
+            const currentShowOnMap = feature.showLabelOnMap !== false;
+            const currentPopupHtml = feature.popupHtml || '';
+
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
             const dialog = document.createElement('div');
-            dialog.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                z-index: 10000;
-                min-width: 300px;
-            `;
-            
+            dialog.style.cssText = 'background:white;border-radius:10px;padding:1.25rem;width:min(520px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+
             dialog.innerHTML = `
-                <h3 style="margin-top: 0;">Edit Feature Label</h3>
-                <div style="margin: 15px 0;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Label text:</label>
-                    <input type="text" id="featureLabelInput" value="${currentLabel}" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+                <h3 style="margin:0 0 1rem;font-size:1rem;">✏️ Edit Feature Label & Pop-up</h3>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:0.3rem;">Map label (shown on map):</label>
+                    <input type="text" id="featureLabelInput" value="${currentLabel.replace(/"/g,'&quot;')}" placeholder="Short label shown on map…"
+                        style="width:100%;padding:0.45rem;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;font-size:0.875rem;">
                 </div>
-                <div style="margin: 15px 0;">
-                    <label style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="showOnMapCheckbox" ${currentShowOnMap ? 'checked' : ''} style="margin-right: 8px;">
-                        <span>Show label on map always (uncheck for popup only)</span>
+
+                <div style="margin-bottom:0.75rem;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;cursor:pointer;">
+                        <input type="checkbox" id="showOnMapCheckbox" ${currentShowOnMap ? 'checked' : ''}>
+                        Show label on map always (uncheck = popup only)
                     </label>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                    <button id="labelCancelBtn" style="padding: 8px 16px; background: #e0e0e0; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
-                    <button id="labelSaveBtn" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+
+                <div style="margin-bottom:0.5rem;">
+                    <label style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:0.3rem;">Pop-up content:</label>
+                    <div style="border:1px solid #ccc;border-radius:6px;overflow:hidden;">
+                        <div style="background:#f5f5f5;padding:0.35rem 0.5rem;border-bottom:1px solid #ccc;display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center;">
+                            <button type="button" onclick="document.execCommand('bold')" title="Bold" style="background:white;border:1px solid #ccc;border-radius:3px;padding:2px 7px;cursor:pointer;font-weight:bold;">B</button>
+                            <button type="button" onclick="document.execCommand('italic')" title="Italic" style="background:white;border:1px solid #ccc;border-radius:3px;padding:2px 7px;cursor:pointer;font-style:italic;">I</button>
+                            <button type="button" onclick="document.execCommand('underline')" title="Underline" style="background:white;border:1px solid #ccc;border-radius:3px;padding:2px 7px;cursor:pointer;text-decoration:underline;">U</button>
+                            <select onchange="document.execCommand('fontSize',false,this.value);this.selectedIndex=0;" style="font-size:0.75rem;padding:2px;border:1px solid #ccc;border-radius:3px;">
+                                <option value="">Size…</option>
+                                <option value="1">Small</option>
+                                <option value="3">Normal</option>
+                                <option value="5">Large</option>
+                                <option value="7">X-Large</option>
+                            </select>
+                            <input type="color" id="popupFontColor" value="#000000" title="Font colour"
+                                onchange="document.execCommand('foreColor',false,this.value)"
+                                style="width:28px;height:24px;border:1px solid #ccc;border-radius:3px;padding:0;cursor:pointer;">
+                            <button type="button" onclick="insertPopupLink()" title="Insert link" style="background:white;border:1px solid #ccc;border-radius:3px;padding:2px 7px;cursor:pointer;">🔗</button>
+                            <label title="Insert image" style="background:white;border:1px solid #ccc;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:0.8rem;">
+                                🖼️ <input type="file" accept="image/*" style="display:none;" onchange="insertPopupImage(this)">
+                            </label>
+                            <span style="font-size:0.72rem;color:#888;margin-left:0.25rem;">or paste image</span>
+                        </div>
+                        <div id="featurePopupEditor"
+                            contenteditable="true"
+                            style="min-height:120px;max-height:240px;overflow-y:auto;padding:0.6rem;font-size:0.875rem;outline:none;line-height:1.5;"
+                            >${currentPopupHtml}</div>
+                    </div>
+                    <div style="font-size:0.72rem;color:#7f8c8d;margin-top:0.3rem;">You can paste images directly into the editor above.</div>
+                </div>
+
+                <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;">
+                    <button id="labelCancelBtn" style="padding:0.5rem 1rem;background:#e0e0e0;border:none;border-radius:5px;cursor:pointer;">Cancel</button>
+                    <button id="labelSaveBtn" style="padding:0.5rem 1.25rem;background:#27ae60;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:600;">💾 Save</button>
                 </div>
             `;
-            
-            // Add overlay
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 9999;
-            `;
-            
+
+            overlay.appendChild(dialog);
             document.body.appendChild(overlay);
-            document.body.appendChild(dialog);
-            
-            // Focus input
-            const input = document.getElementById('featureLabelInput');
-            input.focus();
-            input.select();
-            
+
+            // Focus editor
+            setTimeout(() => document.getElementById('featurePopupEditor').focus(), 100);
+
             // Handle save
             document.getElementById('labelSaveBtn').onclick = () => {
-                const newLabel = input.value.trim();
+                const newLabel = document.getElementById('featureLabelInput').value.trim();
                 const showOnMap = document.getElementById('showOnMapCheckbox').checked;
-                
-                // Update feature
+                const newPopupHtml = document.getElementById('featurePopupEditor').innerHTML.trim();
+
                 feature.label = newLabel;
                 feature.showLabelOnMap = showOnMap;
-                
-                // Update display on map
+                feature.popupHtml = newPopupHtml;
+
                 if (feature.layer) {
-                    // Remove old tooltip/popup
                     feature.layer.unbindTooltip();
                     feature.layer.unbindPopup();
+
+                    if (newLabel && showOnMap) {
+                        feature.layer.bindTooltip(newLabel, {
+                            permanent: true, direction: 'center', className: 'feature-label-tooltip'
+                        });
+                    }
                     
-                    if (newLabel) {
-                        if (showOnMap) {
-                            // Show as permanent tooltip
-                            feature.layer.bindTooltip(newLabel, {
-                                permanent: true,
-                                direction: 'center',
-                                className: 'feature-label-tooltip'
-                            });
-                        } else {
-                            // Show only in popup
-                            feature.layer.bindPopup(newLabel);
-                        }
+                    // Bind popup if we have popup content OR a label that's popup-only
+                    const popupContent = newPopupHtml || (!showOnMap && newLabel ? newLabel : '');
+                    if (popupContent) {
+                        const fullPopup = newLabel && newPopupHtml
+                            ? '<strong>' + newLabel + '</strong><hr style="margin:0.4rem 0;">' + newPopupHtml
+                            : popupContent;
+                        feature.layer.bindPopup(fullPopup, getDrawingPopupOptions());
                     }
                 }
-                
-                // Update list
+
                 updateDrawnFeaturesList();
-                
-                // Close dialog
                 document.body.removeChild(overlay);
-                document.body.removeChild(dialog);
             };
-            
-            // Handle cancel
-            const cancelDialog = () => {
-                document.body.removeChild(overlay);
-                document.body.removeChild(dialog);
-            };
-            
+
+            const cancelDialog = () => document.body.removeChild(overlay);
             document.getElementById('labelCancelBtn').onclick = cancelDialog;
-            overlay.onclick = cancelDialog;
+            overlay.onclick = (e) => { if (e.target === overlay) cancelDialog(); };
             
             // Handle Enter key
             input.addEventListener('keypress', (e) => {
@@ -11000,6 +11156,23 @@ Total rows: ${csvData.length}${corsNote}`);
             if (colorPicker) {
                 colorPicker.value = feature.style.color || '#3498db';
             }
+
+            // Show/hide image controls based on existing custom image
+            const sizeDiv = document.getElementById('pointImageSize');
+            const clearBtn = document.getElementById('clearPointImageBtn');
+            if (feature.customImageData) {
+                if (sizeDiv) {
+                    sizeDiv.style.display = 'block';
+                    const slider = document.getElementById('pointImageSizeSlider');
+                    const val = document.getElementById('pointImageSizeVal');
+                    if (slider) slider.value = feature.customImageSize || 40;
+                    if (val) val.textContent = feature.customImageSize || 40;
+                }
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+            } else {
+                if (sizeDiv) sizeDiv.style.display = 'none';
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
             
             instructions.style.display = 'block';
         }
@@ -11019,31 +11192,327 @@ Total rows: ${csvData.length}${corsNote}`);
                 top: 10px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(20, 20, 30, 0.93);
                 color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
+                padding: 12px 16px;
+                border-radius: 10px;
                 z-index: 1000;
-                font-size: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                font-size: 13px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+                min-width: 220px;
             `;
             instructions.innerHTML = `
-                <strong>📍 Edit Point</strong><br>
-                <span style="color: #fff;">Drag marker to move</span><br>
-                <div style="margin: 8px 0; display: flex; align-items: center; gap: 8px;">
-                    <label style="color: #fff;">Color:</label>
-                    <input type="color" id="pointColorPicker" onchange="updatePointColor(this.value)" style="width: 40px; height: 30px; border: none; cursor: pointer;">
+                <strong>📍 Edit Point</strong>
+                <div style="font-size:0.8rem;color:#ccc;margin:4px 0 10px;">Drag to move · edit style below</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <label style="color:#fff;font-size:0.8rem;">Colour:</label>
+                    <input type="color" id="pointColorPicker" onchange="updatePointColor(this.value)" style="width:36px;height:26px;border:none;cursor:pointer;border-radius:4px;">
                 </div>
-                <button onclick="exitPointEditMode()" style="margin-top: 8px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">✓ Done</button>
-                <button onclick="exitPointEditMode()" style="margin-left: 8px; padding: 4px 12px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">✕ Cancel</button>
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:0.8rem;color:#ccc;margin-bottom:4px;">Custom image (flag, icon…):</div>
+                    <label style="display:inline-block;padding:4px 10px;background:#3498db;color:white;border-radius:4px;cursor:pointer;font-size:0.8rem;">
+                        📂 Upload image
+                        <input type="file" accept="image/*" style="display:none;" onchange="setPointCustomImage(this)">
+                    </label>
+                    <button id="clearPointImageBtn" onclick="clearPointCustomImage()" style="display:none;margin-left:6px;padding:4px 8px;background:#e74c3c;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">✕ Remove</button>
+                </div>
+                <div id="pointImageSize" style="display:none;margin-bottom:8px;">
+                    <label style="font-size:0.8rem;color:#ccc;">Size: <span id="pointImageSizeVal">40</span>px</label>
+                    <input type="range" min="16" max="120" value="40" id="pointImageSizeSlider"
+                        oninput="document.getElementById('pointImageSizeVal').textContent=this.value; resizePointImage(parseInt(this.value));"
+                        style="width:100%;margin-top:2px;">
+                </div>
+                <div style="display:flex;gap:6px;margin-top:4px;">
+                    <button onclick="exitPointEditMode()" style="flex:1;padding:5px;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">✓ Done</button>
+                    <button onclick="exitPointEditMode()" style="flex:1;padding:5px;background:#7f8c8d;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.8rem;">✕ Cancel</button>
+                </div>
             `;
             document.body.appendChild(instructions);
             return instructions;
         }
         
-        // ===== END POINT EDITING SYSTEM =====
+        function setPointCustomImage(input) {
+            if (editingPointIndex === null) return;
+            const feature = drawnFeatures[editingPointIndex];
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                feature.customImageData = e.target.result;
+                feature.customImageSize = parseInt(document.getElementById('pointImageSizeSlider')?.value || 40);
+                _applyPointCustomImage(feature);
+                // Show size controls and clear button
+                const sizeDiv = document.getElementById('pointImageSize');
+                const clearBtn = document.getElementById('clearPointImageBtn');
+                if (sizeDiv) sizeDiv.style.display = 'block';
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function clearPointCustomImage() {
+            if (editingPointIndex === null) return;
+            const feature = drawnFeatures[editingPointIndex];
+            feature.customImageData = null;
+            feature.customImageSize = null;
+            // Revert to circleMarker
+            const latlng = feature.layer.getLatLng ? feature.layer.getLatLng() : L.latLng(feature.latlng);
+            drawnFeaturesLayer.removeLayer(feature.layer);
+            const newMarker = L.circleMarker(latlng, {
+                radius: feature.style.width || 8,
+                color: feature.style.color || '#3498db',
+                fillColor: feature.style.fillColor || '#3498db',
+                fillOpacity: feature.style.fillOpacity || 0.8,
+                weight: 2
+            }).addTo(drawnFeaturesLayer);
+            newMarker.dragging.enable();
+            newMarker.on('dragend', (e) => { feature.latlng = e.target.getLatLng(); });
+            if (feature.label) newMarker.bindPopup(feature.popupHtml || feature.label);
+            feature.layer = newMarker;
+            feature.latlng = latlng;
+            const sizeDiv = document.getElementById('pointImageSize');
+            const clearBtn = document.getElementById('clearPointImageBtn');
+            if (sizeDiv) sizeDiv.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'none';
+        }
+
+        function resizePointImage(size) {
+            if (editingPointIndex === null) return;
+            const feature = drawnFeatures[editingPointIndex];
+            if (!feature.customImageData) return;
+            feature.customImageSize = size;
+            _applyPointCustomImage(feature);
+        }
+
+        function _applyPointCustomImage(feature) {
+            const latlng = feature.layer.getLatLng ? feature.layer.getLatLng() : L.latLng(feature.latlng);
+            const size = feature.customImageSize || 40;
+            drawnFeaturesLayer.removeLayer(feature.layer);
+            const icon = L.divIcon({
+                className: '',
+                html: `<img src="${feature.customImageData}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;">`,
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2]
+            });
+            const newMarker = L.marker(latlng, { icon, draggable: true }).addTo(drawnFeaturesLayer);
+            newMarker.on('dragend', (e) => { feature.latlng = e.target.getLatLng(); });
+            if (feature.popupHtml || feature.label) {
+                const popup = feature.popupHtml || feature.label;
+                newMarker.bindPopup(popup, getDrawingPopupOptions());
+            }
+            feature.layer = newMarker;
+            feature.latlng = latlng;
+        }
+
+                // ===== END POINT EDITING SYSTEM =====
         
-        function openExportDrawingsPanel() {
+        function restoreDrawnFeaturesFromData(data) {
+            if (!drawnFeaturesLayer) {
+                drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
+            }
+            // Clear existing
+            drawnFeaturesLayer.clearLayers();
+            drawnFeatures = [];
+
+            data.forEach(d => {
+                let layer;
+                try {
+                    if (d.type === 'marker') {
+                        if (d.customImageData) {
+                            const size = d.customImageSize || 40;
+                            const icon = L.divIcon({
+                                className: '',
+                                html: `<img src="${d.customImageData}" style="width:${size}px;height:${size}px;object-fit:contain;display:block;">`,
+                                iconSize: [size, size],
+                                iconAnchor: [size / 2, size / 2]
+                            });
+                            layer = L.marker(d.latlng, { icon }).addTo(drawnFeaturesLayer);
+                        } else {
+                            layer = L.circleMarker(d.latlng, {
+                                radius: d.style?.width || 8,
+                                color: d.style?.color || '#3498db',
+                                fillColor: d.style?.fillColor || '#3498db',
+                                fillOpacity: d.style?.fillOpacity !== undefined ? d.style.fillOpacity : 0.8,
+                                weight: 2
+                            }).addTo(drawnFeaturesLayer);
+                        }
+                    } else if (d.type === 'line') {
+                        layer = L.polyline(d.latlngs, {
+                            color: d.style?.color || '#e74c3c',
+                            weight: d.style?.width || 3,
+                            opacity: d.style?.opacity !== undefined ? d.style.opacity : 1
+                        }).addTo(drawnFeaturesLayer);
+                    } else if (d.type === 'polygon') {
+                        layer = L.polygon(d.latlngs, {
+                            color: d.style?.color || '#e74c3c',
+                            weight: d.style?.width || 3,
+                            fillColor: d.style?.fillColor || '#e74c3c',
+                            fillOpacity: d.style?.fillOpacity !== undefined ? d.style.fillOpacity : 0.3
+                        }).addTo(drawnFeaturesLayer);
+                    }
+
+                    if (!layer) return;
+
+                    // Bind label / popup
+                    if (d.label && d.showLabelOnMap !== false) {
+                        layer.bindTooltip(d.label, { permanent: true, direction: 'center', className: 'feature-label-tooltip' });
+                    }
+                    const popupContent = d.popupHtml || (!d.showLabelOnMap && d.label ? d.label : '');
+                    if (popupContent) {
+                        const full = d.label && d.popupHtml
+                            ? `<strong>${d.label}</strong><hr style="margin:0.4rem 0;">${d.popupHtml}`
+                            : popupContent;
+                        layer.bindPopup(full, getDrawingPopupOptions());
+                    }
+
+                    drawnFeatures.push({ ...d, layer });
+                } catch(e) {
+                    console.warn('Failed to restore drawn feature:', e);
+                }
+            });
+
+            updateDrawnFeaturesList();
+            console.log(`Restored ${drawnFeatures.length} drawn feature(s)`);
+        }
+
+                function importDrawings(input) {
+            const file = input.files[0];
+            if (!file) return;
+            input.value = '';
+            const ext = file.name.split('.').pop().toLowerCase();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    let imported = [];
+                    if (ext === 'gpx') {
+                        imported = _parseGPXDrawings(e.target.result);
+                    } else {
+                        imported = _parseGeoJSONDrawings(e.target.result);
+                    }
+                    if (imported.length === 0) {
+                        alert('No recognisable features found in file.');
+                        return;
+                    }
+                    // Ask add vs replace
+                    const existing = drawnFeatures.length;
+                    let shouldReplace = false;
+                    if (existing > 0) {
+                        const choice = confirm(
+                            `Import ${imported.length} feature(s).\n\n` +
+                            `You already have ${existing} drawing(s).\n\n` +
+                            `OK = ADD to existing drawings\n` +
+                            `Cancel = REPLACE all drawings with imported ones`
+                        );
+                        shouldReplace = !choice;
+                    }
+                    if (shouldReplace) {
+                        drawnFeaturesLayer.clearLayers();
+                        drawnFeatures = [];
+                    }
+                    imported.forEach(f => {
+                        drawnFeatures.push(f);
+                        if (f.label && f.showLabelOnMap !== false) {
+                            f.layer.bindTooltip(f.label, { permanent: true, direction: 'center', className: 'feature-label-tooltip' });
+                        }
+                    });
+                    updateDrawnFeaturesList();
+                    alert(`✅ Imported ${imported.length} drawing(s).`);
+                } catch (err) {
+                    alert('Error importing file: ' + err.message);
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function _parseGeoJSONDrawings(text) {
+            const gj = JSON.parse(text);
+            const feats = gj.type === 'FeatureCollection' ? gj.features
+                        : gj.type === 'Feature'           ? [gj]
+                        : [];
+            const result = [];
+            feats.forEach(f => {
+                const props = f.properties || {};
+                const label = props.name || props.label || '';
+                const style = props.style || { color: '#3498db', fillColor: '#3498db', fillOpacity: 0.3, width: 2 };
+                let layer, type, latlng, latlngs;
+
+                if (f.geometry.type === 'Point') {
+                    type = 'marker';
+                    latlng = { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] };
+                    layer = L.circleMarker(latlng, {
+                        radius: style.width || 8,
+                        color: style.color || '#3498db',
+                        fillColor: style.fillColor || style.color || '#3498db',
+                        fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : 0.8,
+                        weight: 2
+                    }).addTo(drawnFeaturesLayer);
+                } else if (f.geometry.type === 'LineString') {
+                    type = 'line';
+                    latlngs = f.geometry.coordinates.map(c => ({ lat: c[1], lng: c[0] }));
+                    layer = L.polyline(latlngs, {
+                        color: style.color || '#e74c3c',
+                        weight: style.width || 3
+                    }).addTo(drawnFeaturesLayer);
+                } else if (f.geometry.type === 'Polygon') {
+                    type = 'polygon';
+                    latlngs = f.geometry.coordinates[0].map(c => ({ lat: c[1], lng: c[0] }));
+                    layer = L.polygon(latlngs, {
+                        color: style.color || '#e74c3c',
+                        weight: style.width || 3,
+                        fillColor: style.fillColor || style.color || '#e74c3c',
+                        fillOpacity: style.fillOpacity !== undefined ? style.fillOpacity : 0.3
+                    }).addTo(drawnFeaturesLayer);
+                } else { return; }
+
+                result.push({ type, latlng, latlngs, label, showLabelOnMap: true, popupHtml: '', style, layer, visible: true });
+            });
+            return result;
+        }
+
+        function _parseGPXDrawings(text) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(text, 'application/xml');
+            const result = [];
+            const ns = 'http://www.topografix.com/GPX/1/1';
+            const getTag = (el, tag) => el.getElementsByTagNameNS(ns, tag)[0]
+                                     || el.getElementsByTagName(tag)[0];
+            const getName = (el) => {
+                const n = getTag(el, 'name');
+                return n ? n.textContent.trim() : '';
+            };
+
+            // Waypoints → markers
+            const wpts = [...xml.getElementsByTagNameNS(ns, 'wpt'), ...xml.getElementsByTagName('wpt')];
+            [...new Set(wpts)].forEach(wpt => {
+                const lat = parseFloat(wpt.getAttribute('lat'));
+                const lng = parseFloat(wpt.getAttribute('lon'));
+                if (isNaN(lat) || isNaN(lng)) return;
+                const label = getName(wpt);
+                const style = { color: '#3498db', fillColor: '#3498db', fillOpacity: 0.8, width: 8 };
+                const layer = L.circleMarker({ lat, lng }, {
+                    radius: 8, color: '#3498db', fillColor: '#3498db', fillOpacity: 0.8, weight: 2
+                }).addTo(drawnFeaturesLayer);
+                result.push({ type: 'marker', latlng: { lat, lng }, label, showLabelOnMap: !!label, popupHtml: '', style, layer, visible: true });
+            });
+
+            // Tracks → lines
+            const trks = [...xml.getElementsByTagNameNS(ns, 'trk'), ...xml.getElementsByTagName('trk')];
+            [...new Set(trks)].forEach(trk => {
+                const label = getName(trk);
+                const pts = [...trk.getElementsByTagNameNS(ns, 'trkpt'), ...trk.getElementsByTagName('trkpt')];
+                const latlngs = [...new Set(pts)].map(p => ({ lat: parseFloat(p.getAttribute('lat')), lng: parseFloat(p.getAttribute('lon')) })).filter(ll => !isNaN(ll.lat));
+                if (latlngs.length < 2) return;
+                const style = { color: '#e74c3c', width: 3 };
+                const layer = L.polyline(latlngs, { color: '#e74c3c', weight: 3 }).addTo(drawnFeaturesLayer);
+                result.push({ type: 'line', latlngs, label, showLabelOnMap: !!label, popupHtml: '', style, layer, visible: true });
+            });
+
+            return result;
+        }
+
+                function openExportDrawingsPanel() {
             if (drawnFeatures.length === 0) {
                 alert('No drawings to export');
                 return;
@@ -11078,7 +11547,10 @@ Total rows: ${csvData.length}${corsNote}`);
             selected.forEach(drawn => {
                 let geometry;
                 const properties = { type: drawn.type, style: drawn.style };
-                if (drawn.label) properties.label = drawn.label;
+                if (drawn.label) {
+                    properties.name  = drawn.label;   // standard GeoJSON name field
+                    properties.label = drawn.label;   // keep for back-compat
+                }
                 if (drawn.type === 'marker') {
                     geometry = { type: "Point", coordinates: [drawn.latlng.lng, drawn.latlng.lat] };
                 } else if (drawn.type === 'line') {
@@ -11094,8 +11566,12 @@ Total rows: ${csvData.length}${corsNote}`);
             const a = document.createElement('a');
             a.href = url;
             const mapTitle = document.getElementById('mapTitle')?.value || 'map';
-            const filename = mapTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'drawings';
-            a.download = `${filename}-drawings-${new Date().toISOString().slice(0, 10)}.geojson`;
+            const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const mapSlug = slugify(mapTitle) || 'map';
+            const labelPart = selected.length === 1 && selected[0].label
+                ? '-' + slugify(selected[0].label)
+                : selected.length > 1 ? '-' + selected.length + '-drawings' : '-drawings';
+            a.download = `${mapSlug}${labelPart}-${new Date().toISOString().slice(0, 10)}.geojson`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             URL.revokeObjectURL(url);
             document.getElementById('exportDrawingsModal').style.display = 'none';
@@ -11223,8 +11699,12 @@ Total rows: ${csvData.length}${corsNote}`);
             const a = document.createElement('a');
             a.href = url;
             const mapTitle = document.getElementById('mapTitle')?.value || 'map';
-            const filename = mapTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'drawings';
-            a.download = `${filename}-drawings-${new Date().toISOString().slice(0, 10)}.gpx`;
+            const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const mapSlug = slugify(mapTitle) || 'map';
+            const labelPart = features.length === 1 && features[0].label
+                ? '-' + slugify(features[0].label)
+                : features.length > 1 ? '-' + features.length + '-drawings' : '-drawings';
+            a.download = `${mapSlug}${labelPart}-${new Date().toISOString().slice(0, 10)}.gpx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -11282,8 +11762,12 @@ Total rows: ${csvData.length}${corsNote}`);
             const a = document.createElement('a');
             a.href = url;
             const mapTitle = document.getElementById('mapTitle')?.value || 'map';
-            const filename = mapTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'drawings';
-            a.download = `${filename}-drawings-${new Date().toISOString().slice(0, 10)}.gpx`;
+            const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            const mapSlug = slugify(mapTitle) || 'map';
+            const labelPart = features.length === 1 && features[0].label
+                ? '-' + slugify(features[0].label)
+                : features.length > 1 ? '-' + features.length + '-drawings' : '-drawings';
+            a.download = `${mapSlug}${labelPart}-${new Date().toISOString().slice(0, 10)}.gpx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -16350,11 +16834,23 @@ Press OK to copy full config to console.`;
                         }, 1000); // Increased from 500ms to 1000ms for reliability
                         
                         // Restore bookmarks
+                        if (s.drawingPopupWidth) {
+                            const dw = document.getElementById('drawingPopupWidth');
+                            const dh = document.getElementById('drawingPopupMaxHeight');
+                            if (dw) dw.value = s.drawingPopupWidth;
+                            if (dh) dh.value = s.drawingPopupMaxHeight || '0';
+                            setTimeout(rebindAllDrawingPopups, 100);
+                        }
                         if (s.bookmarks && Array.isArray(s.bookmarks)) {
                             bookmarks = s.bookmarks;
                             loadBookmarksList();
                             refreshBookmarkTabs();
                             console.log(`Restored ${bookmarks.length} bookmark(s)`);
+                        }
+                        
+                        // Restore drawn features
+                        if (s.drawnFeaturesData && Array.isArray(s.drawnFeaturesData)) {
+                            restoreDrawnFeaturesFromData(s.drawnFeaturesData);
                         }
                         
                         // Plot the points
@@ -16393,7 +16889,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.24 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.35 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
