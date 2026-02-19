@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.10.22 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
+<!-- Geo Mapper v2.10.24 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.22</title>
+    <title>Geo Mapper v2.10.24</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1425,7 +1425,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.22</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.24</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -4105,7 +4105,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Update all markers
             markers.forEach(marker => {
-                if (marker.setOpacity) {
+                if (marker._isHalo) {
+                    // Halo circleMarker — scale its base opacity by the visibility factor
+                    const baseOpacity = marker._baseHaloOpacity !== undefined ? marker._baseHaloOpacity : 1;
+                    marker.setStyle({ fillOpacity: baseOpacity * opacity });
+                } else if (marker.setOpacity) {
                     marker.setOpacity(opacity);
                 }
             });
@@ -4211,7 +4215,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             autoDetectDiv.style.cssText = 'margin-bottom: 1rem; padding: 0.75rem; background: #e3f2fd; border-radius: 6px; border: 1px solid #90caf9;';
             autoDetectDiv.innerHTML = `
                 <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                    <input type="checkbox" id="dialogAutoDetect" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    <input type="checkbox" id="dialogAutoDetect" style="width: 18px; height: 18px; cursor: pointer;">
                     <div>
                         <div style="font-weight: 600; font-size: 0.9rem;">🎯 Auto-detect from halos</div>
                         <div style="font-size: 0.75rem; color: #555; margin-top: 0.25rem;">Automatically match the dominant halo color of visible markers</div>
@@ -4275,7 +4279,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             customDiv.style.cssText = 'margin-bottom: 1.5rem;';
             customDiv.innerHTML = `
                 <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Custom color:</label>
-                <input type="color" id="dialogCustomColor" value="${currentColor}" style="width: 100%; height: 45px; border: 2px solid #bdc3c7; border-radius: 6px; cursor: pointer;">
+                <input type="color" id="dialogCustomColor" value="${currentColor}" style="width: 100%; height: 45px; border: 2px solid #bdc3c7; border-radius: 6px; cursor: pointer;" oninput="document.getElementById('dialogAutoDetect').checked = false; document.querySelectorAll('#colorPickerDialog button[data-palette]').forEach(b => b.style.border = '3px solid #bdc3c7');">
             `;
             
             // Buttons
@@ -4355,20 +4359,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function detectDominantHaloColor() {
             console.log('=== AUTO-DETECTING HALO COLOR ===');
             
-            // Check if halos are enabled
-            const haloEnabled = document.getElementById('haloEnabled')?.checked;
-            console.log(`Halos enabled: ${haloEnabled}`);
-            
-            if (!haloEnabled) {
-                console.log('Halos not enabled - returning null');
-                return null;
-            }
-            
-            // Get global halo color as fallback
-            const globalHaloColor = document.getElementById('haloColor')?.value || '#ffffff';
-            console.log(`Global halo color setting: ${globalHaloColor}`);
-            
-            // Count halo colors from visible markers
+            // Count halo colors from visible markers (categorical and global)
             const haloColors = {};
             let visibleCount = 0;
             
@@ -4376,7 +4367,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 // Skip if marker is hidden (filtered out)
                 if (marker._icon && marker._icon.style.display === 'none') return;
                 
-                // Check if marker has rotation data with halo info
+                // Check categorical halo circleMarkers (tagged with _isHalo) — always present regardless of global toggle
+                if (marker._isHalo && marker._haloColor) {
+                    const color = marker._haloColor;
+                    haloColors[color] = (haloColors[color] || 0) + 1;
+                    visibleCount++;
+                    return;
+                }
+                
+                // Check if marker has rotation data with global halo enabled
                 if (marker._rotationData && marker._rotationData.haloEnabled && marker._rotationData.haloColor) {
                     const color = marker._rotationData.haloColor;
                     haloColors[color] = (haloColors[color] || 0) + 1;
@@ -4386,10 +4385,12 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             console.log(`Found ${visibleCount} visible markers with halos:`, haloColors);
             
-            // If no per-marker halos found, use global halo color
+            // If no per-marker halos found, fall back to global halo colour if enabled
             if (Object.keys(haloColors).length === 0) {
-                console.log(`No per-marker halos detected, using global: ${globalHaloColor}`);
-                return globalHaloColor;
+                const haloEnabled = document.getElementById('haloEnabled')?.checked;
+                const globalHaloColor = document.getElementById('haloColor')?.value || null;
+                console.log(`No per-marker halos detected. Global enabled: ${haloEnabled}, color: ${globalHaloColor}`);
+                return haloEnabled ? globalHaloColor : null;
             }
             
             // Return most common color
@@ -15353,6 +15354,9 @@ Total rows: ${csvData.length}${corsNote}`);
                             fillOpacity: haloOpacity,
                             stroke: false
                         }).addTo(markerLayer);
+                        haloMarker._isHalo = true;
+                        haloMarker._haloColor = categoryStyle.haloColor;
+                        haloMarker._baseHaloOpacity = haloOpacity;
                         markers.push(haloMarker);
                     }
                     
@@ -16389,7 +16393,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.22 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.24 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
