@@ -18117,35 +18117,27 @@ Press OK to copy full config to console.`;
         // COMPARE LAYERS (SWIPE) — native CSS clip, no plugin needed
         // ========================================
         
-        function _buildCompareTile(key) {
+        function _buildCompareTile(key, paneOpt) {
             const cfg = basemaps[key];
             if (!cfg) return null;
-            return L.tileLayer(cfg.url, {
+            const opts = {
                 attribution: cfg.attribution,
                 maxZoom: cfg.maxZoom || 19,
                 maxNativeZoom: cfg.maxNativeZoom || cfg.maxZoom || 19,
                 updateWhenIdle: false, keepBuffer: 4,
                 updateWhenZooming: false, updateInterval: 200
-            });
+            };
+            if (paneOpt) opts.pane = paneOpt;
+            return L.tileLayer(cfg.url, opts);
         }
         
         function _updateDividerClip(xPx) {
-            // Clip the RIGHT layer so it only shows to the right of xPx
-            if (!_compareLayerRight) return;
-            const container = _compareLayerRight.getContainer ? _compareLayerRight.getContainer() : null;
-            const pane = map.getPane('tilePane');
-            if (!pane) return;
-            // Find the right layer's tile container within the pane
-            const tiles = pane.querySelectorAll('.leaflet-layer');
-            // The right layer was added second, so pick last tile layer
-            tiles.forEach((t, i) => {
-                if (i === tiles.length - 1) {
-                    // clip: show only pixels to the RIGHT of xPx
-                    const h = map.getContainer().offsetHeight;
-                    const w = map.getContainer().offsetWidth;
-                    t.style.clip = `rect(0px, ${w}px, ${h}px, ${xPx}px)`;
-                }
-            });
+            // Clip the custom right pane — panes are never CSS-transformed by Leaflet,
+            // so clip-path coordinates stay screen-accurate through pan/zoom.
+            const rightPane = map.getPane('compareRightPane');
+            if (rightPane) {
+                rightPane.style.clipPath = `inset(0 0 0 ${xPx}px)`;
+            }
             // Move the divider line
             const divider = document.getElementById('_compareDivider');
             if (divider) divider.style.left = xPx + 'px';
@@ -18164,7 +18156,18 @@ Press OK to copy full config to console.`;
             if (!leftKey || !rightKey) { alert('Please select both layers.'); return; }
             
             _compareLayerLeft  = _buildCompareTile(leftKey);
-            _compareLayerRight = _buildCompareTile(rightKey);
+            
+            // Create (or reuse) a custom pane for the right layer.
+            // Leaflet panes are never CSS-transformed, so clip-path stays screen-accurate.
+            if (!map.getPane('compareRightPane')) {
+                map.createPane('compareRightPane');
+            }
+            const rightPane = map.getPane('compareRightPane');
+            rightPane.style.zIndex = '201';        // just above tilePane (200)
+            rightPane.style.pointerEvents = 'none';
+            rightPane.style.clipPath = '';          // reset any previous clip
+            
+            _compareLayerRight = _buildCompareTile(rightKey, 'compareRightPane');
             if (!_compareLayerLeft || !_compareLayerRight) { alert('Could not build layers.'); return; }
             
             // Hide existing basemap
@@ -18174,6 +18177,17 @@ Press OK to copy full config to console.`;
             // Add left layer first (bottom), then right layer on top
             _compareLayerLeft.addTo(map);
             _compareLayerRight.addTo(map);
+            
+            // Auto-fly to UK if either layer is an NLS historical map
+            const nlsKeys = ['nls-os1inch-7th','nls-os1inch-popular','nls-os6inch-scotland','nls-os25inch-scotland','nls-roy'];
+            const hasNLS = nlsKeys.includes(leftKey) || nlsKeys.includes(rightKey);
+            if (hasNLS) {
+                const currentZoom = map.getZoom();
+                // Only fly if we're zoomed out too far to see UK tiles (NLS needs roughly zoom 7+)
+                if (currentZoom < 7) {
+                    map.flyTo([54.5, -3.5], 7, { duration: 1.5 });
+                }
+            }
             
             // Build the divider UI
             const mapEl = map.getContainer();
@@ -18295,6 +18309,9 @@ Press OK to copy full config to console.`;
             // Remove clip from any tile layers
             const pane = map.getPane('tilePane');
             if (pane) pane.querySelectorAll('.leaflet-layer').forEach(t => t.style.clip = '');
+            // Clear the custom right pane clip
+            const rightPane = map.getPane('compareRightPane');
+            if (rightPane) rightPane.style.clipPath = '';
             
             // Remove map event listeners
             map.off('move zoom resize');
