@@ -1533,8 +1533,17 @@
                         <option value="esri-ocean">ESRI Ocean Basemap</option>
                         <option value="cyclosm">CyclOSM</option>
                         <optgroup label="─── Historical Maps (NLS) ───">
-                        <option value="nls-os1inch-popular">🗺️ OS One Inch Popular (1919–30) — GB</option>
+                        <option value="nls-os1inch-2nd">🗺️ OS One Inch 2nd Ed. (1885–1903) — GB</option>
                         <option value="nls-os10k-gb">🗺️ OS 1:10,560 National Grid (1949–75) — GB</option>
+                        <optgroup label="── OS 25-inch County (1892–1914) ──">
+                        <option value="nls-25inch-london">🗺️ OS 25-inch London</option>
+                        <option value="nls-25inch-surrey">🗺️ OS 25-inch Surrey</option>
+                        <option value="nls-25inch-kent">🗺️ OS 25-inch Kent</option>
+                        <option value="nls-25inch-middlesex">🗺️ OS 25-inch Middlesex</option>
+                        <option value="nls-25inch-essex">🗺️ OS 25-inch Essex</option>
+                        <option value="nls-25inch-sussex">🗺️ OS 25-inch Sussex</option>
+                        <option value="nls-25inch-yorkshire">🗺️ OS 25-inch Yorkshire</option>
+                        </optgroup>
                         <option value="nls-os6inch-kent">🗺️ OS 6-inch Kent (1843–82) — Kent</option>
                         <option value="nls-london-1940s">🗺️ OS 1:1,250 London (1940s–60s) — London/SE</option>
                         <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) — Scotland</option>
@@ -1699,8 +1708,17 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
-                                <option value="nls-os1inch-popular">OS One Inch Popular (1919–30)</option>
+                                <option value="nls-os1inch-2nd">OS One Inch 2nd Ed. (1885–1903)</option>
                                 <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1949–75)</option>
+                                <optgroup label="OS 25-inch County (1892–1914)">
+                                <option value="nls-25inch-london">OS 25-inch London</option>
+                                <option value="nls-25inch-surrey">OS 25-inch Surrey</option>
+                                <option value="nls-25inch-kent">OS 25-inch Kent</option>
+                                <option value="nls-25inch-middlesex">OS 25-inch Middlesex</option>
+                                <option value="nls-25inch-essex">OS 25-inch Essex</option>
+                                <option value="nls-25inch-sussex">OS 25-inch Sussex</option>
+                                <option value="nls-25inch-yorkshire">OS 25-inch Yorkshire</option>
+                                </optgroup>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
                                 <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
@@ -1720,8 +1738,17 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
-                                <option value="nls-os1inch-popular">OS One Inch Popular (1919–30)</option>
+                                <option value="nls-os1inch-2nd">OS One Inch 2nd Ed. (1885–1903)</option>
                                 <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1949–75)</option>
+                                <optgroup label="OS 25-inch County (1892–1914)">
+                                <option value="nls-25inch-london">OS 25-inch London</option>
+                                <option value="nls-25inch-surrey">OS 25-inch Surrey</option>
+                                <option value="nls-25inch-kent">OS 25-inch Kent</option>
+                                <option value="nls-25inch-middlesex">OS 25-inch Middlesex</option>
+                                <option value="nls-25inch-essex">OS 25-inch Essex</option>
+                                <option value="nls-25inch-sussex">OS 25-inch Sussex</option>
+                                <option value="nls-25inch-yorkshire">OS 25-inch Yorkshire</option>
+                                </optgroup>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
                                 <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
@@ -3712,6 +3739,55 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Free S3-hosted tilesets — no API key required — CC-BY
             // Note: geo.nls.uk seamless series moved to MapTiler Cloud (API key needed) in 2022.
             // These county/regional S3 tilesets remain freely accessible.
+            'nls-25inch-surrey': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/surrey/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Surrey (1892–1914)',
+                center: [51.3, -0.4], zoom: 13
+            },
+            'nls-25inch-london': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/london/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch London (1892–1914)',
+                center: [51.5, -0.1], zoom: 14
+            },
+            'nls-25inch-kent': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/kent/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Kent (1892–1914)',
+                center: [51.2, 0.7], zoom: 13
+            },
+            'nls-25inch-middlesex': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/middlesex/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Middlesex (1892–1914)',
+                center: [51.55, -0.35], zoom: 13
+            },
+            'nls-25inch-essex': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/essex/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Essex (1892–1914)',
+                center: [51.7, 0.5], zoom: 13
+            },
+            'nls-25inch-sussex': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/sussex/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Sussex (1892–1914)',
+                center: [50.95, -0.1], zoom: 13
+            },
+            'nls-25inch-yorkshire': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/yorkshire/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Yorkshire (1892–1914)',
+                center: [53.8, -1.5], zoom: 13
+            },
             'nls-os6inch-kent': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/os/six-inch-kent/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
@@ -3719,11 +3795,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 label: 'OS 6-inch Kent (1843–82) — Kent',
                 center: [51.2, 0.7], zoom: 11
             },
-            'nls-os1inch-popular': {
-                url: 'https://mapseries-tilesets.s3.amazonaws.com/popular/{z}/{x}/{y}.png',
+            'nls-os1inch-2nd': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/1inch_2nd_ed/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
                 maxZoom: 20, maxNativeZoom: 15,
-                label: 'OS One Inch Popular (1919–30) — GB',
+                label: 'OS One Inch 2nd Ed. (1885–1903) — GB',
                 center: [54.5, -3.5], zoom: 8
             },
             'nls-os10k-gb': {
@@ -18200,7 +18276,14 @@ Press OK to copy full config to console.`;
             
             // Auto-fly to appropriate location if an NLS layer is selected
             const nlsCenters = {
-                'nls-os1inch-popular':  [[54.5, -3.5],  7],
+                'nls-25inch-surrey':   [[51.3, -0.4],  13],
+                'nls-25inch-london':   [[51.5, -0.1],  14],
+                'nls-25inch-kent':     [[51.2,  0.7],  13],
+                'nls-25inch-middlesex':[[51.55,-0.35], 13],
+                'nls-25inch-essex':    [[51.7,  0.5],  13],
+                'nls-25inch-sussex':   [[50.95,-0.1],  13],
+                'nls-25inch-yorkshire': [[53.8, -1.5],  13],
+                'nls-os1inch-2nd':      [[54.5, -3.5],  7],
                 'nls-os6inch-kent':    [[51.2, 0.7],  11],
                 'nls-os10k-gb':        [[54.5, -3.5],  7],
                 'nls-london-1940s':    [[51.5, -0.1], 14],
