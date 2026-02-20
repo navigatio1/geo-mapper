@@ -18132,11 +18132,14 @@ Press OK to copy full config to console.`;
         }
         
         function _updateDividerClip(xPx) {
-            // Clip the custom right pane — panes are never CSS-transformed by Leaflet,
-            // so clip-path coordinates stay screen-accurate through pan/zoom.
+            // The right pane lives inside .leaflet-map-pane which Leaflet translates on pan.
+            // clip-path is evaluated in the pane's own (translated) coordinate space, so we
+            // must convert the screen-space divider position to layer-space before clipping.
             const rightPane = map.getPane('compareRightPane');
             if (rightPane) {
-                rightPane.style.clipPath = `inset(0 0 0 ${xPx}px)`;
+                // containerPointToLayerPoint accounts for the current map pane transform
+                const layerX = map.containerPointToLayerPoint(L.point(xPx, 0)).x;
+                rightPane.style.clipPath = `inset(0 0 0 ${layerX}px)`;
             }
             // Move the divider line
             const divider = document.getElementById('_compareDivider');
