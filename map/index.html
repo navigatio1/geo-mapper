@@ -1533,8 +1533,9 @@
                         <option value="esri-ocean">ESRI Ocean Basemap</option>
                         <option value="cyclosm">CyclOSM</option>
                         <optgroup label="─── Historical Maps (NLS) ───">
+                        <option value="nls-os1inch-popular">🗺️ OS One Inch Popular (1919–30) — GB</option>
+                        <option value="nls-os10k-gb">🗺️ OS 1:10,560 National Grid (1949–75) — GB</option>
                         <option value="nls-os6inch-kent">🗺️ OS 6-inch Kent (1843–82) — Kent</option>
-                        <option value="nls-os10k-gb">🗺️ OS 1:10,560 National Grid (1940s–60s) — GB</option>
                         <option value="nls-london-1940s">🗺️ OS 1:1,250 London (1940s–60s) — London/SE</option>
                         <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) — Scotland</option>
                         <option value="nls-os25inch-scotland">🗺️ OS 25-inch 1st Ed. (1892–1905) — Scotland</option>
@@ -1698,8 +1699,9 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
+                                <option value="nls-os1inch-popular">OS One Inch Popular (1919–30)</option>
+                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1949–75)</option>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
-                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1940s–60s)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
                                 <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
                                 <option value="nls-os25inch-scotland">OS 25-inch Scotland (1892–1905)</option>
@@ -1718,8 +1720,9 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
+                                <option value="nls-os1inch-popular">OS One Inch Popular (1919–30)</option>
+                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1949–75)</option>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
-                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1940s–60s)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
                                 <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
                                 <option value="nls-os25inch-scotland">OS 25-inch Scotland (1892–1905)</option>
@@ -3712,35 +3715,42 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             'nls-os6inch-kent': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/os/six-inch-kent/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
-                maxZoom: 17, maxNativeZoom: 17,
+                maxZoom: 20, maxNativeZoom: 17,
                 label: 'OS 6-inch Kent (1843–82) — Kent',
                 center: [51.2, 0.7], zoom: 11
+            },
+            'nls-os1inch-popular': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/popular/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 15,
+                label: 'OS One Inch Popular (1919–30) — GB',
+                center: [54.5, -3.5], zoom: 8
             },
             'nls-os10k-gb': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/os/britain10knatgrid/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
-                maxZoom: 16, maxNativeZoom: 16,
-                label: 'OS 1:10,560 National Grid (1940s–60s) — GB',
+                maxZoom: 20, maxNativeZoom: 16,
+                label: 'OS 1:10,560 National Grid (1949–75) — GB',
                 center: [54.5, -3.5], zoom: 8
             },
             'nls-london-1940s': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/london_1940s/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
-                maxZoom: 19, maxNativeZoom: 19,
+                maxZoom: 20, maxNativeZoom: 19,
                 label: 'OS 1:1,250 London (1940s–60s) — London/SE',
                 center: [51.5, -0.1], zoom: 14
             },
             'nls-os6inch-scotland': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/os/6inchfirst/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
-                maxZoom: 16, maxNativeZoom: 16,
+                maxZoom: 20, maxNativeZoom: 16,
                 label: 'OS 6-inch 1st Edition (1843–82) — Scotland',
                 center: [56.5, -4.0], zoom: 10
             },
             'nls-os25inch-scotland': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/scotland_1/{z}/{x}/{y}.png',
                 attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
-                maxZoom: 18, maxNativeZoom: 18,
+                maxZoom: 20, maxNativeZoom: 18,
                 label: 'OS 25-inch 1st Edition (1892–1905) — Scotland',
                 center: [56.5, -4.0], zoom: 12
             }
@@ -18190,6 +18200,7 @@ Press OK to copy full config to console.`;
             
             // Auto-fly to appropriate location if an NLS layer is selected
             const nlsCenters = {
+                'nls-os1inch-popular':  [[54.5, -3.5],  7],
                 'nls-os6inch-kent':    [[51.2, 0.7],  11],
                 'nls-os10k-gb':        [[54.5, -3.5],  7],
                 'nls-london-1940s':    [[51.5, -0.1], 14],
