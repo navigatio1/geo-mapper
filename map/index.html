@@ -1533,11 +1533,11 @@
                         <option value="esri-ocean">ESRI Ocean Basemap</option>
                         <option value="cyclosm">CyclOSM</option>
                         <optgroup label="─── Historical Maps (NLS) ───">
-                        <option value="nls-os1inch-7th">🗺️ OS 1-inch 7th Series (1955–61) GB</option>
-                        <option value="nls-os1inch-popular">🗺️ OS 1-inch Popular Ed. (1919–26) GB</option>
-                        <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) Scotland</option>
-                        <option value="nls-os25inch-scotland">🗺️ OS 25-inch 1st Ed. (1892–1905) Scotland</option>
-                        <option value="nls-roy">🗺️ Roy Military Survey (1747–55) Scotland</option>
+                        <option value="nls-os6inch-kent">🗺️ OS 6-inch Kent (1843–82) — Kent</option>
+                        <option value="nls-os10k-gb">🗺️ OS 1:10,560 National Grid (1940s–60s) — GB</option>
+                        <option value="nls-london-1940s">🗺️ OS 1:1,250 London (1940s–60s) — London/SE</option>
+                        <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) — Scotland</option>
+                        <option value="nls-os25inch-scotland">🗺️ OS 25-inch 1st Ed. (1892–1905) — Scotland</option>
                         </optgroup>
                     </select>
                     <div id="nlsNotice" style="display:none;margin-top:0.4rem;padding:0.4rem 0.5rem;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:0.72rem;color:#795548;">
@@ -1698,11 +1698,11 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
-                                <option value="nls-os1inch-7th">OS 1-inch 7th Series (1955–61)</option>
-                                <option value="nls-os1inch-popular">OS 1-inch Popular Ed. (1919–26)</option>
-                                <option value="nls-os6inch-scotland">OS 6-inch 1st Ed. (1843–82)</option>
-                                <option value="nls-os25inch-scotland">OS 25-inch 1st Ed. (1892–1905)</option>
-                                <option value="nls-roy">Roy Military Survey (1747–55)</option>
+                                <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
+                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1940s–60s)</option>
+                                <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
+                                <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
+                                <option value="nls-os25inch-scotland">OS 25-inch Scotland (1892–1905)</option>
                             </optgroup>
                         </select>
                     </div>
@@ -1718,11 +1718,11 @@
                                 <option value="esri-topo">ESRI Topo</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
-                                <option value="nls-os1inch-7th">OS 1-inch 7th Series (1955–61)</option>
-                                <option value="nls-os1inch-popular">OS 1-inch Popular Ed. (1919–26)</option>
-                                <option value="nls-os6inch-scotland">OS 6-inch 1st Ed. (1843–82)</option>
-                                <option value="nls-os25inch-scotland">OS 25-inch 1st Ed. (1892–1905)</option>
-                                <option value="nls-roy">Roy Military Survey (1747–55)</option>
+                                <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
+                                <option value="nls-os10k-gb">OS 1:10,560 Nat. Grid (1940s–60s)</option>
+                                <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
+                                <option value="nls-os6inch-scotland">OS 6-inch Scotland (1843–82)</option>
+                                <option value="nls-os25inch-scotland">OS 25-inch Scotland (1892–1905)</option>
                             </optgroup>
                         </select>
                     </div>
@@ -1747,7 +1747,7 @@
                     </div>
                     
                     <div style="margin-top:0.6rem;padding:0.4rem 0.5rem;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:0.72rem;color:#795548;">
-                        📍 NLS historical maps cover <strong>UK only</strong>. Zoom to Britain to see tiles. Free for educational use — <a href="https://maps.nls.uk" target="_blank" style="color:#5d4037;">maps.nls.uk</a>
+                        📍 NLS maps cover <strong>specific UK regions</strong> — the map will fly to the right area when you start. Free for educational use — <a href="https://maps.nls.uk" target="_blank" style="color:#5d4037;">maps.nls.uk</a>
                     </div>
                 </div>
             </details>
@@ -3706,36 +3706,43 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 maxZoom: 20
             },
             // === NLS Historical Maps (National Library of Scotland) ===
-            // Free for non-commercial/educational use — coverage primarily GB/Scotland
-            'nls-os1inch-7th': {
-                url: 'https://geo.nls.uk/maps/gb1inch7thseries/{z}/{x}/{y}.png',
-                attribution: 'Historical map data © National Library of Scotland',
-                maxZoom: 16, maxNativeZoom: 16,
-                label: 'OS 1-inch 7th Series (1955–61) — GB'
+            // Free S3-hosted tilesets — no API key required — CC-BY
+            // Note: geo.nls.uk seamless series moved to MapTiler Cloud (API key needed) in 2022.
+            // These county/regional S3 tilesets remain freely accessible.
+            'nls-os6inch-kent': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/os/six-inch-kent/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 17, maxNativeZoom: 17,
+                label: 'OS 6-inch Kent (1843–82) — Kent',
+                center: [51.2, 0.7], zoom: 11
             },
-            'nls-os1inch-popular': {
-                url: 'https://geo.nls.uk/maps/os/1inch_popular/{z}/{x}/{y}.png',
-                attribution: 'Historical map data © National Library of Scotland',
+            'nls-os10k-gb': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/os/britain10knatgrid/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
                 maxZoom: 16, maxNativeZoom: 16,
-                label: 'OS 1-inch Popular Edition (1919–26) — GB'
+                label: 'OS 1:10,560 National Grid (1940s–60s) — GB',
+                center: [54.5, -3.5], zoom: 8
+            },
+            'nls-london-1940s': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/london_1940s/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 19, maxNativeZoom: 19,
+                label: 'OS 1:1,250 London (1940s–60s) — London/SE',
+                center: [51.5, -0.1], zoom: 14
             },
             'nls-os6inch-scotland': {
-                url: 'https://geo.nls.uk/maps/os/6inch_1st_series_scotland/{z}/{x}/{y}.png',
-                attribution: 'Historical map data © National Library of Scotland',
-                maxZoom: 15, maxNativeZoom: 15,
-                label: 'OS 6-inch 1st Edition (1843–82) — Scotland'
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/os/6inchfirst/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 16, maxNativeZoom: 16,
+                label: 'OS 6-inch 1st Edition (1843–82) — Scotland',
+                center: [56.5, -4.0], zoom: 10
             },
             'nls-os25inch-scotland': {
-                url: 'https://geo.nls.uk/maps/os/25inch_1st_series/{z}/{x}/{y}.png',
-                attribution: 'Historical map data © National Library of Scotland',
-                maxZoom: 16, maxNativeZoom: 16,
-                label: 'OS 25-inch 1st Edition (1892–1905) — Scotland'
-            },
-            'nls-roy': {
-                url: 'https://geo.nls.uk/maps/roy/royproj/{z}/{x}/{y}.png',
-                attribution: 'Roy Military Survey 1747–55 © National Library of Scotland',
-                maxZoom: 14, maxNativeZoom: 14,
-                label: 'Roy Military Survey (1747–55) — Scotland'
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/scotland_1/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 18, maxNativeZoom: 18,
+                label: 'OS 25-inch 1st Edition (1892–1905) — Scotland',
+                center: [56.5, -4.0], zoom: 12
             }
         };
 
@@ -18181,15 +18188,17 @@ Press OK to copy full config to console.`;
             _compareLayerLeft.addTo(map);
             _compareLayerRight.addTo(map);
             
-            // Auto-fly to UK if either layer is an NLS historical map
-            const nlsKeys = ['nls-os1inch-7th','nls-os1inch-popular','nls-os6inch-scotland','nls-os25inch-scotland','nls-roy'];
-            const hasNLS = nlsKeys.includes(leftKey) || nlsKeys.includes(rightKey);
-            if (hasNLS) {
-                const currentZoom = map.getZoom();
-                // Only fly if we're zoomed out too far to see UK tiles (NLS needs roughly zoom 7+)
-                if (currentZoom < 7) {
-                    map.flyTo([54.5, -3.5], 7, { duration: 1.5 });
-                }
+            // Auto-fly to appropriate location if an NLS layer is selected
+            const nlsCenters = {
+                'nls-os6inch-kent':    [[51.2, 0.7],  11],
+                'nls-os10k-gb':        [[54.5, -3.5],  7],
+                'nls-london-1940s':    [[51.5, -0.1], 14],
+                'nls-os6inch-scotland':[[56.5, -4.0], 10],
+                'nls-os25inch-scotland':[[56.5, -4.0],12]
+            };
+            const nlsTarget = nlsCenters[leftKey] || nlsCenters[rightKey];
+            if (nlsTarget && map.getZoom() < nlsTarget[1]) {
+                map.flyTo(nlsTarget[0], nlsTarget[1], { duration: 1.5 });
             }
             
             // Build the divider UI
