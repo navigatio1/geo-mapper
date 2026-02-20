@@ -1,10 +1,10 @@
-<!-- Geo Mapper v2.10.35 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
+<!-- Geo Mapper v2.10.37 - Survey Points (click-to-CSV) tool added to Analysis Tools. v2.10.36 - Share Map UI cleanup, Data Editor column rename + CSV replace, Drawing Export per-feature checkboxes. v2.10.21: ROOT CAUSE FIX: Replaced broken animationMarkerLayer (L.layerGroup whose children don't reliably render) with a plain animationMarkers[] array. Markers now added directly to map and tracked for cleanup. Removed the band-aid invalidateSize/bringToFront workaround. All animation markers now render correctly. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.35</title>
+    <title>Geo Mapper v2.10.48</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1421,11 +1421,25 @@
             border-radius: 3px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
-    </style>
+    
+        /* Desire lines tooltip — clean, no bounding box artefact */
+        .desire-tooltip {
+            background: rgba(30,30,30,0.85);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.78rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .desire-tooltip::before { display: none; }
+        </style>
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.35</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.48</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1518,7 +1532,18 @@
                         <option value="esri-natgeo">ESRI National Geographic</option>
                         <option value="esri-ocean">ESRI Ocean Basemap</option>
                         <option value="cyclosm">CyclOSM</option>
+                        <optgroup label="─── Historical Maps (NLS) ───">
+                        <option value="nls-os1inch-7th">🗺️ OS 1-inch 7th Series (1955–61) GB</option>
+                        <option value="nls-os1inch-popular">🗺️ OS 1-inch Popular Ed. (1919–26) GB</option>
+                        <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) Scotland</option>
+                        <option value="nls-os25inch-scotland">🗺️ OS 25-inch 1st Ed. (1892–1905) Scotland</option>
+                        <option value="nls-roy">🗺️ Roy Military Survey (1747–55) Scotland</option>
+                        </optgroup>
                     </select>
+                    <div id="nlsNotice" style="display:none;margin-top:0.4rem;padding:0.4rem 0.5rem;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:0.72rem;color:#795548;">
+                        📍 <strong>NLS map:</strong> Coverage is UK only. Zoom to the UK to see tiles. 
+                        <a href="https://maps.nls.uk" target="_blank" style="color:#6d4c41;">© NLS</a> — free for educational use.
+                    </div>
                 </div>
                 </div>
             </details>
@@ -1651,6 +1676,79 @@
                     </div>
                 </div>
                 
+                </div>
+            </details>
+
+            <!-- Compare Layers Section -->
+            <details class="section" id="compareSection">
+                <summary class="section-title">↔️ Compare Layers</summary>
+                <div class="section-content">
+                    <p style="font-size:0.75rem;color:#666;margin:0 0 0.6rem 0;">
+                        Show two map layers side-by-side with a draggable divider. Your CSV data appears on top of both layers.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label style="font-size:0.78rem;font-weight:600;">Left layer (←)</label>
+                        <select id="compareLeftSelect" style="width:100%;font-size:0.76rem;padding:0.3rem;">
+                            <optgroup label="Current Maps">
+                                <option value="osm">OpenStreetMap</option>
+                                <option value="cartodb-light">CartoDB Light</option>
+                                <option value="cartodb-dark">CartoDB Dark</option>
+                                <option value="esri-world">ESRI Satellite</option>
+                                <option value="esri-topo">ESRI Topo</option>
+                            </optgroup>
+                            <optgroup label="Historical Maps (NLS)">
+                                <option value="nls-os1inch-7th">OS 1-inch 7th Series (1955–61)</option>
+                                <option value="nls-os1inch-popular">OS 1-inch Popular Ed. (1919–26)</option>
+                                <option value="nls-os6inch-scotland">OS 6-inch 1st Ed. (1843–82)</option>
+                                <option value="nls-os25inch-scotland">OS 25-inch 1st Ed. (1892–1905)</option>
+                                <option value="nls-roy">Roy Military Survey (1747–55)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label style="font-size:0.78rem;font-weight:600;">Right layer (→)</label>
+                        <select id="compareRightSelect" style="width:100%;font-size:0.76rem;padding:0.3rem;">
+                            <optgroup label="Current Maps">
+                                <option value="osm" selected>OpenStreetMap</option>
+                                <option value="cartodb-light">CartoDB Light</option>
+                                <option value="cartodb-dark">CartoDB Dark</option>
+                                <option value="esri-world">ESRI Satellite</option>
+                                <option value="esri-topo">ESRI Topo</option>
+                            </optgroup>
+                            <optgroup label="Historical Maps (NLS)">
+                                <option value="nls-os1inch-7th">OS 1-inch 7th Series (1955–61)</option>
+                                <option value="nls-os1inch-popular">OS 1-inch Popular Ed. (1919–26)</option>
+                                <option value="nls-os6inch-scotland">OS 6-inch 1st Ed. (1843–82)</option>
+                                <option value="nls-os25inch-scotland">OS 25-inch 1st Ed. (1892–1905)</option>
+                                <option value="nls-roy">Roy Military Survey (1747–55)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top:0.3rem;padding:0.4rem 0.5rem;background:#e8f4fd;border:1px solid #90caf9;border-radius:4px;font-size:0.72rem;color:#1565c0;">
+                        💡 Default: <strong>Historical (left)</strong> vs <strong>Modern (right)</strong> — swap to suit your lesson
+                    </div>
+                    
+                    <div style="margin-top:0.8rem;display:flex;gap:0.5rem;">
+                        <button onclick="startCompareMode()" id="compareStartBtn" 
+                            style="flex:1;background:#1976d2;color:white;border:none;padding:0.5rem;border-radius:4px;font-size:0.82rem;cursor:pointer;font-weight:600;">
+                            ↔️ Start Compare
+                        </button>
+                        <button onclick="stopCompareMode()" id="compareStopBtn"
+                            style="flex:1;background:#d32f2f;color:white;border:none;padding:0.5rem;border-radius:4px;font-size:0.82rem;cursor:pointer;font-weight:600;display:none;">
+                            ✕ Exit Compare
+                        </button>
+                    </div>
+                    
+                    <div id="compareActiveMsg" style="display:none;margin-top:0.5rem;padding:0.4rem 0.5rem;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;font-size:0.72rem;color:#2e7d32;">
+                        ✅ Compare active — drag the divider on the map. CSV data appears on both sides.
+                    </div>
+                    
+                    <div style="margin-top:0.6rem;padding:0.4rem 0.5rem;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:0.72rem;color:#795548;">
+                        📍 NLS historical maps cover <strong>UK only</strong>. Zoom to Britain to see tiles. Free for educational use — <a href="https://maps.nls.uk" target="_blank" style="color:#5d4037;">maps.nls.uk</a>
+                    </div>
                 </div>
             </details>
 
@@ -2553,6 +2651,202 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         Overlapping areas indicate proximity
                     </div>
                 </div>
+                    <!-- Desire Lines Tool -->
+                    <details style="background: #f3e5f5; padding: 0.75rem; border-radius: 4px; margin-top: 1rem;" id="desireLinesDetails" ontoggle="if(this.open) setTimeout(window._enhanceColorPickers||function(){},100)">
+                        <summary style="font-weight: 600; margin-bottom: 0.5rem; color: #7b1fa2; cursor: pointer; list-style-position: outside; padding-left: 0.5rem;">&#10230; Desire Lines</summary>
+                        <div style="font-size:0.76rem;color:#555;margin-bottom:0.6rem;margin-top:0.4rem;">Draw lines or great circle arcs from many origins to a destination — migrations, trade routes, supply chains.</div>
+
+                        <!-- Search-to-destination banner (shown after location search) -->
+                        <div id="desireSearchBanner" style="display:none;background:#e8f5e9;border-left:3px solid #43a047;padding:0.4rem 0.6rem;border-radius:4px;margin-bottom:0.5rem;font-size:0.76rem;">
+                            <div id="desireSearchBannerText" style="color:#2e7d32;margin-bottom:0.3rem;font-weight:600;"></div>
+                            <button onclick="useSearchAsDest()" class="btn" style="background:#43a047;font-size:0.72rem;padding:0.25rem 0.5rem;">&#10230; Use as Desire Lines destination</button>
+                        </div>
+
+                        <!-- Destination -->
+                        <div style="font-weight:600;font-size:0.8rem;color:#6a1b9a;margin-bottom:0.35rem;">Step 1: Choose a destination</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.35rem;margin-bottom:0.5rem;">
+                            <button onclick="desireDestMode('click')" id="desireDestClickBtn" class="btn" style="background:#7b1fa2;color:white;font-size:0.72rem;padding:0.3rem;">Click map</button>
+                            <button onclick="desireDestMode('data')" id="desireDestDataBtn" class="btn" style="background:#ce93d8;color:#4a148c;font-size:0.72rem;padding:0.3rem;">From data</button>
+                            <button onclick="desireDestMode('multi')" id="desireDestMultiBtn" class="btn" style="background:#ce93d8;color:#4a148c;font-size:0.72rem;padding:0.3rem;">Many dests.</button>
+                        </div>
+                        <div style="font-size:0.7rem;color:#7f8c8d;margin-bottom:0.5rem;" id="desireDestHint">Click anywhere on the map to place your destination</div>
+
+                        <!-- Click map mode -->
+                        <div id="desireDestClickPanel">
+                            <button onclick="startDesireClickDest()" id="desireClickDestBtn" class="btn" style="background:#7b1fa2;font-size:0.76rem;padding:0.35rem;width:100%;margin-bottom:0.35rem;">+ Click map to set destination</button>
+                            <div id="desireClickDestInfo" style="font-size:0.72rem;color:#6a1b9a;padding:0.3rem 0.5rem;background:#e1bee7;border-radius:3px;display:none;"></div>
+                        </div>
+
+                        <!-- From data mode -->
+                        <div id="desireDestDataPanel" style="display:none;">
+                            <div style="font-size:0.72rem;color:#555;margin-bottom:0.35rem;">Pick one point in your data as the destination. Lines will be drawn from all other points to it.</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.4rem;">
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Find by column</label>
+                                    <select id="desireDestField" onchange="populateDesireDestValues()" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                        <option value="">Choose...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Value (destination point)</label>
+                                    <select id="desireDestValue" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                        <option value="">Choose...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Many destinations mode -->
+                        <div id="desireDestMultiPanel" style="display:none;">
+                            <div style="font-size:0.72rem;color:#555;margin-bottom:0.35rem;">Use this when each row in your data already names its own destination in a column. E.g. a trade-flow table where every row says which country it flows to. Both the origin and destination must be rows in your data with coordinates.</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.4rem;">
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">&#8220;Goes to&#8221; column</label>
+                                    <select id="desireMultiDestField" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                        <option value="">Choose...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Name/lookup column</label>
+                                    <select id="desireMultiNameField" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                        <option value="">Choose...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Destination label + marker colour -->
+                        <div id="desireDestLabelWrap" style="margin-bottom:0.5rem;">
+                            <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:end;">
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Destination label (shown on hover)</label>
+                                    <input type="text" id="desireDestLabel" placeholder="e.g. London, UK" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;box-sizing:border-box;" oninput="updateDesirePreviewMarkerLabel(this.value)">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Marker colour</label>
+                                    <input type="color" id="desireDestMarkerColor" value="#f50057" style="width:100%;height:30px;border:1px solid #ce93d8;border-radius:4px;cursor:pointer;" oninput="updateDesirePreviewMarkerColor(this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Origins -->
+                        <div style="font-weight:600;font-size:0.8rem;color:#6a1b9a;margin:0.6rem 0 0.35rem;">Step 2: Origins</div>
+                        <div id="desireOriginCatWrap" style="display:none;margin-bottom:0.4rem;">
+                            <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Filter origins by category (&#8220;Color by&#8221; field)</label>
+                            <select id="desireOriginCat" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                <option value="">All points</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:0.4rem;">
+                            <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">
+                                <input type="checkbox" id="desireGroupOrigins" checked style="width:auto;margin-right:0.4rem;">
+                                Merge rows with the same origin into one line
+                            </label>
+                            <div style="font-size:0.69rem;color:#888;margin-left:1.5rem;">Recommended when multiple rows share the same origin location (e.g. multiple ingredients from the same country)</div>
+                        </div>
+
+                        <!-- Label field for tooltips -->
+                        <div style="margin-bottom:0.5rem;">
+                            <label style="font-size:0.72rem;color:#6a1b9a;display:block;margin-bottom:0.18rem;">Label to show on hover (line tooltips)</label>
+                            <select id="desireLabelField" style="width:100%;font-size:0.76rem;padding:0.28rem;border:1px solid #ce93d8;border-radius:4px;">
+                                <option value="">-- Use row number --</option>
+                            </select>
+                        </div>
+
+                        <!-- Line Style -->
+                        <div style="font-weight:600;font-size:0.8rem;color:#6a1b9a;margin:0.6rem 0 0.35rem;">Step 3: Line Style</div>
+
+                        <!-- Colour mode -->
+                        <div style="margin-bottom:0.4rem;">
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;font-weight:600;">Colour mode</label>
+                            <select id="desireColorMode" onchange="toggleDesireColorOptions()" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                                <option value="fixed">Fixed colour</option>
+                                <option value="field">Colour by field</option>
+                                <option value="destination" id="desireColorDestOption" style="display:none;">Auto-colour by destination</option>
+                            </select>
+                        </div>
+
+                        <!-- Fixed colour picker -->
+                        <div id="desireColorPickerWrap" style="margin-bottom:0.4rem;">
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Line colour</label>
+                            <input type="color" id="desireLineColor" value="#9c27b0" style="width:100%;height:34px;border:1px solid #ce93d8;border-radius:4px;cursor:pointer;">
+                        </div>
+
+                        <!-- Colour by field options -->
+                        <div id="desireColorFieldWrap" style="display:none;margin-bottom:0.4rem;">
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Colour by which column?</label>
+                            <select id="desireColorField" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;margin-bottom:0.4rem;">
+                                <option value="">Choose column...</option>
+                            </select>
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Colour palette</label>
+                            <select id="desireColorPalette" onchange="updateDesireColorPalette()" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;margin-bottom:0.4rem;">
+                                <option value="vivid">Vivid (default)</option>
+                                <option value="muted">Muted / pastel</option>
+                                <option value="dark">Dark / bold</option>
+                                <option value="warm">Warm tones</option>
+                                <option value="cool">Cool tones</option>
+                                <option value="rainbow">Rainbow</option>
+                            </select>
+                            <div id="desirePalettePreview" style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:0.3rem;"></div>
+                            <button onclick="randomiseDesirePalette()" style="font-size:0.72rem;padding:0.2rem 0.5rem;border:1px solid #ce93d8;border-radius:4px;background:#f3e5f5;cursor:pointer;color:#6a1b9a;">🎲 Randomise colours</button>
+                        </div>
+
+                        <!-- Line thickness -->
+                        <div style="margin-bottom:0.4rem;margin-top:0.5rem;">
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;font-weight:600;">Line thickness</label>
+                            <select id="desireWidthMode" onchange="toggleDesireWidthField()" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                                <option value="fixed">Fixed (all same)</option>
+                                <option value="closer">Proximity weight (closer = thicker)</option>
+                                <option value="further">Distance weight (further = thicker)</option>
+                                <option value="field">By data field value</option>
+                            </select>
+                        </div>
+
+                        <!-- Width field selector -->
+                        <div id="desireWidthFieldWrap" style="display:none;margin-bottom:0.4rem;">
+                            <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Field to scale line thickness by</label>
+                            <select id="desireWidthField" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                                <option value="">Choose numeric field...</option>
+                            </select>
+                        </div>
+
+                        <!-- Min/Max thickness -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.4rem;">
+                            <div>
+                                <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Min thickness (px)</label>
+                                <input type="number" id="desireLineWidthMin" value="0.8" min="0.3" max="10" step="0.2" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Max thickness (px)</label>
+                                <input type="number" id="desireLineWidthMax" value="6" min="0.5" max="20" step="0.5" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                            </div>
+                        </div>
+
+                        <!-- Opacity and Path -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+                            <div>
+                                <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Visibility %</label>
+                                <input type="number" id="desireOpacity" value="100" min="5" max="100" step="5"
+                                    style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;"
+                                    oninput="liveUpdateDesireOpacity()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem;color:#6a1b9a;display:block;margin-bottom:0.2rem;">Path type</label>
+                                <select id="desirePathMode" autocomplete="off" style="width:100%;font-size:0.8rem;padding:0.3rem;border:1px solid #ce93d8;border-radius:4px;">
+                                    <option value="straight" selected>Straight</option>
+                                    <option value="arc">Great circle</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+                            <button class="btn" onclick="drawDesireLines()" style="background:#7b1fa2;font-size:0.8rem;padding:0.4rem;">&#10230; Draw Lines</button>
+                            <button class="btn" onclick="clearDesireLines()" style="background:#e53935;font-size:0.8rem;padding:0.4rem;">&#128465; Clear</button>
+                        </div>
+                        <div id="desireSummary" style="display:none;font-size:0.73rem;color:#6a1b9a;margin-top:0.4rem;padding:0.3rem 0.5rem;background:#e1bee7;border-radius:3px;"></div>
+                    </details>
+
             </details>
 
             <details class="section">
@@ -2591,7 +2885,41 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                 </div>
                 
-                <!-- Coordinate Display -->
+                <!-- Survey Points Tool -->
+                <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
+                    <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">&#128205; Survey Points (Click to Collect)</div>
+                    <div style="font-size: 0.78rem; color: #555; margin-bottom: 0.6rem;">Click points on the map to build a waypoint list &mdash; transects, routes, sample locations. Export as CSV.</div>
+                    <input type="text" id="surveyTitle" placeholder="Survey title or location (optional)" style="width:100%; padding:0.35rem 0.5rem; border:1px solid #a5d6a7; border-radius:4px; font-size:0.78rem; margin-bottom:0.5rem; background:#f9fbe7;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem;">
+                        <button class="btn" id="surveyToggleBtn" onclick="toggleSurveyMode()" style="background: #4caf50; font-size: 0.8rem; padding: 0.4rem;">&#9654; Start Survey</button>
+                        <button class="btn" onclick="clearSurveyPoints()" style="background: #e53935; font-size: 0.8rem; padding: 0.4rem;">&#128465; Clear All</button>
+                    </div>
+                    <div id="surveyModeIndicator" style="display:none; font-size:0.75rem; color:#4caf50; font-weight:600; margin-bottom:0.4rem; padding:0.3rem 0.5rem; background:#c8e6c9; border-radius:3px;">
+                        &#10003; Survey mode active &mdash; click map to add points
+                    </div>
+                    <div id="surveyTableWrap" style="display:none; max-height:220px; overflow-y:auto; margin-bottom:0.5rem; border:1px solid #c8e6c9; border-radius:4px;">
+                        <table id="surveyTable" style="width:100%; border-collapse:collapse; font-size:0.72rem;">
+                            <thead>
+                                <tr style="background:#4caf50; color:white; position:sticky; top:0;">
+                                    <th style="padding:4px 5px; text-align:left;">#</th>
+                                    <th style="padding:4px 5px; text-align:left;">Label</th>
+                                    <th style="padding:4px 5px; text-align:right;">Lat</th>
+                                    <th style="padding:4px 5px; text-align:right;">Lng</th>
+                                    <th style="padding:4px 5px; text-align:right;">Dist km</th>
+                                    <th style="padding:4px 2px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="surveyTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="surveySummary" style="display:none; font-size:0.75rem; color:#2e7d32; margin-bottom:0.5rem; padding:0.3rem 0.5rem; background:#f1f8e9; border-radius:3px;"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
+                        <button class="btn" id="surveyExportBtn" onclick="exportSurveyCSV()" style="background:#1565c0; font-size:0.78rem; padding:0.4rem; display:none;">&#8595; Export CSV</button>
+                        <button class="btn" id="surveyCopyBtn" onclick="copySurveyCSV()" style="background:#00838f; font-size:0.78rem; padding:0.4rem; display:none;">&#128203; Copy CSV</button>
+                    </div>
+                </div>
+
+                                <!-- Coordinate Display -->
                 <div style="margin-bottom: 1rem; padding: 0.75rem; background: #fff3e0; border-radius: 4px; border-left: 3px solid #ff9800;">
                     <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem;">🌐 Georeference (Click Map)</div>
                     <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 0.5rem;">
@@ -3167,7 +3495,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             } 
             else if (isImageURL(url)) {
                 // Animated GIF or static image
-                return `<img src="${url}" class="popup-image" alt="${columnName}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=color:#e74c3c>(Image failed to load)</span>';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
+                return `<img src="${url}" class="popup-image" alt="${columnName}" onerror="this.style.display='none';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
             }
             
             // Not media - return as text
@@ -3229,6 +3557,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         let currentBasemap;
         let labelsLayer = null;
         let basemapLayers = {};
+        // Compare mode
+        let _sideBySide = null;
+        let _compareLayerLeft = null;
+        let _compareLayerRight = null;
+        window._compareMode = false;
         
         // ========================================
         // GITHUB GIST CONFIGURATION
@@ -3371,6 +3704,38 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
                 attribution: '© OpenStreetMap contributors. Tiles courtesy of CyclOSM',
                 maxZoom: 20
+            },
+            // === NLS Historical Maps (National Library of Scotland) ===
+            // Free for non-commercial/educational use — coverage primarily GB/Scotland
+            'nls-os1inch-7th': {
+                url: 'https://geo.nls.uk/maps/gb1inch7thseries/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © National Library of Scotland',
+                maxZoom: 16, maxNativeZoom: 16,
+                label: 'OS 1-inch 7th Series (1955–61) — GB'
+            },
+            'nls-os1inch-popular': {
+                url: 'https://geo.nls.uk/maps/os/1inch_popular/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © National Library of Scotland',
+                maxZoom: 16, maxNativeZoom: 16,
+                label: 'OS 1-inch Popular Edition (1919–26) — GB'
+            },
+            'nls-os6inch-scotland': {
+                url: 'https://geo.nls.uk/maps/os/6inch_1st_series_scotland/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © National Library of Scotland',
+                maxZoom: 15, maxNativeZoom: 15,
+                label: 'OS 6-inch 1st Edition (1843–82) — Scotland'
+            },
+            'nls-os25inch-scotland': {
+                url: 'https://geo.nls.uk/maps/os/25inch_1st_series/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © National Library of Scotland',
+                maxZoom: 16, maxNativeZoom: 16,
+                label: 'OS 25-inch 1st Edition (1892–1905) — Scotland'
+            },
+            'nls-roy': {
+                url: 'https://geo.nls.uk/maps/roy/royproj/{z}/{x}/{y}.png',
+                attribution: 'Roy Military Survey 1747–55 © National Library of Scotland',
+                maxZoom: 14, maxNativeZoom: 14,
+                label: 'Roy Military Survey (1747–55) — Scotland'
             }
         };
 
@@ -4968,6 +5333,15 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (markerLayer && markerLayer.bringToFront) {
                 markerLayer.bringToFront();
             }
+            
+            // Show/hide NLS notice
+            const nlsNotice = document.getElementById('nlsNotice');
+            if (nlsNotice) {
+                nlsNotice.style.display = selected && selected.startsWith('nls-') ? 'block' : 'none';
+            }
+            
+            // Update compare layer selectors if compare mode is active
+            if (window._compareMode) updateCompareLayerA(selected);
         }
 
         // File upload handling - wrapped to ensure DOM is ready
@@ -5176,6 +5550,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 // Populate filter field dropdown for Analysis Tools
                 populateFilterFieldDropdown();
+                // Populate desire lines dropdowns
+                populateDesireDropdowns();
                 
                 addDiagnostic('  Showing sections...');
 
@@ -6196,7 +6572,7 @@ Total rows: ${csvData.length}${corsNote}`);
                     csvData = newData;
                     
                     // Update dropdowns
-                    populateColumnDropdowns();
+                    if(typeof populateColumnSelectors==="function") populateColumnSelectors(); else if(typeof populateDesireDropdowns==="function") populateDesireDropdowns();
                     openDataEditor(); // Refresh editor
                     plotPoints(false);
                     alert(`✅ Data replaced successfully!\n${newData.length} rows, ${newColumns.length} columns loaded from "${file.name}"`);
@@ -11519,7 +11895,7 @@ Total rows: ${csvData.length}${corsNote}`);
             }
             const list = document.getElementById('exportDrawingsList');
             list.innerHTML = drawnFeatures.map((f, i) => {
-                const typeIcon = f.type === 'marker' ? '📍' : f.type === 'line' ? '〰️' : '⬡';
+                const typeIcon = f.type === 'marker' ? '📍' : (f.type === 'line' || f.type === 'freehand') ? '〰️' : '⬡';
                 const label = f.label || `${f.type.charAt(0).toUpperCase() + f.type.slice(1)} ${i + 1}`;
                 return `<label style="display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.2rem; border-bottom:1px solid #eee; cursor:pointer; font-size:0.875rem;">
                     <input type="checkbox" class="drawing-export-check" data-index="${i}" checked style="margin:0;">
@@ -11553,7 +11929,7 @@ Total rows: ${csvData.length}${corsNote}`);
                 }
                 if (drawn.type === 'marker') {
                     geometry = { type: "Point", coordinates: [drawn.latlng.lng, drawn.latlng.lat] };
-                } else if (drawn.type === 'line') {
+                } else if (drawn.type === 'line' || drawn.type === 'freehand') {
                     geometry = { type: "LineString", coordinates: drawn.latlngs.map(ll => [ll.lng, ll.lat]) };
                 } else if (drawn.type === 'polygon') {
                     geometry = { type: "Polygon", coordinates: [drawn.latlngs.map(ll => [ll.lng, ll.lat])] };
@@ -11651,10 +12027,10 @@ Total rows: ${csvData.length}${corsNote}`);
             }
             
             // Filter for points and lines (GPX doesn't support polygons well)
-            const validFeatures = drawnFeatures.filter(d => d.type === 'marker' || d.type === 'line');
+            const validFeatures = drawnFeatures.filter(d => d.type === 'marker' || d.type === 'line' || d.type === 'freehand');
             
             if (validFeatures.length === 0) {
-                alert('No points or lines to export as GPX. (Polygons are not supported in GPX format)');
+                alert('No points, lines or freehand drawings selected. (Polygons are not supported in GPX format)');
                 return;
             }
             
@@ -11678,7 +12054,7 @@ Total rows: ${csvData.length}${corsNote}`);
             });
             
             // Add tracks (lines)
-            validFeatures.filter(d => d.type === 'line').forEach((drawn, idx) => {
+            validFeatures.filter(d => d.type === 'line' || d.type === 'freehand').forEach((drawn, idx) => {
                 gpx += `  <trk>
     <name>${drawn.label || `Track ${idx + 1}`}</name>
     <trkseg>
@@ -11714,10 +12090,10 @@ Total rows: ${csvData.length}${corsNote}`);
         function _exportDrawingsGPXFiltered(features) {
             
             // Filter for points and lines (GPX doesn't support polygons well)
-            const validFeatures = features.filter(d => d.type === 'marker' || d.type === 'line');
+            const validFeatures = features.filter(d => d.type === 'marker' || d.type === 'line' || d.type === 'freehand');
             
             if (validFeatures.length === 0) {
-                alert('No points or lines to export as GPX. (Polygons are not supported in GPX format)');
+                alert('No points, lines or freehand drawings selected. (Polygons are not supported in GPX format)');
                 return;
             }
             
@@ -11741,7 +12117,7 @@ Total rows: ${csvData.length}${corsNote}`);
             });
             
             // Add tracks (lines)
-            validFeatures.filter(d => d.type === 'line').forEach((drawn, idx) => {
+            validFeatures.filter(d => d.type === 'line' || d.type === 'freehand').forEach((drawn, idx) => {
                 gpx += `  <trk>
     <name>${drawn.label || `Track ${idx + 1}`}</name>
     <trkseg>
@@ -13303,6 +13679,8 @@ Total rows: ${csvData.length}${corsNote}`);
             map.flyTo([lat, lon], 12, {
                 duration: 1.5
             });
+            // Store for desire lines "use as destination" feature
+            notifyDesireOfSearch(lat, lon, name);
             
             // Add temporary marker
             const tempMarker = L.marker([lat, lon], {
@@ -13363,6 +13741,750 @@ Total rows: ${csvData.length}${corsNote}`);
         let measurementPoints = [];
         let measurementLayer = null;
         let coordTrackingActive = false;
+
+
+        // ── DESIRE LINES ────────────────────────────────────────────────────────
+        let desireLayerGroup = null;
+        let desireDestClickMode = false;
+        let desireClickedDest = null;
+        let currentDesireDestMode = 'click'; // 'click', 'data', or 'multi'
+        let lastSearchResult = null; // {lat, lng, name} stored by flyToLocation
+
+        // Palette for auto-colouring multiple destinations
+        let DESIRE_PALETTE = ['#e53935','#1e88e5','#43a047','#fb8c00','#8e24aa','#00acc1','#f06292','#ffb300','#5e35b1','#00897b','#c62828','#283593'];
+
+        // Great circle: compute N interpolated lat/lng points along spherical arc
+        function greatCirclePoints(lat1, lng1, lat2, lng2, n) {
+            n = n || 80;
+            const toRad = d => d * Math.PI / 180;
+            const toDeg = r => r * 180 / Math.PI;
+            const phi1 = toRad(lat1), lam1 = toRad(lng1);
+            const phi2 = toRad(lat2), lam2 = toRad(lng2);
+            const d = 2 * Math.asin(Math.sqrt(
+                Math.sin((phi2-phi1)/2)**2 +
+                Math.cos(phi1)*Math.cos(phi2)*Math.sin((lam2-lam1)/2)**2
+            ));
+            if (d < 0.0001) return [[lat1,lng1],[lat2,lng2]];
+            const pts = [];
+            for (let i = 0; i <= n; i++) {
+                const f = i / n;
+                const A = Math.sin((1-f)*d)/Math.sin(d);
+                const B = Math.sin(f*d)/Math.sin(d);
+                const x = A*Math.cos(phi1)*Math.cos(lam1) + B*Math.cos(phi2)*Math.cos(lam2);
+                const y = A*Math.cos(phi1)*Math.sin(lam1) + B*Math.cos(phi2)*Math.sin(lam2);
+                const z = A*Math.sin(phi1) + B*Math.sin(phi2);
+                pts.push([toDeg(Math.atan2(z,Math.sqrt(x*x+y*y))), toDeg(Math.atan2(y,x))]);
+            }
+            // Normalise longitudes so Leaflet doesn't route through the poles/antimeridian
+            // Each step should change lng by < 180°; if it jumps more, unwrap it
+            for (let i = 1; i < pts.length; i++) {
+                const dlng = pts[i][1] - pts[i-1][1];
+                if (dlng > 180)  pts[i] = [pts[i][0], pts[i][1] - 360];
+                else if (dlng < -180) pts[i] = [pts[i][0], pts[i][1] + 360];
+            }
+            return pts;
+        }
+
+        function desireDestMode(mode) {
+            currentDesireDestMode = mode;
+            document.getElementById('desireDestDataPanel').style.display = mode === 'data' ? 'block' : 'none';
+            document.getElementById('desireDestMultiPanel').style.display = mode === 'multi' ? 'block' : 'none';
+            document.getElementById('desireDestClickPanel').style.display = mode === 'click' ? 'block' : 'none';
+            // Label field only relevant for single destination modes
+            const destLabelWrap = document.getElementById('desireDestLabelWrap');
+            if (destLabelWrap) destLabelWrap.style.display = mode === 'multi' ? 'none' : 'block';
+            // Auto-colour by destination only makes sense in multi-destination mode
+            const destColorOpt = document.getElementById('desireColorDestOption');
+            if (destColorOpt) {
+                destColorOpt.style.display = mode === 'multi' ? '' : 'none';
+                // If that option was selected but we switched away from multi, revert to fixed
+                const colorMode = document.getElementById('desireColorMode');
+                if (colorMode && colorMode.value === 'destination' && mode !== 'multi') {
+                    colorMode.value = 'fixed';
+                    toggleDesireColorPicker();
+                }
+            }
+            ['desireDestDataBtn','desireDestMultiBtn','desireDestClickBtn'].forEach(id => {
+                document.getElementById(id).style.background = '#ce93d8';
+                document.getElementById(id).style.color = '#4a148c';
+            });
+            const activeId = mode === 'data' ? 'desireDestDataBtn' : mode === 'multi' ? 'desireDestMultiBtn' : 'desireDestClickBtn';
+            document.getElementById(activeId).style.background = '#7b1fa2';
+            document.getElementById(activeId).style.color = 'white';
+            // Hint text
+            const hints = {
+                click: 'Click anywhere on the map to place your destination (or use the Search tool first)',
+                data: 'Pick one existing point in your data to be the destination — all other points become origins',
+                multi: 'Use this when your data has a column saying where each row flows to (e.g. trade flow tables)'
+            };
+            const hint = document.getElementById('desireDestHint');
+            if (hint) hint.textContent = hints[mode] || '';
+        }
+
+        // Colour palette presets for desire lines
+        const DESIRE_PALETTES = {
+            vivid: ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4','#8bc34a','#ff5722'],
+            muted: ['#b07080','#7090b0','#70a870','#c09870','#9070a8','#70a8a0','#a87040','#808090','#a87090','#609090','#90a860','#c87060'],
+            dark: ['#c0392b','#2980b9','#27ae60','#d35400','#8e44ad','#16a085','#7f8c8d','#2c3e50','#c0392b','#1a5276','#1e8449','#784212'],
+            warm: ['#e53935','#f57c00','#fbc02d','#e91e63','#d81b60','#c62828','#bf360c','#6d4c41','#ff6f00','#ff8f00','#f9a825','#f57f17'],
+            cool: ['#1565c0','#00838f','#2e7d32','#4527a0','#283593','#006064','#1b5e20','#0d47a1','#01579b','#006064','#1a237e','#37474f'],
+            rainbow: ['#ff0000','#ff7700','#ffff00','#00cc00','#0000ff','#8b00ff','#ff1493','#00ffff','#ff6600','#33cc33','#3366ff','#cc00cc']
+        };
+        let currentDesirePalette = 'vivid';
+
+        function randomiseDesirePalette() {
+            // Shuffle current palette
+            for (let i = DESIRE_PALETTE.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [DESIRE_PALETTE[i], DESIRE_PALETTE[j]] = [DESIRE_PALETTE[j], DESIRE_PALETTE[i]];
+            }
+            // Update preview swatches
+            const preview = document.getElementById('desirePalettePreview');
+            if (preview) {
+                preview.innerHTML = DESIRE_PALETTE.map(c =>
+                    `<div style="width:18px;height:18px;border-radius:3px;background:${c};border:1px solid rgba(0,0,0,0.2)" title="${c}"></div>`
+                ).join('');
+            }
+        }
+
+        function updateDesireColorPalette() {
+            const sel = document.getElementById('desireColorPalette');
+            if (!sel) return;
+            currentDesirePalette = sel.value;
+            // Update DESIRE_PALETTE used by drawDesireLines
+            DESIRE_PALETTE.length = 0;
+            DESIRE_PALETTES[currentDesirePalette].forEach(c => DESIRE_PALETTE.push(c));
+            // Show preview swatches
+            const preview = document.getElementById('desirePalettePreview');
+            if (preview) {
+                preview.innerHTML = DESIRE_PALETTE.map(c =>
+                    `<div style="width:18px;height:18px;border-radius:3px;background:${c};border:1px solid rgba(0,0,0,0.2)" title="${c}"></div>`
+                ).join('');
+            }
+        }
+
+        function toggleDesireColorPicker() { toggleDesireColorOptions(); } // backward compat
+        function toggleDesireColorOptions() {
+            const mode = document.getElementById('desireColorMode').value;
+            const fixedOn = mode === 'fixed';
+            const picker = document.getElementById('desireColorPickerWrap');
+            if (picker) picker.style.display = fixedOn ? 'block' : 'none';
+            const fieldWrap = document.getElementById('desireColorFieldWrap');
+            if (fieldWrap) fieldWrap.style.display = mode === 'field' ? 'block' : 'none';
+        }
+
+        function toggleDesireWidthField() {
+            const mode = document.getElementById('desireWidthMode').value;
+            document.getElementById('desireWidthFieldWrap').style.display = mode === 'field' ? 'block' : 'none';
+        }
+
+        // Called when the Search tool finds a location — offer to use it as a desire lines destination
+        function notifyDesireOfSearch(lat, lng, name) {
+            lastSearchResult = {lat, lng, name};
+            const banner = document.getElementById('desireSearchBanner');
+            const bannerText = document.getElementById('desireSearchBannerText');
+            if (banner && bannerText) {
+                bannerText.textContent = '📍 Search result: ' + name.split(',')[0];
+                banner.style.display = 'block';
+                // If the desire lines panel is not open, open it briefly to draw attention
+                const details = document.getElementById('desireLinesDetails');
+                if (details && !details.open) {
+                    // Flash the summary text to hint
+                    details.style.outline = '2px solid #43a047';
+                    setTimeout(() => { if (details) details.style.outline = ''; }, 3000);
+                }
+            }
+        }
+
+        function useSearchAsDest() {
+            if (!lastSearchResult) return;
+            desireDestMode('click');
+            desireClickedDest = {lat: lastSearchResult.lat, lng: lastSearchResult.lng};
+            // Fill in label
+            const labelInput = document.getElementById('desireDestLabel');
+            if (labelInput && !labelInput.value) labelInput.value = lastSearchResult.name.split(',')[0];
+            // Show confirmation in the click panel
+            const info = document.getElementById('desireClickDestInfo');
+            if (info) {
+                info.style.display = 'block';
+                info.textContent = '📍 Destination set: ' + lastSearchResult.name.split(',')[0];
+            }
+            // Show preview marker
+            placeDesirePreviewMarker(lastSearchResult.lat, lastSearchResult.lng);
+            // Hide the banner
+            const banner = document.getElementById('desireSearchBanner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function liveUpdateDesireOpacity() {
+            if (!desireLayerGroup) return;
+            const opacity = (parseInt(document.getElementById('desireOpacity').value) || 100) / 100;
+            desireLayerGroup.eachLayer(layer => {
+                if (layer.setStyle) layer.setStyle({opacity});
+                else if (layer.setOpacity) layer.setOpacity(opacity);
+            });
+        }
+
+        let desirePreviewMarker = null;
+
+        function startDesireClickDest() {
+            desireDestClickMode = true;
+            desireClickedDest = null;
+            document.getElementById('desireClickDestBtn').textContent = 'Click anywhere on the map...';
+            document.getElementById('desireClickDestBtn').style.background = '#e53935';
+            document.getElementById('desireClickDestInfo').style.display = 'none';
+            map.getContainer().style.cursor = 'crosshair';
+            map.once('click', function(e) {
+                desireClickedDest = { lat: e.latlng.lat, lng: e.latlng.lng };
+                desireDestClickMode = false;
+                map.getContainer().style.cursor = '';
+                document.getElementById('desireClickDestBtn').textContent = '✓ Destination set — click to change';
+                document.getElementById('desireClickDestBtn').style.background = '#43a047';
+                const info = document.getElementById('desireClickDestInfo');
+                const labelVal = (document.getElementById('desireDestLabel')||{}).value || '';
+                info.style.display = 'block';
+                info.textContent = '📍 ' + (labelVal || (e.latlng.lat.toFixed(4) + ', ' + e.latlng.lng.toFixed(4)));
+                // Show preview marker immediately
+                placeDesirePreviewMarker(e.latlng.lat, e.latlng.lng);
+            });
+        }
+
+        function updateDesirePreviewMarkerLabel(label) {
+            if (desirePreviewMarker) {
+                const color = (document.getElementById('desireDestMarkerColor')||{}).value || '#f50057';
+                desirePreviewMarker.unbindTooltip();
+                desirePreviewMarker.bindTooltip('<strong>📍 ' + (label || 'Destination') + '</strong><br><em>Click Draw Lines to render</em>',
+                    {permanent: false, className: 'desire-tooltip'});
+            }
+        }
+
+        function updateDesirePreviewMarkerColor(color) {
+            if (desirePreviewMarker) {
+                desirePreviewMarker.setStyle({ fillColor: color });
+            }
+        }
+
+        function placeDesirePreviewMarker(lat, lng) {
+            if (desirePreviewMarker) { map.removeLayer(desirePreviewMarker); desirePreviewMarker = null; }
+            const color = (document.getElementById('desireDestMarkerColor')||{}).value || '#f50057';
+            const labelVal = (document.getElementById('desireDestLabel')||{}).value || 'Destination';
+            desirePreviewMarker = L.circleMarker([lat, lng], {
+                radius: 11, fillColor: color, color: 'white',
+                weight: 3, opacity: 1, fillOpacity: 1,
+                className: 'desire-dest-preview'
+            }).bindTooltip('<strong>📍 ' + labelVal + '</strong><br><em>Click Draw Lines to render</em>',
+                {permanent: false, className: 'desire-tooltip'});
+            desirePreviewMarker.addTo(map);
+        }
+
+        function populateDesireDropdowns() {
+            if (!csvData.length || !columns.length) return;
+            const latCol = document.getElementById('latColumn').value;
+            const lonCol = document.getElementById('lonColumn').value;
+            const colorField = document.getElementById('colorByField').value;
+            const titleField = (document.getElementById('titleField')||{}).value || '';
+
+            // Populate all column selectors
+            // Reset path mode to straight (prevent browser form caching overriding default)
+            const pathModeReset = document.getElementById('desirePathMode');
+            if (pathModeReset) pathModeReset.value = 'straight';
+            // Initialise palette preview
+            if (typeof updateDesireColorPalette === 'function') updateDesireColorPalette();
+            ['desireDestField','desireMultiDestField','desireMultiNameField','desireWidthField','desireLabelField','desireColorField'].forEach(selId => {
+                const sel = document.getElementById(selId);
+                if (!sel) return;
+                const prev = sel.value;
+                const isLabel = selId === 'desireLabelField';
+                const isWidth = selId === 'desireWidthField';
+                sel.innerHTML = '<option value="">' + (isLabel ? '— Auto (use label field)' : isWidth ? 'Choose numeric field...' : 'Choose...') + '</option>';
+                columns.forEach(col => {
+                    if (col !== latCol && col !== lonCol) {
+                        const opt = document.createElement('option');
+                        opt.value = col; opt.textContent = col;
+                        if (col === prev || (!prev && isLabel && col === titleField)) opt.selected = true;
+                        sel.appendChild(opt);
+                    }
+                });
+            });
+            populateDesireDestValues();
+
+            // Origin category filter — show only when a Color By field exists with values
+            const catWrap = document.getElementById('desireOriginCatWrap');
+            const catSel = document.getElementById('desireOriginCat');
+            catSel.innerHTML = '<option value="">All points</option>';
+            if (colorField) {
+                const cats = [...new Set(csvData.map(r => String(r[colorField]||'')).filter(v=>v))].sort();
+                cats.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat; opt.textContent = cat;
+                    catSel.appendChild(opt);
+                });
+                if (catWrap) catWrap.style.display = cats.length > 1 ? 'block' : 'none';
+            } else {
+                if (catWrap) catWrap.style.display = 'none';
+            }
+
+            // Show/hide 'Match category colour' option in colour mode dropdown
+            const catOption = document.getElementById('desireColorCatOption');
+            if (catOption) catOption.style.display = colorField ? '' : 'none';
+        }
+
+        function populateDesireDestValues() {
+            const field = document.getElementById('desireDestField').value;
+            const sel = document.getElementById('desireDestValue');
+            sel.innerHTML = '<option value="">Choose...</option>';
+            if (!field || !csvData.length) return;
+            [...new Set(csvData.map(r => String(r[field]||'')).filter(v=>v))].sort().forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v; opt.textContent = v;
+                sel.appendChild(opt);
+            });
+        }
+
+        function drawDesireLines() {
+            if (!csvData.length) { alert('Load some data first.'); return; }
+            const latCol = document.getElementById('latColumn').value;
+            const lonCol = document.getElementById('lonColumn').value;
+            if (!latCol || !lonCol) { alert('Select latitude and longitude columns first.'); return; }
+
+            const colorMode = document.getElementById('desireColorMode').value;
+            const widthMode = document.getElementById('desireWidthMode').value;
+            const fixedColor = document.getElementById('desireLineColor').value;
+            const widthMin = parseFloat(document.getElementById('desireLineWidthMin').value) || 0.8;
+            const widthMax = parseFloat(document.getElementById('desireLineWidthMax').value) || 6;
+            const opacity = (parseInt(document.getElementById('desireOpacity').value) || 100) / 100;
+            const filterCat = document.getElementById('desireOriginCat').value;
+            const colorField = document.getElementById('colorByField').value;
+            const pathModeEl = document.getElementById('desirePathMode');
+            const pathMode = pathModeEl ? pathModeEl.value : 'straight';
+            console.log('[DesireLines] pathMode =', pathMode, '| straight means straight lines');
+            const widthField = document.getElementById('desireWidthField').value;
+            const labelField = document.getElementById('desireLabelField').value;
+            const titleField = (document.getElementById('titleField')||{}).value || '';
+            const mergeOrigins = document.getElementById('desireGroupOrigins').checked;
+            const destLabelInput = (document.getElementById('desireDestLabel')||{}).value || '';
+            // Pre-compute colour-by-field values
+            const desireColorFieldVal = colorMode === 'field' ? (document.getElementById('desireColorField')||{}).value || '' : '';
+            const desireColorFieldValues = desireColorFieldVal
+                ? [...new Set(csvData.map(r => String(r[desireColorFieldVal]||'').trim()).filter(v=>v))].sort()
+                : [];
+
+            // Helper: get label for a row
+            const getLabel = (row) => {
+                if (labelField && row[labelField]) return String(row[labelField]);
+                if (titleField && row[titleField]) return String(row[titleField]);
+                return null;
+            };
+
+            // Remove preview marker (real marker will be drawn in the layer group)
+            if (typeof desirePreviewMarker !== 'undefined' && desirePreviewMarker) {
+                map.removeLayer(desirePreviewMarker);
+                desirePreviewMarker = null;
+            }
+            if (desireLayerGroup) { desireLayerGroup.clearLayers(); desireLayerGroup = null; }
+            desireLayerGroup = L.layerGroup().addTo(map);
+
+            // ── MULTI-DESTINATION MODE ──────────────────────────────────────────
+            if (currentDesireDestMode === 'multi') {
+                const multiDestField = document.getElementById('desireMultiDestField').value;
+                const multiNameField = document.getElementById('desireMultiNameField').value;
+                if (!multiDestField || !multiNameField) { alert('Choose both the "Goes to" column and the Name/lookup column.'); return; }
+
+                // Build lookup: name → {lat, lng}
+                const lookup = {};
+                csvData.forEach(row => {
+                    const name = String(row[multiNameField]||'').trim();
+                    const lat = parseFloat(row[latCol]);
+                    const lng = parseFloat(row[lonCol]);
+                    if (name && !isNaN(lat) && !isNaN(lng)) lookup[name] = {lat, lng};
+                });
+
+                const allDestVals = [...new Set(csvData.map(r => String(r[multiDestField]||'').trim()).filter(v=>v))].sort();
+                const destColorMap = {};
+                allDestVals.forEach((v,i) => { destColorMap[v] = DESIRE_PALETTE[i % DESIRE_PALETTE.length]; });
+
+                let lineCount = 0;
+                const destMarkers = {};
+
+                csvData.forEach(row => {
+                    const oLat = parseFloat(row[latCol]);
+                    const oLng = parseFloat(row[lonCol]);
+                    if (isNaN(oLat)||isNaN(oLng)) return;
+                    const destVal = String(row[multiDestField]||'').trim();
+                    if (!destVal) return;
+                    const dest = lookup[destVal];
+                    if (!dest) return;
+                    if (Math.abs(oLat-dest.lat)<0.0001 && Math.abs(oLng-dest.lng)<0.0001) return;
+
+                    const lineColor = destColorMap[destVal] || fixedColor;
+                    const pts = pathMode === 'arc' ? greatCirclePoints(oLat,oLng,dest.lat,dest.lng) : [[oLat,oLng],[dest.lat,dest.lng]];
+                    const originLabel = getLabel(row) || destVal;
+                    const dist = haversineKm(oLat,oLng,dest.lat,dest.lng);
+
+                    L.polyline(pts, { color: lineColor, weight: widthMax, opacity, smoothFactor: 1 })
+                        .bindTooltip('<strong>' + originLabel + '</strong> → ' + destVal + '<br>' + dist.toFixed(1) + ' km',
+                            {sticky:true, className:'desire-tooltip'})
+                        .addTo(desireLayerGroup);
+                    lineCount++;
+
+                    if (!destMarkers[destVal]) {
+                        destMarkers[destVal] = true;
+                        L.circleMarker([dest.lat,dest.lng], {
+                            radius: 8, fillColor: lineColor, color: 'white',
+                            weight: 2, opacity: 1, fillOpacity: 0.95
+                        }).bindTooltip('<strong>📍 ' + destVal + '</strong>', {permanent:false, className:'desire-tooltip'}).addTo(desireLayerGroup);
+                    }
+                });
+
+                const summary = document.getElementById('desireSummary');
+                summary.style.display = 'block';
+                summary.innerHTML = '<strong>' + lineCount + '</strong> desire lines to <strong>' + Object.keys(destMarkers).length + '</strong> destinations';
+                return;
+            }
+
+            // ── SINGLE DESTINATION MODE (click or from data) ─────────────────────
+            let destLat, destLng, destDisplayLabel;
+            if (currentDesireDestMode === 'click') {
+                if (!desireClickedDest) { alert('Click "Click map to set destination" first, or use the Search tool.'); return; }
+                destLat = desireClickedDest.lat;
+                destLng = desireClickedDest.lng;
+                destDisplayLabel = destLabelInput || ('📍 ' + destLat.toFixed(4) + ', ' + destLng.toFixed(4));
+            } else {
+                const destField = document.getElementById('desireDestField').value;
+                const destValue = document.getElementById('desireDestValue').value;
+                if (!destField || !destValue) { alert('Choose a destination field and value.'); return; }
+                const destRow = csvData.find(r => String(r[destField]||'') === destValue);
+                if (!destRow) { alert('Destination value not found in data.'); return; }
+                destLat = parseFloat(destRow[latCol]);
+                destLng = parseFloat(destRow[lonCol]);
+                if (isNaN(destLat)||isNaN(destLng)) { alert('Destination row has invalid coordinates.'); return; }
+                destDisplayLabel = destLabelInput || destValue;
+            }
+
+            // Filter origins
+            let origins = csvData.filter(row => {
+                const lat = parseFloat(row[latCol]), lng = parseFloat(row[lonCol]);
+                if (isNaN(lat)||isNaN(lng)) return false;
+                // Always exclude the destination point itself (if from data mode)
+                if (currentDesireDestMode === 'data' && Math.abs(lat-destLat)<0.0001 && Math.abs(lng-destLng)<0.0001) return false;
+                // Category filter
+                if (filterCat && colorField && String(row[colorField]||'') !== filterCat) return false;
+                return true;
+            });
+
+            if (!origins.length) { alert('No origin points found.'); return; }
+
+            // Merge rows with same origin location — sum only the width field, preserve all other values from first row
+            if (mergeOrigins) {
+                const seen = new Map();
+                origins.forEach(row => {
+                    const key = parseFloat(row[latCol]).toFixed(5) + ',' + parseFloat(row[lonCol]).toFixed(5);
+                    if (!seen.has(key)) {
+                        // First time seeing this origin: store a copy with a sum accumulator
+                        const entry = { ...row, _count: 1, _widthSum: widthField ? (parseFloat(row[widthField]) || 0) : 0 };
+                        seen.set(key, entry);
+                    } else {
+                        // Same origin seen again: accumulate only the width field
+                        const existing = seen.get(key);
+                        existing._count++;
+                        if (widthField) {
+                            existing._widthSum += (parseFloat(row[widthField]) || 0);
+                        }
+                        // For the label field, concatenate if different (e.g. "Belgium" stays "Belgium" since all same)
+                    }
+                });
+                // Build final origins: lat/lng from first row (correct), width field = summed value
+                origins = [...seen.values()].map(entry => {
+                    const result = { ...entry };
+                    if (widthField && entry._count > 1) {
+                        result[widthField] = entry._widthSum;
+                    }
+                    return result;
+                });
+            }
+
+            // Pre-calculate distances
+            const distances = origins.map(row => haversineKm(parseFloat(row[latCol]),parseFloat(row[lonCol]),destLat,destLng));
+            const maxDist = Math.max(...distances);
+            const minDist = Math.min(...distances.filter(d=>d>0)) || 0.001;
+
+            // Pre-calculate field values for width-by-field
+            let fieldVals = [], maxFieldVal = 1, minFieldVal = 0;
+            if (widthMode === 'field' && widthField) {
+                fieldVals = origins.map(row => parseFloat(row[widthField]) || 0);
+                maxFieldVal = Math.max(...fieldVals) || 1;
+                minFieldVal = Math.min(...fieldVals) || 0;
+            }
+
+            origins.forEach((row, i) => {
+                const oLat = parseFloat(row[latCol]);
+                const oLng = parseFloat(row[lonCol]);
+                const dist = distances[i];
+
+                // Colour
+                let lineColor = fixedColor;
+                if (colorMode === 'field' && desireColorFieldVal) {
+                    const fieldVal = String(row[desireColorFieldVal]||'').trim();
+                    const fieldIdx = desireColorFieldValues.indexOf(fieldVal);
+                    lineColor = fieldIdx >= 0 ? DESIRE_PALETTE[fieldIdx % DESIRE_PALETTE.length] : fixedColor;
+                } else if (colorMode === 'destination' && currentDesireDestMode === 'multi') {
+                    // handled in multi-dest block above
+                }
+
+                // Width (scaled between widthMin and widthMax)
+                let lineWeight;
+                if (widthMode === 'closer' && maxDist > minDist) {
+                    const norm = 1 - ((dist - minDist)/(maxDist-minDist));
+                    lineWeight = widthMin + norm * (widthMax - widthMin);
+                } else if (widthMode === 'further' && maxDist > minDist) {
+                    const norm = (dist - minDist)/(maxDist-minDist);
+                    lineWeight = widthMin + norm * (widthMax - widthMin);
+                } else if (widthMode === 'field' && widthField && fieldVals.length) {
+                    const val = fieldVals[i];
+                    const norm = maxFieldVal > minFieldVal ? (val - minFieldVal)/(maxFieldVal - minFieldVal) : 1;
+                    lineWeight = widthMin + norm * (widthMax - widthMin);
+                } else {
+                    lineWeight = widthMax; // fixed = use max width
+                }
+
+                const pts = pathMode === 'arc' ? greatCirclePoints(oLat,oLng,destLat,destLng) : [[oLat,oLng],[destLat,destLng]];
+                const originLabel = getLabel(row) || ('Origin ' + (i+1));
+                const fieldPart = (widthMode === 'field' && widthField && row[widthField] !== undefined)
+                    ? '<br>' + widthField + ': ' + row[widthField] : '';
+
+                L.polyline(pts, { color: lineColor, weight: Math.max(widthMin, lineWeight), opacity, smoothFactor: 1 })
+                    .bindTooltip('<strong>' + originLabel + '</strong><br>' + dist.toFixed(1) + ' km' + fieldPart,
+                        {sticky:true, className:'desire-tooltip'})
+                    .addTo(desireLayerGroup);
+            });
+
+            // Destination marker
+            const destMarkerColor = (document.getElementById('desireDestMarkerColor')||{}).value || '#f50057';
+            L.circleMarker([destLat,destLng], {
+                radius: 9, fillColor: destMarkerColor, color: 'white',
+                weight: 2.5, opacity: opacity, fillOpacity: 0.95 * opacity
+            }).bindTooltip('<strong>📍 ' + (destDisplayLabel || 'Destination') + '</strong>', {permanent:false, className:'desire-tooltip'}).addTo(desireLayerGroup);
+
+            const avgDist = distances.reduce((a,b)=>a+b,0)/distances.length;
+            const summary = document.getElementById('desireSummary');
+            summary.style.display = 'block';
+            summary.innerHTML = '<strong>' + origins.length + '</strong> lines &nbsp;|&nbsp; Avg: <strong>'
+                + avgDist.toFixed(1) + ' km</strong> &nbsp;|&nbsp; Max: <strong>' + maxDist.toFixed(1) + ' km</strong>';
+        }
+
+                function clearDesireLines() {
+            if (desireLayerGroup) { desireLayerGroup.clearLayers(); desireLayerGroup = null; }
+            if (desirePreviewMarker) { map.removeLayer(desirePreviewMarker); desirePreviewMarker = null; }
+            const s = document.getElementById('desireSummary');
+            if (s) s.style.display = 'none';
+        }
+        // ── END DESIRE LINES ────────────────────────────────────────────────────
+
+        // ── SURVEY POINTS ──────────────────────────────────────────────────────
+        let surveyActive = false;
+        let surveyPoints = [];      // [{lat, lng, label, marker}]
+        let surveyLayerGroup = null;
+
+        function haversineKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 +
+                      Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
+                      Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function toggleSurveyMode() {
+            surveyActive = !surveyActive;
+            const btn = document.getElementById('surveyToggleBtn');
+            const ind = document.getElementById('surveyModeIndicator');
+            if (surveyActive) {
+                btn.textContent = '⏹ Stop Survey';
+                btn.style.background = '#e53935';
+                ind.style.display = 'block';
+                map.on('click', surveyMapClick);
+                // Turn off coord tracking if active
+                const coordCb = document.getElementById('coordTrackingEnabled');
+                if (coordCb && coordCb.checked) { coordCb.checked = false; toggleCoordTracking(); }
+                map.getContainer().style.cursor = 'crosshair';
+            } else {
+                btn.textContent = '▶ Start Survey';
+                btn.style.background = '#4caf50';
+                ind.style.display = 'none';
+                map.off('click', surveyMapClick);
+                map.getContainer().style.cursor = '';
+            }
+        }
+
+        function surveyMapClick(e) {
+            if (!surveyActive) return;
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const idx = surveyPoints.length;
+            const label = 'Point ' + (idx + 1);
+
+            // Numbered circle marker
+            const icon = L.divIcon({
+                className: '',
+                html: '<div style="width:26px;height:26px;background:#4caf50;border:2px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,0.4);">' + (idx+1) + '</div>',
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+
+            if (!surveyLayerGroup) {
+                surveyLayerGroup = L.layerGroup().addTo(map);
+            }
+
+            const marker = L.marker([lat, lng], { icon: icon, zIndexOffset: 900 })
+                .bindTooltip(label, { permanent: false, direction: 'top' })
+                .addTo(surveyLayerGroup);
+
+            // Click marker to rename
+            marker.on('click', function(ev) {
+                L.DomEvent.stopPropagation(ev);
+                const pt = surveyPoints.find(p => p.marker === marker);
+                if (!pt) return;
+                const newLabel = prompt('Rename point:', pt.label);
+                if (newLabel !== null && newLabel.trim() !== '') {
+                    pt.label = newLabel.trim();
+                    // Update numbered icon to show label on hover
+                    marker.setTooltipContent(pt.label);
+                    renderSurveyTable();
+                }
+            });
+
+            surveyPoints.push({ lat, lng, label, marker });
+            renderSurveyTable();
+        }
+
+        function deleteSurveyPoint(idx) {
+            const pt = surveyPoints[idx];
+            if (pt && pt.marker && surveyLayerGroup) {
+                surveyLayerGroup.removeLayer(pt.marker);
+            }
+            surveyPoints.splice(idx, 1);
+            // Renumber remaining markers
+            surveyPoints.forEach((p, i) => {
+                const icon = L.divIcon({
+                    className: '',
+                    html: '<div style="width:26px;height:26px;background:#4caf50;border:2px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,0.4);">' + (i+1) + '</div>',
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 13]
+                });
+                p.marker.setIcon(icon);
+            });
+            renderSurveyTable();
+        }
+
+        function renderSurveyTable() {
+            const tbody = document.getElementById('surveyTableBody');
+            const wrap = document.getElementById('surveyTableWrap');
+            const summary = document.getElementById('surveySummary');
+            const exportBtn = document.getElementById('surveyExportBtn');
+            const copyBtn = document.getElementById('surveyCopyBtn');
+
+            if (surveyPoints.length === 0) {
+                wrap.style.display = 'none';
+                summary.style.display = 'none';
+                exportBtn.style.display = 'none';
+                copyBtn.style.display = 'none';
+                return;
+            }
+
+            wrap.style.display = 'block';
+            exportBtn.style.display = 'block';
+            copyBtn.style.display = 'block';
+
+            let cumDist = 0;
+            let rows = '';
+            surveyPoints.forEach((pt, i) => {
+                let segDist = 0;
+                if (i > 0) {
+                    const prev = surveyPoints[i-1];
+                    segDist = haversineKm(prev.lat, prev.lng, pt.lat, pt.lng);
+                    cumDist += segDist;
+                }
+                const bgCol = i % 2 === 0 ? '#f9fbe7' : '#ffffff';
+                rows += `<tr style="background:${bgCol}">
+                    <td style="padding:3px 5px; color:#2e7d32; font-weight:700;">${i+1}</td>
+                    <td style="padding:3px 5px;">
+                        <input type="text" value="${pt.label}"
+                            onchange="surveyPoints[${i}].label=this.value"
+                            style="border:none;background:transparent;width:100%;font-size:0.72rem;cursor:text;"
+                            title="Click to rename">
+                    </td>
+                    <td style="padding:3px 5px; text-align:right; font-family:monospace;">${pt.lat.toFixed(5)}</td>
+                    <td style="padding:3px 5px; text-align:right; font-family:monospace;">${pt.lng.toFixed(5)}</td>
+                    <td style="padding:3px 5px; text-align:right; color:#555;">${i===0 ? '—' : segDist.toFixed(3)}</td>
+                    <td style="padding:3px 2px; text-align:center;">
+                        <button onclick="deleteSurveyPoint(${i})"
+                            style="border:none;background:#ffcdd2;color:#c62828;border-radius:3px;cursor:pointer;padding:1px 5px;font-size:0.68rem;"
+                            title="Remove point">✕</button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = rows;
+
+            // Summary line
+            const totalDist = surveyPoints.length > 1
+                ? surveyPoints.reduce((acc, pt, i) => {
+                    if (i === 0) return 0;
+                    return acc + haversineKm(surveyPoints[i-1].lat, surveyPoints[i-1].lng, pt.lat, pt.lng);
+                  }, 0)
+                : 0;
+            summary.style.display = 'block';
+            summary.innerHTML = `<strong>${surveyPoints.length}</strong> point${surveyPoints.length>1?'s':''} &nbsp;|&nbsp; Total distance: <strong>${totalDist.toFixed(3)} km</strong> &nbsp;(${(totalDist*1000).toFixed(0)} m)`;
+        }
+
+        function buildSurveyCSV() {
+            const lines = ['Sequence,Label,Latitude,Longitude,Segment length (km),Cumulative length (km)'];
+            let cumDist = 0;
+            surveyPoints.forEach((pt, i) => {
+                let segDist = 0;
+                if (i > 0) {
+                    segDist = haversineKm(surveyPoints[i-1].lat, surveyPoints[i-1].lng, pt.lat, pt.lng);
+                    cumDist += segDist;
+                }
+                const labelClean = pt.label.replace(/"/g, '""');
+                lines.push(`${i+1},"${labelClean}",${pt.lat.toFixed(6)},${pt.lng.toFixed(6)},${i===0?'':segDist.toFixed(4)},${cumDist.toFixed(4)}`);
+            });
+            return lines.join('\n');
+        }
+
+        function exportSurveyCSV() {
+            if (surveyPoints.length === 0) return;
+            const csv = buildSurveyCSV();
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const date = new Date().toISOString().slice(0,10);
+            const titleRaw = (document.getElementById('surveyTitle').value || '').trim();
+            const titleSlug = titleRaw ? titleRaw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' : '';
+            a.download = 'survey-' + titleSlug + date + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function copySurveyCSV() {
+            if (surveyPoints.length === 0) return;
+            navigator.clipboard.writeText(buildSurveyCSV()).then(() => {
+                const btn = document.getElementById('surveyCopyBtn');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.style.background = '#2e7d32';
+                setTimeout(() => { btn.textContent = orig; btn.style.background = '#00838f'; }, 1800);
+            });
+        }
+
+        function clearSurveyPoints() {
+            if (surveyPoints.length > 0 && !confirm('Clear all ' + surveyPoints.length + ' survey point' + (surveyPoints.length>1?'s':'') + '?')) return;
+            if (surveyLayerGroup) surveyLayerGroup.clearLayers();
+            surveyPoints = [];
+            renderSurveyTable();
+        }
+        // ── END SURVEY POINTS ───────────────────────────────────────────────────
+
         let georeferenceMarker = null; // Persistent marker for georeference
         
         function startDistanceMeasurement() {
@@ -13675,6 +14797,8 @@ Total rows: ${csvData.length}${corsNote}`);
                 document.getElementById('coordTrackingEnabled').checked = false;
                 return;
             }
+            // Stop survey mode if active
+            if (surveyActive) { surveyActive = false; map.off('click', surveyMapClick); map.getContainer().style.cursor = ''; document.getElementById('surveyToggleBtn').textContent = '▶ Start Survey'; document.getElementById('surveyToggleBtn').style.background = '#4caf50'; document.getElementById('surveyModeIndicator').style.display = 'none'; }
             
             coordTrackingActive = document.getElementById('coordTrackingEnabled').checked;
             const mapContainer = document.getElementById('map');
@@ -16889,7 +18013,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.35 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.48 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -16922,6 +18046,285 @@ Press OK to copy full config to console.`;
                 }, 500);
             }, 300);
         });
-    </script>
+    
+        // === HEX COLOUR PICKER ENHANCEMENT ===
+        // Adds a copyable/pasteable hex text input beside every colour picker
+        function enhanceColorPickers() {
+            document.querySelectorAll('input[type="color"]').forEach(picker => {
+                // Skip if already enhanced
+                if (picker.dataset.enhanced) return;
+                picker.dataset.enhanced = 'true';
+                
+                // Create wrapper
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+                picker.parentNode.insertBefore(wrap, picker);
+                wrap.appendChild(picker);
+                
+                // Create hex text input
+                const hex = document.createElement('input');
+                hex.type = 'text';
+                hex.value = picker.value;
+                hex.maxLength = 7;
+                hex.spellcheck = false;
+                hex.style.cssText = 'width:72px;font-size:0.72rem;font-family:monospace;padding:2px 4px;border:1px solid #ccc;border-radius:3px;background:#fff;color:#333;';
+                hex.title = 'Type or paste hex colour';
+                wrap.appendChild(hex);
+                
+                // Sync picker → text
+                picker.addEventListener('input', () => { hex.value = picker.value; });
+                picker.addEventListener('change', () => { hex.value = picker.value; });
+                
+                // Sync text → picker
+                hex.addEventListener('input', () => {
+                    const val = hex.value.trim();
+                    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                        picker.value = val;
+                        picker.dispatchEvent(new Event('input', {bubbles: true}));
+                        picker.dispatchEvent(new Event('change', {bubbles: true}));
+                        hex.style.borderColor = '#ccc';
+                    } else {
+                        hex.style.borderColor = val.length > 1 ? '#e74c3c' : '#ccc';
+                    }
+                });
+                hex.addEventListener('paste', (e) => {
+                    setTimeout(() => {
+                        let val = hex.value.trim();
+                        if (!val.startsWith('#')) val = '#' + val;
+                        hex.value = val.substring(0, 7);
+                        hex.dispatchEvent(new Event('input'));
+                    }, 0);
+                });
+            });
+        }
+
+        // Run on load and after dynamic content is added
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(enhanceColorPickers, 500);
+            setTimeout(enhanceColorPickers, 1500);
+            setTimeout(enhanceColorPickers, 3000);
+            // Re-run when any details/summary opens
+            document.addEventListener('toggle', () => setTimeout(enhanceColorPickers, 100), true);
+            // MutationObserver for dynamically added colour pickers
+            const obs = new MutationObserver(() => setTimeout(enhanceColorPickers, 50));
+            obs.observe(document.body, {childList: true, subtree: true});
+        });
+        // Also expose for manual call after dynamic sections open
+        window._enhanceColorPickers = enhanceColorPickers;
+
+
+        // ========================================
+        // COMPARE LAYERS (SWIPE) — native CSS clip, no plugin needed
+        // ========================================
+        
+        function _buildCompareTile(key) {
+            const cfg = basemaps[key];
+            if (!cfg) return null;
+            return L.tileLayer(cfg.url, {
+                attribution: cfg.attribution,
+                maxZoom: cfg.maxZoom || 19,
+                maxNativeZoom: cfg.maxNativeZoom || cfg.maxZoom || 19,
+                updateWhenIdle: false, keepBuffer: 4,
+                updateWhenZooming: false, updateInterval: 200
+            });
+        }
+        
+        function _updateDividerClip(xPx) {
+            // Clip the RIGHT layer so it only shows to the right of xPx
+            if (!_compareLayerRight) return;
+            const container = _compareLayerRight.getContainer ? _compareLayerRight.getContainer() : null;
+            const pane = map.getPane('tilePane');
+            if (!pane) return;
+            // Find the right layer's tile container within the pane
+            const tiles = pane.querySelectorAll('.leaflet-layer');
+            // The right layer was added second, so pick last tile layer
+            tiles.forEach((t, i) => {
+                if (i === tiles.length - 1) {
+                    // clip: show only pixels to the RIGHT of xPx
+                    const h = map.getContainer().offsetHeight;
+                    const w = map.getContainer().offsetWidth;
+                    t.style.clip = `rect(0px, ${w}px, ${h}px, ${xPx}px)`;
+                }
+            });
+            // Move the divider line
+            const divider = document.getElementById('_compareDivider');
+            if (divider) divider.style.left = xPx + 'px';
+            // Move labels
+            const lblL = document.getElementById('_compareLabLeft');
+            const lblR = document.getElementById('_compareLabRight');
+            if (lblL) lblL.style.left = Math.max(8, xPx - 120) + 'px';
+            if (lblR) lblR.style.left = (xPx + 8) + 'px';
+        }
+
+        function startCompareMode() {
+            if (window._compareMode) stopCompareMode();
+            
+            const leftKey  = document.getElementById('compareLeftSelect').value;
+            const rightKey = document.getElementById('compareRightSelect').value;
+            if (!leftKey || !rightKey) { alert('Please select both layers.'); return; }
+            
+            _compareLayerLeft  = _buildCompareTile(leftKey);
+            _compareLayerRight = _buildCompareTile(rightKey);
+            if (!_compareLayerLeft || !_compareLayerRight) { alert('Could not build layers.'); return; }
+            
+            // Hide existing basemap
+            if (currentBasemap) map.removeLayer(currentBasemap);
+            if (labelsLayer)    { map.removeLayer(labelsLayer); }
+            
+            // Add left layer first (bottom), then right layer on top
+            _compareLayerLeft.addTo(map);
+            _compareLayerRight.addTo(map);
+            
+            // Build the divider UI
+            const mapEl = map.getContainer();
+            const w = mapEl.offsetWidth;
+            let xPx = Math.round(w / 2);
+            
+            // Create divider line + handle
+            const divider = document.createElement('div');
+            divider.id = '_compareDivider';
+            divider.style.cssText = [
+                'position:absolute', 'top:0', 'bottom:0', `left:${xPx}px`,
+                'width:3px', 'background:rgba(255,255,255,0.9)',
+                'box-shadow:0 0 6px rgba(0,0,0,0.5)',
+                'cursor:ew-resize', 'z-index:900', 'user-select:none'
+            ].join(';');
+            
+            // Handle grip in the middle
+            const grip = document.createElement('div');
+            grip.style.cssText = [
+                'position:absolute', 'top:50%', 'left:50%',
+                'transform:translate(-50%,-50%)',
+                'width:36px', 'height:36px', 'border-radius:50%',
+                'background:white', 'border:2px solid #888',
+                'display:flex', 'align-items:center', 'justify-content:center',
+                'font-size:16px', 'box-shadow:0 1px 4px rgba(0,0,0,0.4)',
+                'cursor:ew-resize', 'user-select:none'
+            ].join(';');
+            grip.textContent = '↔';
+            divider.appendChild(grip);
+            
+            // Layer name labels
+            const lblL = document.createElement('div');
+            lblL.id = '_compareLabLeft';
+            const leftLabel = document.getElementById('compareLeftSelect').options[document.getElementById('compareLeftSelect').selectedIndex].text;
+            lblL.textContent = '← ' + leftLabel;
+            lblL.style.cssText = [
+                'position:absolute', 'top:12px', `left:${Math.max(8,xPx-120)}px`,
+                'background:rgba(0,0,0,0.6)', 'color:white',
+                'padding:3px 8px', 'border-radius:4px',
+                'font-size:11px', 'pointer-events:none', 'z-index:901',
+                'white-space:nowrap', 'max-width:200px',
+                'overflow:hidden', 'text-overflow:ellipsis'
+            ].join(';');
+            
+            const lblR = document.createElement('div');
+            lblR.id = '_compareLabRight';
+            const rightLabel = document.getElementById('compareRightSelect').options[document.getElementById('compareRightSelect').selectedIndex].text;
+            lblR.textContent = rightLabel + ' →';
+            lblR.style.cssText = [
+                'position:absolute', 'top:12px', `left:${xPx+8}px`,
+                'background:rgba(0,0,0,0.6)', 'color:white',
+                'padding:3px 8px', 'border-radius:4px',
+                'font-size:11px', 'pointer-events:none', 'z-index:901',
+                'white-space:nowrap', 'max-width:200px',
+                'overflow:hidden', 'text-overflow:ellipsis'
+            ].join(';');
+            
+            mapEl.style.position = 'relative';
+            mapEl.appendChild(divider);
+            mapEl.appendChild(lblL);
+            mapEl.appendChild(lblR);
+            
+            // Apply initial clip
+            setTimeout(() => _updateDividerClip(xPx), 200);
+            
+            // Drag logic
+            let dragging = false;
+            divider.addEventListener('mousedown', (e) => {
+                dragging = true;
+                e.preventDefault();
+                map.dragging.disable();
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const rect = mapEl.getBoundingClientRect();
+                xPx = Math.max(10, Math.min(mapEl.offsetWidth - 10, e.clientX - rect.left));
+                _updateDividerClip(xPx);
+            });
+            document.addEventListener('mouseup', () => {
+                if (dragging) { dragging = false; map.dragging.enable(); }
+            });
+            // Touch support
+            divider.addEventListener('touchstart', (e) => {
+                dragging = true;
+                map.dragging.disable();
+            }, {passive: true});
+            document.addEventListener('touchmove', (e) => {
+                if (!dragging || !e.touches[0]) return;
+                const rect = mapEl.getBoundingClientRect();
+                xPx = Math.max(10, Math.min(mapEl.offsetWidth - 10, e.touches[0].clientX - rect.left));
+                _updateDividerClip(xPx);
+            }, {passive: true});
+            document.addEventListener('touchend', () => {
+                if (dragging) { dragging = false; map.dragging.enable(); }
+            });
+            
+            // Re-clip on map move/resize to keep correct position
+            map.on('move zoom resize', () => _updateDividerClip(xPx));
+            
+            window._compareMode = true;
+            window._compareDividerX = xPx;
+            
+            document.getElementById('compareStartBtn').style.display = 'none';
+            document.getElementById('compareStopBtn').style.display  = 'block';
+            document.getElementById('compareActiveMsg').style.display = 'block';
+        }
+        
+        function stopCompareMode() {
+            if (!window._compareMode) return;
+            
+            // Remove divider UI
+            const d = document.getElementById('_compareDivider');
+            const ll = document.getElementById('_compareLabLeft');
+            const lr = document.getElementById('_compareLabRight');
+            if (d)  d.remove();
+            if (ll) ll.remove();
+            if (lr) lr.remove();
+            
+            // Remove clip from any tile layers
+            const pane = map.getPane('tilePane');
+            if (pane) pane.querySelectorAll('.leaflet-layer').forEach(t => t.style.clip = '');
+            
+            // Remove map event listeners
+            map.off('move zoom resize');
+            
+            if (_compareLayerLeft)  { try { map.removeLayer(_compareLayerLeft);  } catch(e) {} _compareLayerLeft  = null; }
+            if (_compareLayerRight) { try { map.removeLayer(_compareLayerRight); } catch(e) {} _compareLayerRight = null; }
+            
+            // Restore regular basemap
+            const selectedBasemap = document.getElementById('basemapSelect').value || 'osm';
+            const cfg = basemaps[selectedBasemap];
+            if (cfg) {
+                currentBasemap = L.tileLayer(cfg.url, {
+                    attribution: cfg.attribution,
+                    maxZoom: cfg.maxZoom || 19,
+                    maxNativeZoom: cfg.maxNativeZoom,
+                    updateWhenIdle: false, keepBuffer: 4
+                }).addTo(map);
+            }
+            
+            window._compareMode = false;
+            
+            document.getElementById('compareStartBtn').style.display = 'block';
+            document.getElementById('compareStopBtn').style.display  = 'none';
+            document.getElementById('compareActiveMsg').style.display = 'none';
+        }
+        
+        function updateCompareLayerA(newBasemapKey) {
+            // No-op during compare — user manages via compare panel directly
+        }
+
+        </script>
 </body>
 </html>
