@@ -1543,6 +1543,9 @@
                         <option value="nls-25inch-essex">🗺️ OS 25-inch Essex</option>
                         <option value="nls-25inch-sussex">🗺️ OS 25-inch Sussex</option>
                         <option value="nls-25inch-yorkshire">🗺️ OS 25-inch Yorkshire</option>
+                        <option value="nls-25inch-shrop-derby">🗺️ OS 25-inch Shropshire & Derbyshire</option>
+                        <option value="nls-25inch-cheshire">🗺️ OS 25-inch Cheshire</option>
+                        <option value="nls-25inch-wales">🗺️ OS 25-inch Wales</option>
                         </optgroup>
                         <option value="nls-os6inch-kent">🗺️ OS 6-inch Kent (1843–82) — Kent</option>
                         <option value="nls-london-1940s">🗺️ OS 1:1,250 London (1940s–60s) — London/SE</option>
@@ -1718,6 +1721,9 @@
                                 <option value="nls-25inch-essex">OS 25-inch Essex</option>
                                 <option value="nls-25inch-sussex">OS 25-inch Sussex</option>
                                 <option value="nls-25inch-yorkshire">OS 25-inch Yorkshire</option>
+                                <option value="nls-25inch-shrop-derby">OS 25-inch Shropshire & Derbyshire</option>
+                                <option value="nls-25inch-cheshire">OS 25-inch Cheshire</option>
+                                <option value="nls-25inch-wales">OS 25-inch Wales</option>
                                 </optgroup>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
@@ -1748,6 +1754,9 @@
                                 <option value="nls-25inch-essex">OS 25-inch Essex</option>
                                 <option value="nls-25inch-sussex">OS 25-inch Sussex</option>
                                 <option value="nls-25inch-yorkshire">OS 25-inch Yorkshire</option>
+                                <option value="nls-25inch-shrop-derby">OS 25-inch Shropshire & Derbyshire</option>
+                                <option value="nls-25inch-cheshire">OS 25-inch Cheshire</option>
+                                <option value="nls-25inch-wales">OS 25-inch Wales</option>
                                 </optgroup>
                                 <option value="nls-os6inch-kent">OS 6-inch Kent (1843–82)</option>
                                 <option value="nls-london-1940s">OS 1:1,250 London (1940s–60s)</option>
@@ -3780,6 +3789,27 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 maxZoom: 20, maxNativeZoom: 18,
                 label: 'OS 25-inch Sussex (1892–1914)',
                 center: [50.95, -0.1], zoom: 13
+            },
+            'nls-25inch-shrop-derby': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/Shrop_Derby/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Shropshire & Derbyshire (1892–1914)',
+                center: [52.7, -2.5], zoom: 13
+            },
+            'nls-25inch-cheshire': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/cheshire/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Cheshire (1892–1914)',
+                center: [53.2, -2.5], zoom: 13
+            },
+            'nls-25inch-wales': {
+                url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/wales/{z}/{x}/{y}.png',
+                attribution: 'Historical map data © <a href="https://maps.nls.uk">National Library of Scotland</a>',
+                maxZoom: 20, maxNativeZoom: 18,
+                label: 'OS 25-inch Wales (1892–1914)',
+                center: [52.3, -3.7], zoom: 12
             },
             'nls-25inch-yorkshire': {
                 url: 'https://mapseries-tilesets.s3.amazonaws.com/25_inch/yorkshire/{z}/{x}/{y}.png',
@@ -18282,7 +18312,10 @@ Press OK to copy full config to console.`;
                 'nls-25inch-middlesex':[[51.55,-0.35], 13],
                 'nls-25inch-essex':    [[51.7,  0.5],  13],
                 'nls-25inch-sussex':   [[50.95,-0.1],  13],
-                'nls-25inch-yorkshire': [[53.8, -1.5],  13],
+                'nls-25inch-yorkshire':    [[53.8, -1.5],  13],
+                'nls-25inch-shrop-derby':  [[52.7, -2.5],  13],
+                'nls-25inch-cheshire':     [[53.2, -2.5],  13],
+                'nls-25inch-wales':        [[52.3, -3.7],  12],
                 'nls-os1inch-2nd':      [[54.5, -3.5],  7],
                 'nls-os6inch-kent':    [[51.2, 0.7],  11],
                 'nls-os10k-gb':        [[54.5, -3.5],  7],
