@@ -3959,6 +3959,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     timeSeriesChartTitle: document.getElementById('timeSeriesChartTitle')?.value || '',
                     drawingPopupWidth: document.getElementById('drawingPopupWidth')?.value || '480',
                     drawingPopupMaxHeight: document.getElementById('drawingPopupMaxHeight')?.value || '0',
+                    // Halo settings
+                    haloEnabled: document.getElementById('haloEnabled')?.checked || false,
+                    haloColor: document.getElementById('haloColor')?.value || '#ffffff',
+                    haloSize: document.getElementById('haloSize')?.value || '12',
+                    haloOpacity: document.getElementById('haloOpacity')?.value || '100',
+                    haloGlow: document.getElementById('haloGlow')?.checked || false,
+                    // Second popup tab settings
+                    enableSecondTab: document.getElementById('enableSecondTab')?.checked || false,
+                    popupTab1Label: document.getElementById('popupTab1Label')?.value || '',
+                    popupTab2Label: document.getElementById('popupTab2Label')?.value || '',
                     // Bookmarks
                     bookmarks: bookmarks,
                     // Drawn features (serialise data only, layers are rebuilt on restore)
@@ -18079,6 +18089,28 @@ Press OK to copy full config to console.`;
                                 console.log('[Chart Restore] ✅ Markers refreshed - charts now active!');
                             }, 100); // Small delay to ensure change events complete
                         }, 1000); // Increased from 500ms to 1000ms for reliability
+                        
+                        // Restore halo settings
+                        if (s.haloEnabled !== undefined) {
+                            const haloElem = document.getElementById('haloEnabled');
+                            if (haloElem) {
+                                haloElem.checked = s.haloEnabled;
+                                const haloControls = document.getElementById('haloControls');
+                                if (haloControls) haloControls.style.display = s.haloEnabled ? 'block' : 'none';
+                            }
+                        }
+                        if (s.haloColor) { const e = document.getElementById('haloColor'); if (e) e.value = s.haloColor; }
+                        if (s.haloSize) { const e = document.getElementById('haloSize'); if (e) e.value = s.haloSize; }
+                        if (s.haloOpacity !== undefined) { const e = document.getElementById('haloOpacity'); if (e) e.value = s.haloOpacity; }
+                        if (s.haloGlow !== undefined) { const e = document.getElementById('haloGlow'); if (e) e.checked = s.haloGlow; }
+                        
+                        // Restore second popup tab settings
+                        if (s.enableSecondTab !== undefined) {
+                            const e = document.getElementById('enableSecondTab');
+                            if (e) e.checked = s.enableSecondTab;
+                        }
+                        if (s.popupTab1Label !== undefined) { const e = document.getElementById('popupTab1Label'); if (e) e.value = s.popupTab1Label; }
+                        if (s.popupTab2Label !== undefined) { const e = document.getElementById('popupTab2Label'); if (e) e.value = s.popupTab2Label; }
                         
                         // Restore bookmarks
                         if (s.drawingPopupWidth) {
