@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
+<!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.57</title>
+    <title>Geo Mapper v2.10.59</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -653,6 +653,13 @@
 
         .leaflet-popup-content {
             margin: 0.75rem;
+        }
+
+        /* When a popup is placed BELOW its marker, flip the tip to point upward */
+        .popup-placed-below .leaflet-popup-tip-container {
+            top: -14px;
+            bottom: auto;
+            transform: rotate(180deg);
         }
 
         .popup-content h3 {
@@ -1495,7 +1502,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.57</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.59</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -3996,6 +4003,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     markerSize: document.getElementById('markerSize')?.value || '10',
                     strokeColor: document.getElementById('strokeColor')?.value || '#2c3e50',
                     strokeWidth: document.getElementById('strokeWidth')?.value || '2',
+                    proportionalMarkerColor: document.getElementById('proportionalMarkerColor')?.value || '#3498db',
+                    proportionalStrokeColor: document.getElementById('proportionalStrokeColor')?.value || '#2c3e50',
+                    proportionalStrokeWidth: document.getElementById('proportionalStrokeWidth')?.value || '2',
                     markerSize2: document.getElementById('markerSize2')?.value || '32',
                     popupTitle: document.getElementById('popupTitle')?.value || '',
                     popupWidth: document.getElementById('popupWidth')?.value || '350',
@@ -4017,6 +4027,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     overlayOpacity: overlayOpacity,
                     colorByField: document.getElementById('colorByField')?.value || '',
                     categoryStyles: categoryStyles,
+                    categoryOrder: categoryOrder.length > 0 ? [...categoryOrder] : [],
                     legendTitles: legendTitles,
                     showInLegend: showInLegend,
                     sizeMethod: document.getElementById('sizeMethod')?.value || 'continuous',
@@ -4077,6 +4088,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     popupTab2Label: document.getElementById('popupTab2Label')?.value || '',
                     // Bookmarks
                     bookmarks: bookmarks,
+                    // Current open popup state (restored on config load)
+                    currentOpenPopups: markers
+                        .filter(m => !m._isHalo && m._rowIndex !== undefined && m.isPopupOpen && m.isPopupOpen())
+                        .map(m => m._rowIndex),
+                    currentOpenDrawingPopups: drawnFeatures
+                        .map((f, i) => (f.layer && f.layer.isPopupOpen && f.layer.isPopupOpen()) ? i : -1)
+                        .filter(i => i >= 0),
                     // Drawn features (serialise data only, layers are rebuilt on restore)
                     drawnFeaturesData: drawnFeatures.map(f => ({
                         type: f.type,
@@ -5454,6 +5472,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     document.getElementById('markerSize').value = s.markerSize;
                     document.getElementById('strokeColor').value = s.strokeColor;
                     document.getElementById('strokeWidth').value = s.strokeWidth;
+                    if (s.proportionalMarkerColor) document.getElementById('proportionalMarkerColor').value = s.proportionalMarkerColor;
+                    if (s.proportionalStrokeColor)  document.getElementById('proportionalStrokeColor').value  = s.proportionalStrokeColor;
+                    if (s.proportionalStrokeWidth !== undefined) document.getElementById('proportionalStrokeWidth').value = s.proportionalStrokeWidth;
                     document.getElementById('markerSize2').value = s.markerSize2;
                     document.getElementById('popupTitle').value = s.popupTitle;
                     document.getElementById('popupWidth').value = s.popupWidth;
@@ -5527,12 +5548,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     // Restore category styles
                     if (s.colorByField) {
                         document.getElementById('colorByField').value = s.colorByField;
-                        if (s.categoryStyles) {
-                            categoryStyles = s.categoryStyles;
+                        if (s.categoryStyles) categoryStyles = s.categoryStyles;
+                        // Restore order before detect so the ordered UI is rendered correctly
+                        if (s.categoryOrder && Array.isArray(s.categoryOrder) && s.categoryOrder.length > 0) {
+                            categoryOrder = [...s.categoryOrder];
+                        } else {
+                            categoryOrder = [];  // let detectAndBuildCategoryLegend rebuild from CSV
                         }
                         setTimeout(() => {
                             detectAndBuildCategoryLegend();
-                            buildCategoryLegendUI();
+                            // NOTE: no bare buildCategoryLegendUI() here — detect already called it with the ordered list
                         }, 300);
                     }
                     
@@ -6343,7 +6368,6 @@ Total rows: ${csvData.length}${corsNote}`);
                 // Trigger the change event to rebuild category legend
                 setTimeout(() => {
                     detectAndBuildCategoryLegend();
-                    buildCategoryLegendUI();
                 }, 100);
             }
             
@@ -7322,24 +7346,33 @@ Total rows: ${csvData.length}${corsNote}`);
                     });
                 }
                 
-                // Restore open popup state — CSV markers
-                if (bookmark.openPopups && bookmark.openPopups.length > 0) {
-                    setTimeout(() => {
-                        bookmark.openPopups.forEach(rowIdx => {
+                // Restore open popups — wait for map animation to finish first.
+                // setView() above starts a pan/zoom animation; a fixed-delay setTimeout
+                // races the animation (popup opens then immediately closes when the
+                // animation completes). map.once('moveend') fires only after everything settles.
+                const _pendingCSVRows     = bookmark.openPopups        || [];
+                const _pendingDrawingIdxs = bookmark.openDrawingPopups || [];
+                if (_pendingCSVRows.length > 0 || _pendingDrawingIdxs.length > 0) {
+                    let _restored = false;
+                    const _doRestorePopups = () => {
+                        if (_restored) return;
+                        _restored = true;
+                        _pendingCSVRows.forEach(rowIdx => {
                             const m = markers.find(mk => !mk._isHalo && mk._rowIndex === rowIdx);
                             if (m) m.openPopup();
                         });
-                    }, 400);
-                }
-
-                // Restore open popup state — drawn features
-                if (bookmark.openDrawingPopups && bookmark.openDrawingPopups.length > 0) {
-                    setTimeout(() => {
-                        bookmark.openDrawingPopups.forEach(idx => {
+                        _pendingDrawingIdxs.forEach(idx => {
                             const f = drawnFeatures[idx];
                             if (f && f.layer && f.layer.openPopup) f.layer.openPopup();
                         });
-                    }, 450);
+                    };
+                    map.once('moveend', _doRestorePopups);
+                    // Fallback: if the map was already at the bookmark position
+                    // and no animation fires, restore after a short delay
+                    setTimeout(() => {
+                        map.off('moveend', _doRestorePopups);
+                        _doRestorePopups();
+                    }, 800);
                 }
                 
                 console.log(`✓ Loaded bookmark: ${bookmark.name}`);
@@ -11045,6 +11078,11 @@ Total rows: ${csvData.length}${corsNote}`);
 
                     popup.options.offset = L.point(offsetX, offsetY);
                     popup.update();
+                    
+                    // Flip tip toward marker when popup is below
+                    if (popup._container) {
+                        popup._container.classList.toggle('popup-placed-below', pos === 'below');
+                    }
                 }, 50);
             });
         }
@@ -14294,12 +14332,18 @@ Total rows: ${csvData.length}${corsNote}`);
                 }
             });
             
-            // Store category order if not already stored
+            // Maintain a stable category order:
+            // • First load (categoryOrder empty): use CSV order.
+            // • Subsequent calls (after reorder/config-restore): keep existing order,
+            //   append any newly-seen categories at the end, drop any that vanished.
             if (categoryOrder.length === 0) {
                 categoryOrder = [...categories];
+            } else {
+                const newCats = categories.filter(c => !categoryOrder.includes(c));
+                categoryOrder = categoryOrder.filter(c => categories.includes(c)).concat(newCats);
             }
             
-            const uniqueCategories = categories;
+            const uniqueCategories = categoryOrder;  // always use the ordered list
             
             if (uniqueCategories.length === 0) {
                 document.getElementById('categoryLegend').style.display = 'none';
@@ -14312,17 +14356,21 @@ Total rows: ${csvData.length}${corsNote}`);
                     categoryStyles[cat] = {
                         symbol: 'circle',
                         color: defaultColorPalette[index % defaultColorPalette.length],
+                        strokeColor: document.getElementById('strokeColor')?.value || '#2c3e50',
                         haloEnabled: false,
-                        haloSize: 2,  // Reduced from 3
+                        haloSize: 2,
                         haloColor: '#ffffff',
                         haloOpacity: 50,
-                        customIconSize: 30  // New: custom icon size control
+                        customIconSize: 30
                     };
+                } else if (!categoryStyles[cat].strokeColor) {
+                    // Back-fill missing strokeColor for styles loaded from older configs
+                    categoryStyles[cat].strokeColor = document.getElementById('strokeColor')?.value || '#2c3e50';
                 }
             });
             
             // Build legend UI
-            buildCategoryLegendUI(uniqueCategories);
+            buildCategoryLegendUI(categoryOrder);
             document.getElementById('categoryLegend').style.display = 'block';
         }
         
@@ -14443,10 +14491,14 @@ Total rows: ${csvData.length}${corsNote}`);
                                 </div>
                             ` : `
                                 <div>
-                                    <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Color</label>
+                                    <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Fill colour</label>
                                     <input type="color" value="${style.color}" onchange="updateCategoryStyle('${escapedCat}', 'color', this.value)" style="width: 100%; height: 28px;">
                                 </div>
                             `}
+                            <div>
+                                <label style="font-size: 0.75rem; display: block; margin-bottom: 0.25rem;">Line colour</label>
+                                <input type="color" value="${style.strokeColor || '#2c3e50'}" onchange="updateCategoryStyle('${escapedCat}', 'strokeColor', this.value)" style="width: 100%; height: 28px;">
+                            </div>
                         </div>
                         <div style="margin-top: 0.5rem;">
                             <label style="font-size: 0.75rem; display: flex; align-items: center; cursor: pointer;">
@@ -14574,6 +14626,7 @@ Total rows: ${csvData.length}${corsNote}`);
         
         function resetCategoryStyles() {
             categoryStyles = {};
+            categoryOrder = [];
             detectAndBuildCategoryLegend();
             plotPoints(false);
         }
@@ -14772,6 +14825,7 @@ Total rows: ${csvData.length}${corsNote}`);
         
         function resetCategoryStyles() {
             categoryStyles = {};
+            categoryOrder = [];
             detectAndBuildCategoryLegend();
             plotPoints(false);
         }
@@ -18302,7 +18356,8 @@ Total rows: ${csvData.length}${corsNote}`);
                     }
                     
                     // Create icon with category styles or defaults (pass categoryValue for category-specific custom icons)
-                    const icon = getMarkerIcon(finalShape, finalColor, Math.round(markerSize), strokeColor, strokeWidth, rotation, haloEnabled, haloColor, haloSize, haloGlow, categoryValue);
+                    const finalStrokeColor = (categoryStyle && categoryStyle.strokeColor) ? categoryStyle.strokeColor : strokeColor;
+                    const icon = getMarkerIcon(finalShape, finalColor, Math.round(markerSize), finalStrokeColor, strokeWidth, rotation, haloEnabled, haloColor, haloSize, haloGlow, categoryValue);
                     
                     // Add halo if category has one enabled
                     let marker;
@@ -18427,7 +18482,11 @@ Total rows: ${csvData.length}${corsNote}`);
                             popup.options.offset = L.point(offsetX, offsetY);
                             popup.update();
                             
-                            console.log(`Popup positioned ${position}: offset=[${offsetX.toFixed(1)}, ${offsetY.toFixed(1)}], spaces: above=${spaceAbove.toFixed(0)}, below=${spaceBelow.toFixed(0)}, left=${spaceLeft.toFixed(0)}, right=${spaceRight.toFixed(0)}`);
+                            // Flip the Leaflet tip to point toward the marker when popup is below
+                            const popupContainer = popup._container;
+                            if (popupContainer) {
+                                popupContainer.classList.toggle('popup-placed-below', position === 'below');
+                            }
                         }, 50);
                     });
                     
@@ -18706,6 +18765,8 @@ Press OK to copy full config to console.`;
             
             csvData = [];
             columns = [];
+            categoryStyles = {};
+            categoryOrder = [];
             selectedFields.clear();
             imageFields.clear();
             customIconData = null;
@@ -18991,6 +19052,9 @@ Press OK to copy full config to console.`;
                 document.getElementById('markerSize').value = s.markerSize;
                 document.getElementById('strokeColor').value = s.strokeColor;
                 document.getElementById('strokeWidth').value = s.strokeWidth;
+                if (s.proportionalMarkerColor) document.getElementById('proportionalMarkerColor').value = s.proportionalMarkerColor;
+                if (s.proportionalStrokeColor)  document.getElementById('proportionalStrokeColor').value  = s.proportionalStrokeColor;
+                if (s.proportionalStrokeWidth !== undefined) document.getElementById('proportionalStrokeWidth').value = s.proportionalStrokeWidth;
                 document.getElementById('markerSize2').value = s.markerSize2;
                 document.getElementById('popupTitle').value = s.popupTitle;
                 document.getElementById('popupWidth').value = s.popupWidth;
@@ -19043,12 +19107,15 @@ Press OK to copy full config to console.`;
                         // Restore category styles
                         if (s.colorByField) {
                             document.getElementById('colorByField').value = s.colorByField;
-                            if (s.categoryStyles) {
-                                categoryStyles = s.categoryStyles;
+                            if (s.categoryStyles) categoryStyles = s.categoryStyles;
+                            if (s.categoryOrder && Array.isArray(s.categoryOrder) && s.categoryOrder.length > 0) {
+                                categoryOrder = [...s.categoryOrder];
+                            } else {
+                                categoryOrder = [];
                             }
                             setTimeout(() => {
                                 detectAndBuildCategoryLegend();
-                                buildCategoryLegendUI();
+                                // NOTE: no bare buildCategoryLegendUI() — detect already called it
                             }, 300);
                         }
                         
@@ -19385,6 +19452,27 @@ Press OK to copy full config to console.`;
                         window._isRestoringConfig = false; // Re-enable side-effects
                         console.log('[Config Restore] ✅ All settings restored. Calling plotPoints...');
                         plotPoints();
+
+                        // Restore the open popup state that was current when the config was saved
+                        const _savedCSVPopups     = s.currentOpenPopups        || [];
+                        const _savedDrawingPopups = s.currentOpenDrawingPopups || [];
+                        if (_savedCSVPopups.length > 0 || _savedDrawingPopups.length > 0) {
+                            let _restored = false;
+                            const _doRestore = () => {
+                                if (_restored) return;
+                                _restored = true;
+                                _savedCSVPopups.forEach(rowIdx => {
+                                    const m = markers.find(mk => !mk._isHalo && mk._rowIndex === rowIdx);
+                                    if (m) m.openPopup();
+                                });
+                                _savedDrawingPopups.forEach(idx => {
+                                    const f = drawnFeatures[idx];
+                                    if (f && f.layer && f.layer.openPopup) f.layer.openPopup();
+                                });
+                            };
+                            map.once('moveend', _doRestore);
+                            setTimeout(() => { map.off('moveend', _doRestore); _doRestore(); }, 800);
+                        }
                         
             } catch (error) {
                 window._isRestoringConfig = false; // Always clear flag, even on error
@@ -19420,7 +19508,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.57 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.58 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
