@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.121 - BUGFIXES: updateBookmark() was crashing with "plateLayer is not defined" — it used old layer variable names (plateLayer, countriesLayer) from an earlier overlay architecture; the try/catch swallowed the error leaving overlays empty and aborting the save. Replaced with the same activeOverlays map that saveBookmark uses. Also: updateBookmark was not saving openPopups, openDrawingPopups, or keepMultiplePopups — so updating a bookmark with popups open or "Keep multiple pop-ups open" ticked would silently discard that state. All three are now saved in updateBookmark to match saveBookmark. v2.10.120: Keep multiple pop-ups moved to top of popup section; bookmarks save/restore keepMultiplePopups state; always resets to unchecked for bookmarks that do not have it. -->
+<!-- Geo Mapper v2.10.123 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.121</title>
+    <title>Geo Mapper v2.10.123</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.121</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.123</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -3733,18 +3733,42 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (typeof value !== 'string') return false;
             if (!value.startsWith('http://') && !value.startsWith('https://')) return false;
             
-            // Check for common image extensions
             const lowerValue = value.toLowerCase();
-            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
             
-            // Check if URL ends with image extension (may have query params)
-            return imageExtensions.some(ext => {
+            // Check for common image extensions
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+            const hasImageExt = imageExtensions.some(ext => {
                 const extIndex = lowerValue.indexOf(ext);
                 if (extIndex === -1) return false;
                 // Extension should be at end or followed by ? or #
                 const afterExt = lowerValue.charAt(extIndex + ext.length);
                 return afterExt === '' || afterExt === '?' || afterExt === '#';
             });
+            if (hasImageExt) return true;
+            
+            // ArcGIS REST content items — e.g. .../sharing/rest/content/items/[id]/data
+            if (lowerValue.includes('arcgis.com/sharing/rest/content/items/') && lowerValue.endsWith('/data')) return true;
+            
+            // Google Drive — direct embed/thumbnail URLs
+            if (lowerValue.includes('drive.google.com') && (
+                lowerValue.includes('/uc?') || lowerValue.includes('id=') ||
+                lowerValue.includes('/thumbnail') || lowerValue.includes('/file/d/')
+            )) return true;
+            
+            // Dropbox direct image links
+            if ((lowerValue.includes('dropbox.com') || lowerValue.includes('dropboxusercontent.com')) &&
+                (lowerValue.includes('dl=1') || lowerValue.includes('raw=1') || lowerValue.includes('dropboxusercontent.com'))) return true;
+            
+            // Wikimedia/Wikipedia images
+            if (lowerValue.includes('upload.wikimedia.org')) return true;
+            
+            // OneDrive / SharePoint direct download links
+            if (lowerValue.includes('1drv.ms') || (lowerValue.includes('sharepoint.com') && lowerValue.includes('download=1'))) return true;
+            
+            // Imgur (may lack extension)
+            if (lowerValue.includes('i.imgur.com') || (lowerValue.includes('imgur.com/') && !lowerValue.includes('/a/'))) return true;
+            
+            return false;
         }
         
         function isVideoURL(value) {
@@ -3801,8 +3825,14 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 return `<video controls style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;"><source src="${url}" type="video/mp4">Your browser does not support video playback.</video>`;
             } 
             else if (isImageURL(url)) {
+                // Convert Google Drive /file/d/ID/view links to embeddable form
+                let imgUrl = url;
+                const gdMatch = url.match(/drive\.google\.com\/file\/d\/([^\/]+)/);
+                if (gdMatch) {
+                    imgUrl = `https://drive.google.com/uc?export=view&id=${gdMatch[1]}`;
+                }
                 // Animated GIF or static image
-                return `<img src="${url}" class="popup-image" alt="${columnName}" onerror="this.style.display='none';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
+                return `<img src="${imgUrl}" class="popup-image" alt="${columnName}" onerror="this.style.display='none';" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin-top: 0.25rem; display: block;">`;
             }
             
             // Not media - return as text
@@ -14770,8 +14800,8 @@ Total rows: ${csvData.length}${corsNote}`);
                 'arrow-thick': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size*0.3} ${size*0.8} L ${size*0.65} ${size*0.8} L ${size*0.65} ${size*1.7} L ${size*1.35} ${size*1.7} L ${size*1.35} ${size*0.8} L ${size*1.7} ${size*0.8} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 'arrow-triangle': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><polygon points="${size},${size*0.2} ${size*0.2},${size*1.7} ${size*1.8},${size*1.7}" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 'arrow-double': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size} ${size*0.2} L ${size} ${size*1.7} M ${size} ${size*0.2} L ${size*0.5} ${size*0.7} M ${size} ${size*0.2} L ${size*1.5} ${size*0.7} M ${size} ${size*0.5} L ${size*0.5} ${size} M ${size} ${size*0.5} L ${size*1.5} ${size}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
-                'arrow-two-way': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*1.8} ${size} M ${size*0.2} ${size} L ${size*0.7} ${size*0.5} M ${size*0.2} ${size} L ${size*0.7} ${size*1.5} M ${size*1.8} ${size} L ${size*1.3} ${size*0.5} M ${size*1.8} ${size} L ${size*1.3} ${size*1.5}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
-                'arrow-two-way-thick': `<g transform="translate(${center-size}, ${center-size}) rotate(${rotation} ${size} ${size})"><path d="M ${size*0.2} ${size} L ${size*0.8} ${size*0.3} L ${size*0.8} ${size*0.65} L ${size*1.2} ${size*0.65} L ${size*1.2} ${size*0.3} L ${size*1.8} ${size} L ${size*1.2} ${size*1.7} L ${size*1.2} ${size*1.35} L ${size*0.8} ${size*1.35} L ${size*0.8} ${size*1.7} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
+                'arrow-two-way': `<g transform="rotate(${rotation} ${center} ${center})"><path d="M ${center} ${center - size*0.8} L ${center} ${center + size*0.8} M ${center} ${center - size*0.8} L ${center - size*0.5} ${center - size*0.3} M ${center} ${center - size*0.8} L ${center + size*0.5} ${center - size*0.3} M ${center} ${center + size*0.8} L ${center - size*0.5} ${center + size*0.3} M ${center} ${center + size*0.8} L ${center + size*0.5} ${center + size*0.3}" fill="none" stroke="${color}" stroke-width="${strokeWidth*2.5}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+                'arrow-two-way-thick': `<g transform="rotate(${rotation} ${center} ${center})"><path d="M ${center} ${center - size*0.8} L ${center - size*0.5} ${center - size*0.3} L ${center - size*0.175} ${center - size*0.3} L ${center - size*0.175} ${center + size*0.3} L ${center - size*0.5} ${center + size*0.3} L ${center} ${center + size*0.8} L ${center + size*0.5} ${center + size*0.3} L ${center + size*0.175} ${center + size*0.3} L ${center + size*0.175} ${center - size*0.3} L ${center + size*0.5} ${center - size*0.3} Z" fill="${color}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/></g>`,
                 
                 // Hazards - Using Font Awesome Free icons (professional, 100% free for schools)
                 // Font Awesome icons are rendered as HTML with font, not SVG paths
@@ -20873,7 +20903,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.121 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.123 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
