@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.60 - BUGFIXES: (1) Popup tip: full 4-directional support (above/below/right/left) with shared applyPopupPlacement() helper; correct Leaflet offset math for side placements; CSS custom side-arrows that point toward marker; consistent placement class cleanup. (2) Bookmark popup race: _suppressPopupPreservation flag prevents plotPoints from restoring the wrong popup while loadBookmark's own restore logic is running. (3) Compare mode distance measure: divider mousedown/touchstart yields when measurementMode is active; measurementMode promoted to window scope for visibility across closures. -->
+<!-- Geo Mapper v2.10.121 - BUGFIXES: updateBookmark() was crashing with "plateLayer is not defined" — it used old layer variable names (plateLayer, countriesLayer) from an earlier overlay architecture; the try/catch swallowed the error leaving overlays empty and aborting the save. Replaced with the same activeOverlays map that saveBookmark uses. Also: updateBookmark was not saving openPopups, openDrawingPopups, or keepMultiplePopups — so updating a bookmark with popups open or "Keep multiple pop-ups open" ticked would silently discard that state. All three are now saved in updateBookmark to match saveBookmark. v2.10.120: Keep multiple pop-ups moved to top of popup section; bookmarks save/restore keepMultiplePopups state; always resets to unchecked for bookmarks that do not have it. -->
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.107</title>
+    <title>Geo Mapper v2.10.121</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.107</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.121</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2382,6 +2382,15 @@
                 <summary class="section-title">💬 Pop-up Configuration</summary>
                 <div class="section-content">
                 
+                <!-- Keep multiple popups open — top of section, most useful setting for bookmarks -->
+                <div class="form-group" style="background:#f0f4ff;border:1px solid #c5d0e8;border-radius:5px;padding:0.5rem 0.7rem;margin-bottom:0.75rem;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:600;margin:0;">
+                        <input type="checkbox" id="keepMultiplePopups" style="width:auto;margin:0;flex-shrink:0;">
+                        Keep multiple pop-ups open
+                    </label>
+                    <div class="info-text" style="margin-top:0.3rem;">ℹ️ When unchecked, clicking a new point closes the previous pop-up. Saved bookmarks remember this setting. Drawing labels are unaffected.</div>
+                </div>
+                
                 <div class="form-group">
                     <label for="popupTitle">Pop-up Title Template (optional)</label>
                     <input type="text" id="popupTitle" placeholder="e.g., {NAME}, {COUNTRY}, {CONTINENT}" style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
@@ -2498,13 +2507,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         <div class="info-text">
                             ℹ️ Set to 0 for no height limit
                         </div>
-                    </div>
-                    <div class="form-group" style="margin-top:0.4rem;">
-                        <label>
-                            <input type="checkbox" id="keepMultiplePopups" style="width:auto;margin-right:0.5rem;">
-                            Keep multiple pop-ups open
-                        </label>
-                        <div class="info-text">ℹ️ When unchecked, clicking a new point closes the previous pop-up. Drawing labels are unaffected.</div>
                     </div>
                 </div>
                 </div>
@@ -4034,16 +4036,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             'cartodb-light': {
                 url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                 attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
                 maxZoom: 19
             },
             'cartodb-dark': {
                 url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
                 attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
                 maxZoom: 19
             },
             'cartodb-voyager': {
                 url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                 attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
                 maxZoom: 19
             },
             'esri-world': {
@@ -4301,13 +4306,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     maxClassSize: document.getElementById('maxClassSize')?.value,
                     classDecimalPlaces: document.getElementById('classDecimalPlaces')?.value,
                     manualBreaks: document.getElementById('manualBreaks')?.value,
-                    // Time Animation settings
-                    timeField: document.getElementById('timeField')?.value || '',
-                    animationSpeed: document.getElementById('animationSpeed')?.value || '500',
-                    showTrail: document.getElementById('showTrail')?.checked || false,
-                    trailOnly: document.getElementById('trailOnly')?.checked || false,
-                    trailColor: document.getElementById('trailColor')?.value || '#3498db',
-                    trailWidth: document.getElementById('trailWidth')?.value || '3',
+                    // Time Animation settings intentionally NOT saved — restoring them
+                    // causes prepareAnimation() to fire on load, putting the map into
+                    // animation mode and breaking normal display. User re-selects field manually.
                     // Overlay layer settings (expanded)
                     overlayLineColor: overlayLineColor,
                     overlayLineWidth: overlayLineWidth,
@@ -4351,6 +4352,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     popupTab2Label: document.getElementById('popupTab2Label')?.value || '',
                     // Bookmarks
                     bookmarks: bookmarks,
+                    // Map view state (centre + zoom)
+                    mapCenter: map ? [map.getCenter().lat, map.getCenter().lng] : [20, 0],
+                    mapZoom: map ? map.getZoom() : 2,
                     // Current open popup state (restored on config load)
                     currentOpenPopups: markers
                         .filter(m => !m._isHalo && m._rowIndex !== undefined && m.isPopupOpen && m.isPopupOpen())
@@ -5792,7 +5796,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         updateMapTitle();
                     }
                     if (s.basemap) {
-                        document.getElementById('basemapSelect').value = s.basemap;
+                        const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                        document.getElementById('basemapSelect').value = validBasemap;
                         changeBasemap();
                     }
                     document.getElementById('latColumn').value = s.latColumn;
@@ -5995,8 +6000,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 };
                 labelsLayer = L.tileLayer(labelsConfig.url, labelsOptions).addTo(map);
             } else {
-                // Regular basemap
-                const basemapConfig = basemaps[selected];
+                // Regular basemap — fall back to OSM if the saved key no longer exists
+                const basemapConfig = basemaps[selected] || basemaps['osm'];
+                if (!basemaps[selected]) {
+                    console.warn(`changeBasemap: unknown key "${selected}", falling back to OSM`);
+                    const sel = document.getElementById('basemapSelect');
+                    if (sel) sel.value = 'osm';
+                }
                 const tileOptions = {
                     attribution: basemapConfig.attribution,
                     maxZoom: basemapConfig.maxZoom,
@@ -6007,12 +6017,41 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     updateInterval: 150
                 };
                 
+                // Pass subdomains if specified (e.g. CartoDB needs 'abcd')
+                if (basemapConfig.subdomains) {
+                    tileOptions.subdomains = basemapConfig.subdomains;
+                }
+                
                 // Add maxNativeZoom if specified (prevents blank tiles at high zoom)
                 if (basemapConfig.maxNativeZoom) {
                     tileOptions.maxNativeZoom = basemapConfig.maxNativeZoom;
                 }
                 
                 currentBasemap = L.tileLayer(basemapConfig.url, tileOptions).addTo(map);
+                
+                // Robust tile-load check: if no tile loads successfully within 6 seconds,
+                // fall back to OSM. Catches both hard errors AND grey/blank tile responses.
+                if (selected !== 'osm') {
+                    let _tileLoaded = false;
+                    const _fallbackTimer = setTimeout(() => {
+                        if (!_tileLoaded) {
+                            console.warn(`changeBasemap: no tiles loaded for "${selected}" after 10s — falling back to OSM`);
+                            addDiagnostic(`⚠️ Basemap "${selected}" failed to load tiles — switching to OSM`, 'warning');
+                            const sel = document.getElementById('basemapSelect');
+                            if (sel) sel.value = 'osm';
+                            changeBasemap();
+                        }
+                    }, 10000);
+                    currentBasemap.on('tileload', function() {
+                        _tileLoaded = true;
+                        clearTimeout(_fallbackTimer);
+                    });
+                    currentBasemap.on('tileerror', function(e) {
+                        console.warn('Tile error:', e);
+                        addDiagnostic(`⚠️ Tile error for "${selected}": ${e.error || 'unknown'}`, 'warning');
+                    });
+                    console.log(`changeBasemap: loading "${selected}" tiles, will fall back to OSM in 6s if none load`);
+                }
             }
             
             // Ensure marker layer stays on top (only if it exists)
@@ -7545,7 +7584,8 @@ Total rows: ${csvData.length}${corsNote}`);
                     strokeWidth: document.getElementById('bufferStrokeWidth').value
                 } : null,
                 basemap: document.getElementById('basemapSelect').value,
-                overlays: Object.keys(activeOverlays).filter(key => activeOverlays[key] !== null)
+                overlays: Object.keys(activeOverlays).filter(key => activeOverlays[key] !== null),
+                keepMultiplePopups: document.getElementById('keepMultiplePopups')?.checked || false
             };
             
             bookmarks.push(bookmark);
@@ -7635,6 +7675,11 @@ Total rows: ${csvData.length}${corsNote}`);
                 // Restore view
                 map.setView(bookmark.center, bookmark.zoom);
                 
+                // Restore keepMultiplePopups — each bookmark remembers its own state.
+                // Always reset first (unchecked by default), then apply bookmark's saved value.
+                const _multiEl = document.getElementById('keepMultiplePopups');
+                if (_multiEl) _multiEl.checked = bookmark.keepMultiplePopups === true;
+                
                 // Restore basemap
                 if (bookmark.basemap) {
                     const basemapSelect = document.getElementById('basemapSelect');
@@ -7645,7 +7690,12 @@ Total rows: ${csvData.length}${corsNote}`);
                 }
                 
                 // Restore filters
-                clearAllFilters();
+                // IMPORTANT: Don't call clearAllFilters() here — it calls applyFilters() → plotPoints(),
+                // which is the first of two back-to-back renders that causes popups to flick open then close.
+                // Instead, silently reset the filter state and let the plotPoints below handle rendering.
+                activeFilters = [];
+                updateFilterUI();
+                
                 if (bookmark.filters && bookmark.filters.length > 0) {
                     // Bookmark HAS filters - restore them
                     activeFilters = JSON.parse(JSON.stringify(bookmark.filters)); // Deep copy to avoid reference sharing!
@@ -7687,9 +7737,19 @@ Total rows: ${csvData.length}${corsNote}`);
                 
                 // Restore overlays
                 if (bookmark.overlays && bookmark.overlays.length > 0) {
+                    // First clear all active overlays
+                    document.querySelectorAll('.overlay-checkbox').forEach(cb => {
+                        if (cb.checked) cb.click();
+                    });
                     bookmark.overlays.forEach(key => {
-                        const checkbox = document.querySelector(`[data-overlay="${key}"]`);
+                        // Try by id first (correct selector), fall back to data-overlay
+                        const checkbox = document.getElementById(`overlay-${key}`) || document.querySelector(`[data-overlay="${key}"]`);
                         if (checkbox && !checkbox.checked) checkbox.click();
+                    });
+                } else {
+                    // Clear all overlays when bookmark has none
+                    document.querySelectorAll('input[id^="overlay-"]').forEach(cb => {
+                        if (cb.checked) cb.click();
                     });
                 }
                 
@@ -7825,14 +7885,22 @@ Total rows: ${csvData.length}${corsNote}`);
                 const basemapSelect = document.getElementById('basemapSelect');
                 const currentBasemap = basemapSelect ? basemapSelect.value : 'osm';
                 
-                // Get active overlays
-                const activeOverlaysArray = [];
-                try {
-                    if (plateLayer && map.hasLayer(plateLayer)) activeOverlaysArray.push('plates');
-                    if (countriesLayer && map.hasLayer(countriesLayer)) activeOverlaysArray.push('countries');
-                } catch (e) {
-                    console.warn('Error detecting overlays:', e);
-                }
+                // Get active overlays — use the same activeOverlays map that saveBookmark uses
+                const activeOverlaysArray = Object.keys(activeOverlays).filter(key => activeOverlays[key] !== null);
+                
+                // Capture open popup row indices (same as saveBookmark)
+                const openPopupRows = [];
+                markers.forEach(m => {
+                    if (!m._isHalo && m.isPopupOpen && m.isPopupOpen() && m._rowIndex !== undefined) {
+                        openPopupRows.push(m._rowIndex);
+                    }
+                });
+                const openDrawingPopups = [];
+                drawnFeatures.forEach((f, i) => {
+                    if (f.layer && f.layer.isPopupOpen && f.layer.isPopupOpen()) {
+                        openDrawingPopups.push(i);
+                    }
+                });
                 
                 // Update the bookmark (keep original name and color, update everything else)
                 bookmarks[index] = {
@@ -7842,6 +7910,9 @@ Total rows: ${csvData.length}${corsNote}`);
                     zoom: zoom,
                     center: center,
                     filters: currentFilters,
+                    openPopups: openPopupRows,
+                    openDrawingPopups: openDrawingPopups,
+                    keepMultiplePopups: document.getElementById('keepMultiplePopups')?.checked || false,
                     bufferSettings: bufferSettings,
                     basemap: currentBasemap,
                     overlays: activeOverlaysArray
@@ -15481,12 +15552,14 @@ Total rows: ${csvData.length}${corsNote}`);
                 continuousSettings.style.display = 'none';
                 classifiedSettings.style.display = 'block';
                 sizeClassification.method = 'classified';
-                updateClassification();
+                // Don't call updateClassification during config restore — plotPoints fires at end of restore
+                if (!window._isRestoringConfig) updateClassification();
             } else {
                 continuousSettings.style.display = 'block';
                 classifiedSettings.style.display = 'none';
                 sizeClassification.method = 'continuous';
-                plotPoints(false);
+                // Don't call plotPoints during config restore — it fires at end of restore
+                if (!window._isRestoringConfig) plotPoints(false);
             }
             buildLegend();
         }
@@ -20252,7 +20325,7 @@ Press OK to copy full config to console.`;
 
         
         // Restore configuration from config object (used by both file load and auto-save)
-        function restoreConfiguration(config) {
+        async function restoreConfiguration(config) {
             try {
                 window._isRestoringConfig = true; // Suppress side-effects during restore
                 
@@ -20283,12 +20356,28 @@ Press OK to copy full config to console.`;
                     document.getElementById('titleBgOpacity').value = s.titleBgOpacity;
                     document.getElementById('titleBgOpacityValue').textContent = s.titleBgOpacity;
                 }
+                // Restore title position and lock state
+                if (s.titlePosition) {
+                    titlePosition = s.titlePosition;
+                }
+                if (s.titleLocked) {
+                    titleLocked = true;
+                    setTimeout(() => {
+                        const btn = document.getElementById('titleLockPanelBtn');
+                        if (btn) { btn.textContent = '🔒 Locked'; btn.style.background = '#e74c3c'; btn.title = 'Click to allow dragging'; }
+                        const overlay = document.getElementById('mapTitleOverlay');
+                        if (overlay) overlay.style.cursor = 'default';
+                    }, 200);
+                }
                 // Update title style after restoring all title settings
                 updateTitleStyle();
                 
                 if (s.basemap) {
-                    document.getElementById('basemapSelect').value = s.basemap;
-                    changeBasemap();
+                    // Basemap will be set AFTER plotPoints to avoid tile-load timer
+                    // firing while JS is blocked rendering markers. See end of restore.
+                    const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                    document.getElementById('basemapSelect').value = validBasemap;
+                    // Don't call changeBasemap() here
                 }
                 document.getElementById('latColumn').value = s.latColumn;
                 document.getElementById('lonColumn').value = s.lonColumn;
@@ -20425,20 +20514,7 @@ Press OK to copy full config to console.`;
                             }
                         });
                         
-                        // Restore time animation settings
-                        if (s.timeField) {
-                            document.getElementById('timeField').value = s.timeField;
-                            // Trigger animation preparation to show controls
-                            setTimeout(() => {
-                                const event = new Event('change');
-                                document.getElementById('timeField').dispatchEvent(event);
-                            }, 600);
-                        }
-                        if (s.animationSpeed) document.getElementById('animationSpeed').value = s.animationSpeed;
-                        if (s.showTrail !== undefined) document.getElementById('showTrail').checked = s.showTrail;
-                        if (s.trailOnly !== undefined) document.getElementById('trailOnly').checked = s.trailOnly;
-                        if (s.trailColor) document.getElementById('trailColor').value = s.trailColor;
-                        if (s.trailWidth) document.getElementById('trailWidth').value = s.trailWidth;
+                        // Time Animation settings intentionally NOT restored — see createConfigObject
                         
                         // Restore overlay settings
                         console.log('Restoring overlay settings:', {
@@ -20705,10 +20781,42 @@ Press OK to copy full config to console.`;
                             restoreDrawnFeaturesFromData(s.drawnFeaturesData);
                         }
                         
-                        // Plot the points
+                        // Pre-fetch all Maki/Temaki icons used in categoryStyles BEFORE plotPoints.
+                        // Without this, plotPoints falls back to circles on first render, then triggers
+                        // an async replot which interferes with basemap loading and popup handlers.
+                        const _iconKeysToFetch = [];
+                        if (s.categoryStyles) {
+                            Object.values(s.categoryStyles).forEach(catStyle => {
+                                const sym = catStyle && catStyle.symbol;
+                                if (sym && sym.includes('/') && !(sym in makiSvgCache)) {
+                                    _iconKeysToFetch.push(sym);
+                                }
+                            });
+                        }
+                        if (_iconKeysToFetch.length > 0) {
+                            console.log('[Config Restore] Pre-fetching icons:', _iconKeysToFetch);
+                            await Promise.all(_iconKeysToFetch.map(key => fetchLibraryIconSvg(key)));
+                            console.log('[Config Restore] Icons pre-fetched.');
+                        }
+                        
+                        // Plot the points (fitToView=false because we restore the saved map position below)
                         window._isRestoringConfig = false; // Re-enable side-effects
                         console.log('[Config Restore] ✅ All settings restored. Calling plotPoints...');
-                        plotPoints();
+                        
+                        // Restore saved map view (centre + zoom) if present
+                        if (s.mapCenter && s.mapZoom !== undefined) {
+                            try { map.setView(s.mapCenter, s.mapZoom, { animate: false }); } catch(e) {}
+                        }
+                        
+                        plotPoints(!(s.mapCenter && s.mapZoom !== undefined)); // fit only if no saved view
+                        
+                        // Change basemap AFTER plotPoints so the tile-load timer doesn't fire
+                        // while JS is blocked rendering markers. Tiles will now load cleanly.
+                        if (s.basemap) {
+                            const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                            document.getElementById('basemapSelect').value = validBasemap;
+                            changeBasemap();
+                        }
 
                         // Restore the open popup state that was current when the config was saved
                         const _savedCSVPopups     = s.currentOpenPopups        || [];
@@ -20765,7 +20873,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.107 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.121 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
