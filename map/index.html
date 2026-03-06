@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.123 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
+<!-- Geo Mapper v2.10.128 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.123</title>
+    <title>Geo Mapper v2.10.128</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.123</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.128</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2025,6 +2025,14 @@
                             🔓 Unlocked
                         </button>
                         <span style="font-size:0.75rem; color:#7f8c8d;">Drag the title to reposition it on the map</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="titleMaxWidth">Title max width (% of map) — narrows box to force wrapping</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="titleMaxWidth" min="5" max="90" value="80" style="flex: 1;"
+                            oninput="updateTitleMaxWidth(); document.getElementById('titleMaxWidthValue').textContent = this.value + '%'">
+                        <span id="titleMaxWidthValue" style="min-width: 40px; text-align: right;">80%</span>
                     </div>
                 </div>
                 </div>
@@ -4289,6 +4297,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     titleFontColor: document.getElementById('titleFontColor')?.value || '#2c3e50',
                     titleBgColor: document.getElementById('titleBgColor')?.value || '#ffffff',
                     titleBgOpacity: document.getElementById('titleBgOpacity')?.value || '95',
+                    titleMaxWidth: document.getElementById('titleMaxWidth')?.value || '80',
                     titlePosition: titlePosition ? { ...titlePosition } : null,
                     titleLocked: titleLocked,
                     basemap: document.getElementById('basemapSelect')?.value || 'osm',
@@ -4808,6 +4817,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             map.createPane('drawingsPane');
             map.getPane('drawingsPane').style.zIndex = 670; // Above everything except popups (700)
             
+            // Leaflet's tooltipPane defaults to z-index 650, which puts it BELOW drawingsPane (670).
+            // This hides permanent feature-label tooltips behind the drawing layers themselves.
+            // Raise it to 680 so labels render above drawings but still below popups (700).
+            map.getPane('tooltipPane').style.zIndex = 680;
+            
             // Initialize drawing layer early so Clear All Drawings works even without CSV
             drawnFeaturesLayer = L.layerGroup({pane: 'drawingsPane'}).addTo(map);
             
@@ -5188,16 +5202,24 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const fontColor = document.getElementById('titleFontColor').value;
             const bgColor = document.getElementById('titleBgColor').value;
             const bgOpacity = parseInt(document.getElementById('titleBgOpacity').value) / 100;
+            const maxWidthPct = document.getElementById('titleMaxWidth')?.value || '80';
             
             // Apply styles
             overlay.style.fontSize = fontSize + 'px';
             overlay.style.color = fontColor;
+            overlay.style.maxWidth = maxWidthPct + '%';
             
             // Convert hex to rgba for background with opacity
             const r = parseInt(bgColor.substr(1, 2), 16);
             const g = parseInt(bgColor.substr(3, 2), 16);
             const b = parseInt(bgColor.substr(5, 2), 16);
             overlay.style.background = `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+        }
+        
+        function updateTitleMaxWidth() {
+            const pct = document.getElementById('titleMaxWidth').value;
+            const overlay = document.getElementById('mapTitleOverlay');
+            overlay.style.maxWidth = pct + '%';
         }
         
         function updatePointsVisibility() {
@@ -5826,7 +5848,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         updateMapTitle();
                     }
                     if (s.basemap) {
-                        const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                        // esri-world-hybrid is a valid key handled inside changeBasemap() but has
+                        // no entry in the basemaps{} object — allow it explicitly alongside regular keys.
+                        const validBasemap = (basemaps[s.basemap] || s.basemap === 'esri-world-hybrid') ? s.basemap : 'osm';
                         document.getElementById('basemapSelect').value = validBasemap;
                         changeBasemap();
                     }
@@ -20386,6 +20410,13 @@ Press OK to copy full config to console.`;
                     document.getElementById('titleBgOpacity').value = s.titleBgOpacity;
                     document.getElementById('titleBgOpacityValue').textContent = s.titleBgOpacity;
                 }
+                if (s.titleMaxWidth !== undefined) {
+                    const mwEl = document.getElementById('titleMaxWidth');
+                    if (mwEl) {
+                        mwEl.value = s.titleMaxWidth;
+                        document.getElementById('titleMaxWidthValue').textContent = s.titleMaxWidth + '%';
+                    }
+                }
                 // Restore title position and lock state
                 if (s.titlePosition) {
                     titlePosition = s.titlePosition;
@@ -20405,7 +20436,7 @@ Press OK to copy full config to console.`;
                 if (s.basemap) {
                     // Basemap will be set AFTER plotPoints to avoid tile-load timer
                     // firing while JS is blocked rendering markers. See end of restore.
-                    const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                    const validBasemap = (basemaps[s.basemap] || s.basemap === 'esri-world-hybrid') ? s.basemap : 'osm';
                     document.getElementById('basemapSelect').value = validBasemap;
                     // Don't call changeBasemap() here
                 }
@@ -20843,7 +20874,7 @@ Press OK to copy full config to console.`;
                         // Change basemap AFTER plotPoints so the tile-load timer doesn't fire
                         // while JS is blocked rendering markers. Tiles will now load cleanly.
                         if (s.basemap) {
-                            const validBasemap = basemaps[s.basemap] ? s.basemap : 'osm';
+                            const validBasemap = (basemaps[s.basemap] || s.basemap === 'esri-world-hybrid') ? s.basemap : 'osm';
                             document.getElementById('basemapSelect').value = validBasemap;
                             changeBasemap();
                         }
@@ -20903,7 +20934,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.123 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.128 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
