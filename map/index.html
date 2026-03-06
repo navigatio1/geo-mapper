@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.128 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
+<!-- Geo Mapper v2.10.129 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.128</title>
+    <title>Geo Mapper v2.10.129</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.128</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.129</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -5832,19 +5832,48 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     
                     // Restore all settings including map title
                     const s = config.settings;
+                    // Always reset title state first so a second config load doesn't inherit stale values
+                    titlePosition = s.titlePosition ? { ...s.titlePosition } : null;
+                    titleLocked   = !!s.titleLocked;
                     if (s.mapTitle) {
                         document.getElementById('mapTitle').value = s.mapTitle;
-                        if (s.titlePosition) {
-                            titlePosition = s.titlePosition;
+                        // Restore title style settings (font, color, opacity, maxWidth, visibility)
+                        if (s.titleFontSize) {
+                            document.getElementById('titleFontSize').value = s.titleFontSize;
+                            document.getElementById('titleFontSizeValue').textContent = s.titleFontSize;
                         }
-                        if (s.titleLocked) {
-                            titleLocked = true;
-                            // Sync the sidebar button state
-                            setTimeout(() => {
-                                const btn = document.getElementById('titleLockPanelBtn');
-                                if (btn) { btn.textContent = '🔒 Locked'; btn.style.background = '#e74c3c'; }
-                            }, 200);
+                        if (s.titleFontColor)  document.getElementById('titleFontColor').value  = s.titleFontColor;
+                        if (s.titleBgColor)    document.getElementById('titleBgColor').value    = s.titleBgColor;
+                        if (s.titleBgOpacity !== undefined) {
+                            document.getElementById('titleBgOpacity').value = s.titleBgOpacity;
+                            document.getElementById('titleBgOpacityValue').textContent = s.titleBgOpacity;
                         }
+                        if (s.titleMaxWidth !== undefined) {
+                            const mwEl = document.getElementById('titleMaxWidth');
+                            if (mwEl) {
+                                mwEl.value = s.titleMaxWidth;
+                                document.getElementById('titleMaxWidthValue').textContent = s.titleMaxWidth + '%';
+                            }
+                        }
+                        if (s.titleVisibility !== undefined) {
+                            document.getElementById('titleVisibility').value = s.titleVisibility;
+                            document.getElementById('titleVisibilityValue').textContent = s.titleVisibility;
+                        }
+                        // Sync lock button state
+                        setTimeout(() => {
+                            const btn = document.getElementById('titleLockPanelBtn');
+                            const overlay = document.getElementById('mapTitleOverlay');
+                            if (btn) {
+                                btn.textContent    = titleLocked ? '🔒 Locked'   : '🔓 Unlocked';
+                                btn.style.background = titleLocked ? '#e74c3c'    : '#27ae60';
+                                btn.title          = titleLocked ? 'Click to allow dragging' : 'Click to lock position';
+                            }
+                            if (overlay) overlay.style.cursor = titleLocked ? 'default' : 'grab';
+                        }, 200);
+                        updateMapTitle();
+                        updateTitleStyle();
+                    } else {
+                        document.getElementById('mapTitle').value = '';
                         updateMapTitle();
                     }
                     if (s.basemap) {
@@ -8017,7 +8046,7 @@ Total rows: ${csvData.length}${corsNote}`);
         // ===================================
         
         let currentBookmarkIndex = -1; // Track active bookmark
-        let tabsVisible = false; // Track tab bar visibility
+        let tabsVisible = true; // Track tab bar visibility (default: show when bookmarks exist)
         let firstTabsLoad = true; // Track if this is the first load
         let bookmarks = []; // In-memory bookmarks (NOT persisted to localStorage)
         
@@ -8027,12 +8056,13 @@ Total rows: ${csvData.length}${corsNote}`);
             
             try {
                 if (bookmarks.length === 0) {
-                    // No bookmarks - hide entire container
+                    // No bookmarks - hide entire container.
+                    // Do NOT reset firstTabsLoad here — bookmarks may not be restored yet,
+                    // and burning the flag would stop tabs auto-showing after config restore.
                     container.classList.add('no-bookmarks');
                     content.classList.add('bookmark-tabs-content-hidden');
                     content.innerHTML = '<span class="bookmark-tabs-empty">No bookmarks yet - save a view to create tabs</span>';
                     tabsVisible = false;
-                    firstTabsLoad = false;
                     return;
                 }
                 
@@ -20417,19 +20447,22 @@ Press OK to copy full config to console.`;
                         document.getElementById('titleMaxWidthValue').textContent = s.titleMaxWidth + '%';
                     }
                 }
-                // Restore title position and lock state
-                if (s.titlePosition) {
-                    titlePosition = s.titlePosition;
-                }
-                if (s.titleLocked) {
-                    titleLocked = true;
-                    setTimeout(() => {
-                        const btn = document.getElementById('titleLockPanelBtn');
-                        if (btn) { btn.textContent = '🔒 Locked'; btn.style.background = '#e74c3c'; btn.title = 'Click to allow dragging'; }
-                        const overlay = document.getElementById('mapTitleOverlay');
-                        if (overlay) overlay.style.cursor = 'default';
-                    }, 200);
-                }
+                // Restore title position and lock state (always reset so re-load doesn't inherit stale state)
+                titlePosition = s.titlePosition ? { ...s.titlePosition } : null;
+                titleLocked   = !!s.titleLocked;
+                setTimeout(() => {
+                    const btn = document.getElementById('titleLockPanelBtn');
+                    const overlay = document.getElementById('mapTitleOverlay');
+                    if (btn) {
+                        btn.textContent    = titleLocked ? '🔒 Locked'   : '🔓 Unlocked';
+                        btn.style.background = titleLocked ? '#e74c3c'    : '#27ae60';
+                        btn.title          = titleLocked ? 'Click to allow dragging' : 'Click to lock position';
+                    }
+                    if (overlay) overlay.style.cursor = titleLocked ? 'default' : 'grab';
+                }, 200);
+                // Re-apply title position/lock now that both are set (updateMapTitle was
+                // called earlier before titlePosition/titleLocked were restored)
+                updateMapTitle();
                 // Update title style after restoring all title settings
                 updateTitleStyle();
                 
@@ -20934,7 +20967,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.128 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.129 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
