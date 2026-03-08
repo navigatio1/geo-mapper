@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.129 - BUGFIXES: (1) Two-Way Arrow and Two-Way Thick Arrow symbols were rotating incorrectly — their SVG paths were drawn horizontally (shaft ran left-right at y=size) so rotation=0 pointed east-west instead of north-south. They also used the old translate(center-size, center-size)+rotate(size,size) convention instead of the center-based rotate(rotation, center, center) used by the working single arrow. Both redrawn vertically (shaft runs top-to-bottom from center-size*0.8 to center+size*0.8) with center-based rotation — bearing=0 now correctly points north. (2) v2.10.121: updateBookmark plateLayer crash fixed; openPopups, keepMultiplePopups now saved. (3) v2.10.120: Keep multiple pop-ups moved to top of popup section with bookmark save/restore. -->
+<!-- Geo Mapper v2.10.144 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.129</title>
+    <title>Geo Mapper v2.10.144</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.129</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.144</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1743,15 +1743,15 @@
                     <div class="form-group" style="margin-bottom: 0.5rem;">
                         <label for="eqMinMag" style="font-size:0.78rem;">Minimum magnitude to show</label>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <input type="range" id="eqMinMag" min="0" max="8" step="0.5" value="2"
+                            <input type="range" id="eqMinMag" min="0" max="8" step="0.5" value="5"
                                 oninput="document.getElementById('eqMinMagVal').textContent=parseFloat(this.value).toFixed(1); reloadOverlay('earthquakes')"
                                 style="flex:1;">
-                            <span id="eqMinMagVal" style="font-size:0.8rem;font-weight:600;min-width:2rem;">2.0</span>
+                            <span id="eqMinMagVal" style="font-size:0.8rem;font-weight:600;min-width:2rem;">5.0</span>
                         </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 0.5rem;">
-                        <label for="eqSizeMult" style="font-size:0.78rem;">Symbol size: <span id="eqSizeMultVal">1.0×</span></label>
-                        <input type="range" id="eqSizeMult" min="0.1" max="1.5" step="0.1" value="1"
+                        <label for="eqSizeMult" style="font-size:0.78rem;">Symbol size: <span id="eqSizeMultVal">0.4×</span></label>
+                        <input type="range" id="eqSizeMult" min="0.1" max="1.5" step="0.1" value="0.4"
                             oninput="document.getElementById('eqSizeMultVal').textContent=parseFloat(this.value).toFixed(1)+'×'; reloadOverlay('earthquakes')"
                             style="width:100%;margin-top:0.15rem;">
                     </div>
@@ -1782,9 +1782,21 @@
                 <!-- Individual overlay settings panels -->
                 <div id="overlay-tectonic-boundaries-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #3498db;">
                     <div style="font-weight: 600; margin-bottom: 0.5rem;">Tectonic boundaries settings</div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="boundaryTypeColors" style="width: auto; margin-right: 0.5rem;" onchange="reloadOverlay('tectonic-boundaries')">
+                            <span>🎨 Color-code by boundary type + popups</span>
+                        </label>
+                        <div class="info-text" style="margin-top: 0.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 0.5rem; font-size: 0.72rem;">
+                            <span><span style="color:#ff0000;">●</span> Convergent</span>
+                            <span><span style="color:#36cc00;">●</span> Divergent</span>
+                            <span><span style="color:#ffae00;">●</span> Transform</span>
+                            <span><span style="color:#ff2eee;">●</span> Diffuse/unknown</span>
+                        </div>
+                    </div>
                     <div class="color-size-group">
                         <div class="form-group">
-                            <label for="plateLineColor">Line color</label>
+                            <label for="plateLineColor">Default line color</label>
                             <input type="color" id="plateLineColor" value="#ff0000" oninput="reloadOverlay('tectonic-boundaries')" onchange="reloadOverlay('tectonic-boundaries')">
                         </div>
                         <div class="form-group">
@@ -1792,6 +1804,7 @@
                             <input type="number" id="plateLineWidth" value="2" min="1" max="10" step="1" oninput="reloadOverlay('tectonic-boundaries')" onchange="reloadOverlay('tectonic-boundaries')">
                         </div>
                     </div>
+                    <div id="boundaryDebugOutput" style="display:none; margin-top:0.5rem; padding:0.4rem 0.5rem; background:#fff3cd; border-radius:4px; font-size:0.72rem; color:#555; max-height:120px; overflow-y:auto;"></div>
                 </div>
                 
                 <div id="overlay-lat-long-grid-settings" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f0f8ff; border-radius: 4px; border-left: 3px solid #3498db;">
@@ -2676,12 +2689,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         <label for="animationMode">Animation Style</label>
                         <select id="animationMode" onchange="toggleAnimationMode()">
                             <option value="standard">Standard (sequential points)</option>
+                            <option value="simultaneous">Simultaneous (all at once)</option>
                             <option value="pulse">Pulse (wave along path)</option>
                         </select>
                     </div>
                     
                     <!-- Standard mode controls -->
                     <div id="standardModeControls">
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="standardLoop" style="width: auto; margin-right: 0.5rem;">
+                                <span>Loop animation (repeat continuously)</span>
+                            </label>
+                        </div>
                         <div class="form-group">
                             <label style="display: flex; align-items: center; cursor: pointer;">
                                 <input type="checkbox" id="showTrail" style="width: auto; margin-right: 0.5rem;" onchange="if(this.checked) document.getElementById('trailOnly').checked = false;">
@@ -2706,6 +2726,26 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                                 <label for="trailWidth">Trail Width</label>
                                 <input type="number" id="trailWidth" value="3" min="1" max="10">
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Simultaneous mode controls -->
+                    <div id="simultaneousModeControls" style="display: none;">
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="simultaneousLoop" style="width: auto; margin-right: 0.5rem;" checked>
+                                <span>Loop — repeat continuously</span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="keepPreviousSteps" style="width: auto; margin-right: 0.5rem;">
+                                <span>Keep previous dates visible (cumulative)</span>
+                            </label>
+                            <div class="info-text">All locations for earlier dates stay on the map. Clears when the cycle loops.</div>
+                        </div>
+                        <div class="info-text">
+                            ℹ️ Groups rows by the <strong>Time/Sequence field</strong> value — all locations sharing the same date appear together, one date-group at a time.
                         </div>
                     </div>
                     
@@ -2783,6 +2823,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                     <div class="info-text">
                         ℹ️ <strong>Standard mode:</strong> Points appear sequentially with optional trail line.<br>
+                        ℹ️ <strong>Simultaneous mode:</strong> All points shown at once (ideal for arrows/vectors).<br>
                         ℹ️ <strong>Pulse mode:</strong> Animated pulse travels along path connecting points (great for tropical storms, hotspots, flight paths).
                     </div>
                 </div>
@@ -4635,7 +4676,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // Force Leaflet to recalculate map size after transition
             setTimeout(function() {
                 if (map) {
-                    map.invalidateSize();
+                    map.invalidateSize({animate: false});
                 }
                 // Re-position any open popups: the sidebar's visual overlap changes after
                 // the transition, so mL changes and popups need to be re-placed at the
@@ -4771,7 +4812,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         function initMap() {
             map = L.map('map', {
                 zoomControl: false,  // Disable default zoom control
-                worldCopyJump: true,  // Enable seamless world wrapping
+                worldCopyJump: false, // Disabled: conflicts with leaflet-rotate plugin (causes downward drift after every pan)
                 maxBounds: null,      // Allow infinite horizontal panning
                 maxBoundsViscosity: 0.0,  // Allow free movement
                 rotate: true,         // Enable map rotation capability (leaflet-rotate plugin)
@@ -4833,7 +4874,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             
             // Force map to recalculate size after initialization
             setTimeout(() => {
-                map.invalidateSize();
+                map.invalidateSize({animate: false});
             }, 100);
             
             // Rotation update strategy - update marker rotations only (not full rebuild)
@@ -9260,16 +9301,12 @@ Total rows: ${csvData.length}${corsNote}`);
             const mode = document.getElementById('animationMode').value;
             const standardControls = document.getElementById('standardModeControls');
             const pulseControls = document.getElementById('pulseModeControls');
+            const simultaneousControls = document.getElementById('simultaneousModeControls');
             
-            if (mode === 'pulse') {
-                standardControls.style.display = 'none';
-                pulseControls.style.display = 'block';
-                console.log('Switched to PULSE animation mode');
-            } else {
-                standardControls.style.display = 'block';
-                pulseControls.style.display = 'none';
-                console.log('Switched to STANDARD animation mode');
-            }
+            standardControls.style.display    = (mode === 'standard')     ? 'block' : 'none';
+            pulseControls.style.display        = (mode === 'pulse')        ? 'block' : 'none';
+            simultaneousControls.style.display = (mode === 'simultaneous') ? 'block' : 'none';
+            console.log(`Switched to ${mode.toUpperCase()} animation mode`);
         }
         
         function prepareAnimation() {
@@ -9370,6 +9407,8 @@ Total rows: ${csvData.length}${corsNote}`);
             
             if (mode === 'pulse') {
                 playPulseAnimation();
+            } else if (mode === 'simultaneous') {
+                playSimultaneousAnimation();
             } else {
                 playStandardAnimation();
             }
@@ -9388,13 +9427,23 @@ Total rows: ${csvData.length}${corsNote}`);
             
             animationInterval = setInterval(() => {
                 if (currentAnimationStep >= animationData.length) {
-                    console.log('Standard animation complete');
-                    pauseAnimation();
-                    // Restore static markers when animation finishes
-                    if (csvData && csvData.length > 0) {
-                        plotPoints(false);
+                    const loop = document.getElementById('standardLoop')?.checked;
+                    if (loop) {
+                        // Loop: clear markers and restart from step 0
+                        console.log('Standard animation looping...');
+                        markerLayer.clearLayers();
+                        animationMarkers = [];
+                        currentAnimationStep = 0;
+                        document.getElementById('animationSlider').value = 0;
+                    } else {
+                        console.log('Standard animation complete');
+                        pauseAnimation();
+                        // Restore static markers when animation finishes
+                        if (csvData && csvData.length > 0) {
+                            plotPoints(false);
+                        }
+                        return;
                     }
-                    return;
                 }
                 
                 showAnimationStep(currentAnimationStep);
@@ -9409,7 +9458,86 @@ Total rows: ${csvData.length}${corsNote}`);
             document.getElementById('pauseBtn').disabled = false;
         }
         
-        // NEW: Pulse Animation (v2.9.33)
+        // Simultaneous animation: show step N at ALL locations at once, then step N+1, etc.
+        // Groups all rows by their time-field value so every location with the same date
+        // appears together in one wave — regardless of row order.
+        function playSimultaneousAnimation() {
+            const speed    = parseFloat(document.getElementById('animationSpeed').value) * 1000;
+            const loop     = document.getElementById('simultaneousLoop')?.checked;
+            const keepPrev = document.getElementById('keepPreviousSteps')?.checked;
+
+            // Determine which field is being used for sequencing
+            const timeField = document.getElementById('timeField')?.value || '';
+
+            // Build an ordered list of unique field values, then map each value → row indices
+            const valueOrder = [];   // sorted unique values (as strings for display)
+            const valueMap   = {};   // value → [row indices]
+            animationData.forEach((row, i) => {
+                const v = String(row[timeField] ?? '');
+                if (!valueMap[v]) {
+                    valueMap[v] = [];
+                    valueOrder.push(v);
+                }
+                valueMap[v].push(i);
+            });
+
+            // valueOrder is already in animationData sort order (sorted by timeField in prepareAnimation)
+            // but deduplicate preserving first-seen order, which matches the sorted data.
+            const groups     = valueOrder.map(v => valueMap[v]);   // array of index-arrays
+            const groupCount = groups.length;
+
+            console.log(`Starting SIMULTANEOUS animation: ${animationData.length} pts, ${groupCount} unique "${timeField}" values, loop=${loop}, keepPrev=${keepPrev}`);
+            console.log(`  Date groups: ${valueOrder.join(', ')}`);
+
+            markerLayer.clearLayers();
+            animationMarkers = [];
+            let groupIndex = 0;
+
+            function showWave() {
+                if (!animationInterval) return;
+
+                // On cycle restart (loop), clear here at the START of wave 0
+                // so the last wave's markers remain visible for a full interval
+                if (groupIndex === 0 && keepPrev) {
+                    markerLayer.clearLayers();
+                    animationMarkers = [];
+                }
+
+                // In non-cumulative mode clear before every wave
+                if (!keepPrev) {
+                    markerLayer.clearLayers();
+                    animationMarkers = [];
+                }
+
+                groups[groupIndex].forEach(i => showAnimationStep(i, true));
+
+                const label = valueOrder[groupIndex];
+                document.getElementById('animationProgress').textContent =
+                    `${timeField}: ${label}  (${groupIndex + 1} / ${groupCount})`;
+                document.getElementById('animationSlider').value =
+                    Math.round(((groupIndex + 1) / groupCount) * animationData.length);
+
+                groupIndex++;
+                if (groupIndex >= groupCount) {
+                    if (loop) {
+                        // Don't clear here — the clear happens at the top of the next wave-0 call
+                        groupIndex = 0;
+                    } else {
+                        clearInterval(animationInterval);
+                        animationInterval = null;
+                        document.getElementById('playBtn').disabled = false;
+                        document.getElementById('pauseBtn').disabled = true;
+                    }
+                }
+            }
+
+            showWave();
+            animationInterval = setInterval(showWave, speed);
+
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+        }
+        
         function playPulseAnimation() {
             const speed = parseFloat(document.getElementById('animationSpeed').value) * 1000;
             const pulseSpeed = parseInt(document.getElementById('pulseSpeed').value);
@@ -9773,7 +9901,8 @@ Total rows: ${csvData.length}${corsNote}`);
             pulseAnimationFrames = [];
             console.log('  ✓ Cancelled pulse animations');
             
-            // Note: static markers were cleared when animation started; they return on plotPoints() call
+            // Restore markerPane opacity in case simultaneous loop was fading it
+            try { map.getPane('markerPane').style.opacity = '1'; } catch(e) {}
             
             document.getElementById('playBtn').disabled = false;
             document.getElementById('pauseBtn').disabled = true;
@@ -17542,16 +17671,28 @@ Total rows: ${csvData.length}${corsNote}`);
                     html += '<div class="legend-section">';
                     
                     switch(overlayType) {
-                        case 'tectonic-boundaries':
-                            html += '<div class="legend-section-title">Tectonic Plates</div>';
-                            html += '<div class="legend-item">';
-                            html += `<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="${overlayLineColor}" stroke-width="2"/></svg>`;
-                            html += '<span>Plate Boundaries</span>';
-                            html += '</div>';
-                            html += '<div style="font-size: 0.7rem; color: #7f8c8d; margin-top: 0.25rem; padding-left: 0.25rem;">';
-                            html += 'Major plates: Pacific, North American, Eurasian, African, Antarctic, Indo-Australian, South American';
-                            html += '</div>';
+                        case 'tectonic-boundaries': {
+                            const showTypes = document.getElementById('boundaryTypeColors')?.checked;
+                            html += '<div class="legend-section-title">Tectonic Plate Boundaries</div>';
+                            if (showTypes) {
+                                const typeRows = [
+                                    { color: '#ff0000', label: 'Convergent (destructive)' },
+                                    { color: '#36cc00', label: 'Divergent (constructive)' },
+                                    { color: '#ffae00', label: 'Transform (conservative)' },
+                                    { color: '#ff2eee', label: 'Diffuse / unknown' }
+                                ];
+                                typeRows.forEach(r => {
+                                    html += `<div class="legend-item"><svg width="24" height="16"><line x1="0" y1="8" x2="24" y2="8" stroke="${r.color}" stroke-width="3"/></svg><span style="font-size:0.78rem;">${r.label}</span></div>`;
+                                });
+                                html += '<div style="font-size:0.65rem;color:#7f8c8d;margin-top:0.25rem;">Click boundary for type details</div>';
+                            } else {
+                                html += '<div class="legend-item">';
+                                html += `<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="${overlayLineColor}" stroke-width="2"/></svg>`;
+                                html += '<span>Plate Boundary</span>';
+                                html += '</div>';
+                            }
                             break;
+                        }
                             
                         case 'lat-long-grid':
                             html += '<div class="legend-section-title">Lat/Long Grid</div>';
@@ -17625,17 +17766,30 @@ Total rows: ${csvData.length}${corsNote}`);
                             break;
                         case 'earthquakes':
                             html += '<div class="legend-section-title">🔴 Earthquakes (30 days)</div>';
-                            const eqMinDisp = parseFloat(document.getElementById('eqMinMag')?.value || 2);
-                            html += `<div style="font-size:0.7rem;color:#555;margin-bottom:0.3rem;">Min magnitude: M${eqMinDisp.toFixed(1)}</div>`;
+                            const eqMinDisp = parseFloat(document.getElementById('eqMinMag')?.value || 5);
+                            const eqSzDisp  = parseFloat(document.getElementById('eqSizeMult')?.value || 0.4);
+                            html += `<div style="font-size:0.7rem;color:#555;margin-bottom:0.4rem;">Min magnitude: M${eqMinDisp.toFixed(1)} &nbsp;|&nbsp; Size = magnitude</div>`;
+                            // Magnitude rows — use same eqRadius formula
+                            function _eqR(m){ return Math.max(3, Math.round(2.5 * Math.pow(1.6, Math.max(0, m - 1)) * eqSzDisp)); }
                             [
-                                { label: 'M 7+',   color: '#7b0000', r: 14 },
-                                { label: 'M 5–7',  color: '#d32f2f', r: 10 },
-                                { label: 'M 3–5',  color: '#ff7043', r:  7 },
-                                { label: 'M < 3',  color: '#ffcc02', r:  5 }
-                            ].forEach(function(row) {
-                                html += `<div class="legend-item"><svg width="28" height="28"><circle cx="14" cy="14" r="${row.r}" fill="${row.color}" fill-opacity="0.7" stroke="${row.color}" stroke-width="1"/></svg><span>${row.label}</span></div>`;
+                                { label: 'M 7+',  mag: 7.5 },
+                                { label: 'M 5–7', mag: 5.5 },
+                                { label: 'M 3–5', mag: 3.5 },
+                            ].filter(row => row.mag >= eqMinDisp || row.label === 'M 7+').forEach(function(row) {
+                                const r = _eqR(row.mag);
+                                const sz = Math.max(r * 2, 20);
+                                const cx = sz / 2;
+                                html += `<div class="legend-item"><svg width="${sz}" height="${sz}"><circle cx="${cx}" cy="${cx}" r="${r - 0.5}" fill="#d32f2f" fill-opacity="0.8" stroke="#d32f2f" stroke-width="0.8"/></svg><span>${row.label}</span></div>`;
                             });
-                            html += '<div style="font-size:0.65rem;color:#7f8c8d;margin-top:0.25rem;">Depth: red=shallow, blue=deep<br>Source: USGS GeoJSON feed</div>';
+                            // Depth colour key
+                            html += `<div style="margin-top:0.4rem;font-size:0.7rem;color:#444;font-weight:600;">Depth (colour):</div>`;
+                            [
+                                { label: 'Shallow (&lt;70 km)', color: '#d32f2f' },
+                                { label: 'Deep (≥70 km)',       color: '#1565c0' },
+                            ].forEach(function(row) {
+                                html += `<div class="legend-item"><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="${row.color}" fill-opacity="0.8" stroke="${row.color}" stroke-width="0.8"/></svg><span>${row.label}</span></div>`;
+                            });
+                            html += '<div style="font-size:0.65rem;color:#7f8c8d;margin-top:0.3rem;">Source: USGS GeoJSON feed</div>';
                             break;
                     }
                     html += '</div>';
@@ -17648,13 +17802,21 @@ Total rows: ${csvData.length}${corsNote}`);
                 html += '<div class="legend-section">';
                 
                 switch(currentOverlay) {
-                    case 'tectonic-boundaries':
-                        html += '<div class="legend-section-title">Tectonic Plates</div>';
-                        html += '<div class="legend-item">';
-                        html += `<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="${document.getElementById('plateLineColor')?.value || overlayLineColor}" stroke-width="2"/></svg>`;
-                        html += '<span>Plate Boundary</span>';
-                        html += '</div>';
+                    case 'tectonic-boundaries': {
+                        const showTypes2 = document.getElementById('boundaryTypeColors')?.checked;
+                        html += '<div class="legend-section-title">Tectonic Plate Boundaries</div>';
+                        if (showTypes2) {
+                            [['#e74c3c','Divergent'],['#2980b9','Subduction'],['#e67e22','Collision'],['#27ae60','Transform'],['#95a5a6','Other']].forEach(([c,l]) => {
+                                html += `<div class="legend-item"><svg width="24" height="16"><line x1="0" y1="8" x2="24" y2="8" stroke="${c}" stroke-width="3"/></svg><span style="font-size:0.78rem;">${l}</span></div>`;
+                            });
+                        } else {
+                            html += '<div class="legend-item">';
+                            html += `<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="${document.getElementById('plateLineColor')?.value || overlayLineColor}" stroke-width="2"/></svg>`;
+                            html += '<span>Plate Boundary</span>';
+                            html += '</div>';
+                        }
                         break;
+                    }
                         
                     case 'lat-long-grid':
                         html += '<div class="legend-section-title">Lat/Long Grid</div>';
@@ -18019,14 +18181,14 @@ Total rows: ${csvData.length}${corsNote}`);
                 const url   = props.url || '#';
 
                 const r     = eqRadius(mag);
-                // Choose icon by depth
-                const eqImg = (typeof depth === 'number' && depth >= 70) ? _EQ_ICON_BLUE : _EQ_ICON_RED;
-                const sz = r * 2 + 6;  // icon pixel size
+                const col   = eqColor(depth);
+                const sz    = r * 2;
+                // Clean SVG circle — no box, no background, no border-radius artefacts
                 const eqIcon = L.divIcon({
-                    html: '<img src="' + eqImg + '" style="width:' + sz + 'px;height:' + sz + 'px;object-fit:contain;display:block;">',
+                    html: `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg"><circle cx="${r}" cy="${r}" r="${r - 0.5}" fill="${col}" fill-opacity="0.75" stroke="${col}" stroke-width="0.8"/></svg>`,
                     className: '',
                     iconSize: [sz, sz],
-                    iconAnchor: [sz / 2, sz / 2]
+                    iconAnchor: [r, r]
                 });
                 const circle = L.marker([lat, lng], { icon: eqIcon, pane: 'overlayPane' });
 
@@ -18085,24 +18247,203 @@ Total rows: ${csvData.length}${corsNote}`);
             
             const color = document.getElementById('plateLineColor')?.value || overlayLineColor;
             const width = parseInt(document.getElementById('plateLineWidth')?.value || overlayLineWidth);
+            const useTypes = document.getElementById('boundaryTypeColors')?.checked || false;
             
             // Save to variables for persistence
             overlayLineColor = color;
             overlayLineWidth = width;
             
+            // Boundary type lookup (Bird 2003 / PB2002 classifications)
+            // Keys are plate pair codes matching PB2002 "Name" property
+            // Types: divergent, convergent, transform, unknown
+            const boundaryTypeMap = {
+                // ── DIVERGENT (constructive) ── spreading ridges, new crust forms ──────────
+                // Major ocean ridges
+                'AF-AN': 'divergent', 'AN-NZ': 'divergent', 'AN-PA': 'divergent',
+                'AN-AU': 'divergent', 'AU-IN': 'divergent', 'CO-PA': 'divergent',
+                'CO-NZ': 'divergent', 'EU-NA': 'divergent', 'AF-NA': 'divergent',
+                'JF-PA': 'divergent', 'NZ-PA': 'divergent', 'SA-AF': 'divergent',
+                'CL-AN': 'divergent', 'IN-AF': 'divergent', 'MO-EU': 'divergent',
+                'SO-AN': 'divergent', 'IN-SO': 'divergent', 'SO-AF': 'divergent',
+                'AU-SO': 'divergent',
+                // Microplate spreading centres
+                'EA-NZ': 'divergent', 'EA-PA': 'divergent',         // Easter microplate (EPR)
+                'GP-CO': 'divergent', 'GP-NZ': 'divergent', 'GP-PA': 'divergent', // Galapagos
+                'JZ-NZ': 'divergent', 'JZ-PA': 'divergent',         // Juan Fernandez
+                'SO-AR': 'divergent',                                // Gulf of Aden ridge
+                'RI-PA': 'divergent',                                // Rivera-Pacific
+                // ── CONVERGENT (destructive) ── subduction zones and collisions ───────────
+                // Major subduction zones
+                'JF-NA': 'convergent', 'CO-NA': 'convergent', 'CO-CA': 'convergent',
+                'NZ-SA': 'convergent', 'NA-PA': 'convergent', 'PA-AU': 'convergent',
+                'PA-EU': 'convergent', 'PA-PH': 'convergent', 'PH-PA': 'convergent',
+                'PA-PS': 'convergent', 'PA-SA': 'convergent',
+                'PS-EU': 'convergent', 'PS-PA': 'convergent', 'SU-AU': 'convergent',
+                'AU-PS': 'convergent', 'OK-NA': 'convergent', 'OK-PA': 'convergent',
+                'SU-PS': 'convergent', 'MA-PA': 'convergent',
+                'IN-EU': 'convergent', 'AR-EU': 'convergent', 'AF-EU': 'convergent',
+                'AU-EU': 'convergent', 'SU-EU': 'convergent',
+                'EU-AF': 'convergent', 'EU-AR': 'convergent',
+                'ON-PS': 'convergent', 'AM-PS': 'convergent',
+                'CA-SA': 'convergent', 'NZ-ND': 'convergent', 'CL-PS': 'convergent',
+                'BH-PS': 'convergent', 'BH-SU': 'convergent', 'TI-AU': 'convergent',
+                'AU-MO': 'convergent', 'AU-WL': 'convergent', 'KE-PA': 'convergent',
+                'PS-SU': 'convergent',
+                // Microplate subduction / collision zones
+                'AM-PS': 'convergent',                               // Amur-Philippine Sea
+                'AP-SA': 'convergent',                               // Altiplano-South America
+                'AS-AF': 'convergent',                               // Aegean-Africa
+                'AT-AF': 'convergent',                               // Anatolia-Africa
+                'AU-BH': 'convergent',                               // Australia-Bird's Head
+                'AU-CR': 'convergent', 'AU-PA': 'convergent',       // Australia (extra)
+                'BR-AU': 'convergent', 'BR-CR': 'convergent', 'BR-NH': 'convergent', // Balmoral Reef
+                'BS-AU': 'convergent', 'BS-SU': 'convergent', 'BS-TI': 'convergent', // Banda Sea
+                'BU-AU': 'convergent', 'BU-IN': 'convergent',       // Burma
+                'CA-CO': 'convergent',                               // Caribbean-Cocos
+                'CL-NB': 'convergent',                               // Caroline-North Bismarck
+                'CO-PM': 'convergent',                               // Cocos-Papuan
+                'CR-NH': 'convergent',                               // Caroline-New Hebrides
+                'IN-BU': 'convergent',                               // India-Burma
+                'KE-AU': 'convergent', 'KE-TO': 'convergent',       // Kermadec
+                'MO-BH': 'convergent',                               // Molucca Sea-Bird's Head
+                'MS-BH': 'convergent', 'MS-BS': 'convergent', 'MS-SU': 'convergent', // Makassar/Maoke
+                'ND-NZ': 'convergent', 'ND-SA': 'convergent',       // North Andes
+                'NH-AU': 'convergent', 'NH-PA': 'convergent',       // New Hebrides
+                'NI-AU': 'convergent',                               // Niuafo'ou-Australia
+                'NZ-AP': 'convergent', 'NZ-PM': 'convergent',       // Nazca (extra)
+                'OK-PS': 'convergent',                               // Okhotsk-Philippine Sea
+                'PA-BR': 'convergent', 'PA-CL': 'convergent', 'PA-NB': 'convergent', // Pacific micro
+                'PA-NI': 'convergent', 'PA-OK': 'convergent', 'PA-SS': 'convergent', // Pacific micro
+                'PA-TO': 'convergent', 'PA-WL': 'convergent',       // Pacific micro
+                'PM-CA': 'convergent', 'PM-ND': 'convergent',       // Papuan
+                'PS-YA': 'convergent',                               // Philippine Sea-Yangtze
+                'SB-SS': 'convergent',                               // South Bismarck-Solomon Sea
+                'SU-BU': 'convergent', 'SU-TI': 'convergent',       // Sunda (extra)
+                'SW-SA': 'convergent',                               // Sandwich-South America
+                'TO-AU': 'convergent', 'TO-NI': 'convergent', 'TO-PA': 'convergent', // Tonga
+                'WL-BH': 'convergent', 'WL-MO': 'convergent', 'WL-SS': 'convergent', // Woodlark
+                // ── TRANSFORM (conservative) ── plates slide past each other ─────────────
+                'CA-NA': 'transform', 'AF-AR': 'transform', 'AR-IN': 'transform',
+                'AN-CA': 'transform', 'AN-SC': 'transform',
+                'SC-SA': 'transform', 'SC-NA': 'transform', 'SC-AF': 'transform',
+                'NA-NB': 'transform', 'AF-NB': 'transform', 'NB-SA': 'transform',
+                'EU-NB': 'transform', 'AT-EU': 'transform',
+                // Amur plate transforms
+                'AM-EU': 'transform', 'EU-AM': 'transform',
+                'AM-ON': 'transform', 'AM-YA': 'transform',
+                // Mediterranean microplate transforms
+                'AS-AT': 'transform', 'AS-EU': 'transform',
+                'AT-AR': 'transform',
+                // Southeast Asian transforms
+                'BH-BS': 'transform', 'BH-CL': 'transform',
+                'BU-EU': 'transform',
+                // Caribbean transforms
+                'CA-ND': 'transform', 'NA-SA': 'transform',
+                // Pacific microplate transforms
+                'CL-WL': 'transform',
+                'EU-YA': 'transform',
+                'FT-AU': 'transform', 'FT-PA': 'transform',         // Futuna
+                'MN-SB': 'transform',                               // Manus-South Bismarck
+                'NA-RI': 'transform', 'RI-CO': 'transform',         // Rivera
+                'NB-MN': 'transform', 'NB-SB': 'transform',         // North Bismarck
+                'NB-SS': 'transform', 'NB-WL': 'transform',         // North Bismarck
+                'NI-FT': 'transform',                               // Niuafo'ou-Futuna
+                'OK-AM': 'transform', 'OK-EU': 'transform',         // Okhotsk
+                'AN-SA': 'transform',                               // Antarctic-South America
+                'SB-WL': 'transform',                               // South Bismarck-Woodlark
+                'SL-AN': 'transform',                               // Solomon Sea (misc)
+                'SS-WL': 'transform',                               // Solomon Sea-Woodlark
+                'YA-ON': 'transform', 'YA-SU': 'transform',         // Yangtze
+                // ── DIFFUSE / UNKNOWN ─────────────────────────────────────────────────────
+                'IN-AU': 'unknown', 'PS-MA': 'unknown'
+            };
+
+            // Separator-agnostic normalise: handles -, / and \ as plate-pair separators
+            function getBoundaryType(rawName, rawReversed) {
+                const normalize = s => s ? s.trim().replace(/[\/\\]/g, '-').replace(/\s*-\s*/g, '-').toUpperCase() : '';
+                const name     = normalize(rawName);
+                const reversed = normalize(rawReversed);
+                const direct   = boundaryTypeMap[name] || boundaryTypeMap[reversed];
+                if (direct) return direct;
+                // Wildcard: any boundary involving Scotia plate → transform
+                const parts = name.split('-');
+                if (parts.includes('SC')) return 'transform';
+                // AN (Antarctic) boundaries not already mapped as divergent → transform
+                if (parts.includes('AN')) {
+                    const divergentAN = new Set(['AF-AN','AN-NZ','AN-PA','AN-AU','CL-AN','SO-AN']);
+                    if (!divergentAN.has(name) && !divergentAN.has(reversed)) return 'transform';
+                }
+                return 'unknown';
+            }
+            
+            const typeInfo = {
+                'convergent': { color: '#ff0000', label: 'Convergent boundary (destructive)', description: 'Plates move together. Oceanic crust sinks into the mantle (subduction) creating ocean trenches and volcanic arcs, or continents collide to form mountain ranges (e.g. Himalayas, Andes, Pacific Ring of Fire). Associated with powerful earthquakes and volcanoes.' },
+                'divergent':  { color: '#36cc00', label: 'Divergent boundary (constructive)', description: 'Plates move apart. New oceanic crust forms at spreading ridges as magma rises and solidifies (e.g. Mid-Atlantic Ridge, East African Rift). Associated with volcanic activity and shallow earthquakes.' },
+                'transform':  { color: '#ffae00', label: 'Transform boundary (conservative)', description: 'Plates slide horizontally past each other. No crust is created or destroyed. Associated with shallow, damaging earthquakes (e.g. San Andreas Fault, Dead Sea Transform).' },
+                'unknown':    { color: '#ff2eee', label: 'Diffuse or unknown boundary',       description: 'Boundary type not classified, or a diffuse zone where deformation is spread over a wide area rather than a sharp plate boundary.' }
+            };
+            
+            // Diagnostic: log all boundary names and their resolved types
+            if (useTypes) {
+                const summary = { convergent:0, divergent:0, transform:0, unknown:0 };
+                const unknownNames = [];
+                const sampleNames = [];
+                tectonicPlatesData.features.forEach((f, i) => {
+                    const rawN = f.properties && f.properties.Name ? f.properties.Name : '(none)';
+                    if (i < 5) sampleNames.push(JSON.stringify(rawN));
+                    const norm = rawN.trim().replace(/[\/\\]/g, '-').replace(/\s*-\s*/g, '-').toUpperCase();
+                    const parts = norm.split('-');
+                    const rev = parts.length === 2 ? parts[1] + '-' + parts[0] : '';
+                    const t = getBoundaryType(norm, rev);
+                    summary[t] = (summary[t] || 0) + 1;
+                    if (t === 'unknown') unknownNames.push(rawN);
+                });
+                // Unique unknown names
+                const uniqueUnknown = [...new Set(unknownNames)].sort();
+                console.log('🗺️ Sample Name values (first 5):', sampleNames);
+                console.log('🗺️ Type summary:', summary);
+                console.log('🗺️ Unique UNKNOWN boundary names:', uniqueUnknown);
+                // Show in panel
+                const dbg = document.getElementById('boundaryDebugOutput');
+                if (dbg) {
+                    dbg.style.display = 'block';
+                    dbg.innerHTML = `<strong>Boundary classification:</strong> ${summary.convergent} convergent, ${summary.divergent} divergent, ${summary.transform} transform, ${summary.unknown} unknown<br>` +
+                        `<strong>Unknown names:</strong> ${uniqueUnknown.length > 0 ? uniqueUnknown.join(', ') : 'none ✅'}`;
+                }
+            }
+
             return L.geoJSON(tectonicPlatesData, {
-                style: {
-                    color: color,
-                    weight: width,
-                    opacity: overlayOpacity
+                style: function(feature) {
+                    if (useTypes) {
+                        const rawName = feature.properties && feature.properties.Name ? feature.properties.Name : '';
+                        const normName = rawName.trim().replace(/[\/\\]/g, '-').replace(/\s*-\s*/g, '-').toUpperCase();
+                        const parts = normName.split('-');
+                        const reversed = parts.length === 2 ? parts[1] + '-' + parts[0] : '';
+                        const type = getBoundaryType(normName, reversed);
+                        return { color: typeInfo[type].color, weight: width, opacity: overlayOpacity };
+                    }
+                    return { color: color, weight: width, opacity: overlayOpacity };
                 },
                 onEachFeature: function(feature, layer) {
-                    if (feature.properties && feature.properties.Name) {
-                        layer.bindTooltip(feature.properties.Name, {
-                            permanent: false,
-                            direction: 'center',
-                            className: 'plate-tooltip'
-                        });
+                    const rawName = feature.properties && feature.properties.Name ? feature.properties.Name : '';
+                    if (useTypes) {
+                        const normName = rawName.trim().replace(/[\/\\]/g, '-').replace(/\s*-\s*/g, '-').toUpperCase();
+                        const parts = normName.split('-');
+                        const reversed = parts.length === 2 ? parts[1] + '-' + parts[0] : '';
+                        const type = getBoundaryType(normName, reversed);
+                        const info = typeInfo[type];
+                        const dot = `<span style="display:inline-block;width:12px;height:12px;background:${info.color};border-radius:50%;margin-right:6px;vertical-align:middle;"></span>`;
+                        const popupHtml = `<div style="max-width:240px;font-family:sans-serif;">
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:6px;">${dot}${info.label}</div>
+                            <div style="font-size:0.8rem;color:#555;margin-bottom:6px;">${info.description}</div>
+                            ${rawName ? `<div style="font-size:0.75rem;color:#888;">Plate pair: <strong>${rawName}</strong></div>` : ''}
+                        </div>`;
+                        layer.bindPopup(popupHtml, { maxWidth: 260 });
+                        layer.on('mouseover', function(e) { this.openPopup(e.latlng); });
+                        layer.on('mouseout', function() { this.closePopup(); });
+                        layer.on('click', function(e) { this.openPopup(e.latlng); });
+                    } else if (rawName) {
+                        layer.bindTooltip(rawName, { permanent: false, direction: 'center', className: 'plate-tooltip' });
                     }
                 }
             });
@@ -20967,7 +21308,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.129 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.144 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -20979,7 +21320,7 @@ Press OK to copy full config to console.`;
             // Force map to recalculate size after everything is loaded
             setTimeout(() => {
                 if (map) {
-                    map.invalidateSize();
+                    map.invalidateSize({animate: false});
                     console.log('Map size invalidated after page load');
                 }
             }, 250);
