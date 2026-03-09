@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.144 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
+<!-- Geo Mapper v2.10.150 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.144</title>
+    <title>Geo Mapper v2.10.150</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1573,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.144</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.150</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2307,7 +2307,7 @@
                         <div class="color-size-group">
                             <div class="form-group">
                                 <label for="markerColor">Fill color</label>
-                                <input type="color" id="markerColor" value="#3498db">
+                                <input type="color" id="markerColor" value="#111111">
                             </div>
                             <div class="form-group">
                                 <label for="markerSize">Size</label>
@@ -14243,16 +14243,16 @@ Total rows: ${csvData.length}${corsNote}`);
                 // Pin with location red
                 'pin': { fill: '#E74C3C', outline: '#C0392B', width: 2 },                 // Location red
                 
-                // Arrows keep neutral blue
-                'arrow': { fill: '#3498db', outline: '#2c3e50', width: 2 },
-                'arrow-thick': { fill: '#3498db', outline: '#2c3e50', width: 2 },
-                'arrow-triangle': { fill: '#3498db', outline: '#2c3e50', width: 2 },
-                'arrow-double': { fill: '#3498db', outline: '#2c3e50', width: 2 },
-                'arrow-two-way': { fill: '#3498db', outline: '#2c3e50', width: 2 },
-                'arrow-two-way-thick': { fill: '#3498db', outline: '#2c3e50', width: 2 },
+                // Arrows: black by default
+                'arrow': { fill: '#111111', outline: '#111111', width: 2 },
+                'arrow-thick': { fill: '#111111', outline: '#111111', width: 2 },
+                'arrow-triangle': { fill: '#111111', outline: '#111111', width: 2 },
+                'arrow-double': { fill: '#111111', outline: '#111111', width: 2 },
+                'arrow-two-way': { fill: '#111111', outline: '#111111', width: 2 },
+                'arrow-two-way-thick': { fill: '#111111', outline: '#111111', width: 2 },
                 
-                // Basic shapes keep default blue
-                'default': { fill: '#3498db', outline: '#2c3e50', width: 2 }
+                // Basic shapes: black by default
+                'default': { fill: '#111111', outline: '#111111', width: 2 }
             };
             
             const colors = colorDefaults[symbolType] || colorDefaults['default'];
@@ -17538,15 +17538,16 @@ Total rows: ${csvData.length}${corsNote}`);
                 html += `<div class="legend-section-title">${legendTitle}</div>`;
                 
                 // Use getMarkerIcon to create proper symbol without rotation
-                const _defLegendSize = Math.round(defaultSize / 2);
-                const icon = getMarkerIcon(shape, color, _defLegendSize, strokeColor, 0, 0);
+                // Use at least strokeWidth=1 so stroke-only shapes (arrows etc.) are visible in legend
+                const _defLegendSize = Math.max(Math.round(defaultSize / 2), 10);
+                const _legendStroke = Math.max(strokeWidth, 1);
+                const icon = getMarkerIcon(shape, color, _defLegendSize, strokeColor, _legendStroke, 0);
                 const iconHtml = icon.options.html;
                 
                 html += `<div class="legend-item">
-                    <div class="legend-symbol" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                        ${iconHtml}
+                    <div class="legend-symbol" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; overflow: visible; flex-shrink: 0;">
+                        <div style="transform: scale(0.75); transform-origin: center center;">${iconHtml}</div>
                     </div>
-                    <span>${symbolName}</span>
                 </div>`;
                 html += '</div>';
                 hasContent = true;
@@ -17685,6 +17686,7 @@ Total rows: ${csvData.length}${corsNote}`);
                                     html += `<div class="legend-item"><svg width="24" height="16"><line x1="0" y1="8" x2="24" y2="8" stroke="${r.color}" stroke-width="3"/></svg><span style="font-size:0.78rem;">${r.label}</span></div>`;
                                 });
                                 html += '<div style="font-size:0.65rem;color:#7f8c8d;margin-top:0.25rem;">Click boundary for type details</div>';
+                                html += '<div style="font-size:0.65rem;color:#7f8c8d;margin-top:0.2rem;font-style:italic;">NB: Classifications are open to debate. Boundaries are rarely pure types.</div>';
                             } else {
                                 html += '<div class="legend-item">';
                                 html += `<svg width="24" height="24"><line x1="0" y1="12" x2="24" y2="12" stroke="${overlayLineColor}" stroke-width="2"/></svg>`;
@@ -17930,6 +17932,12 @@ Total rows: ${csvData.length}${corsNote}`);
             }
             
             if (layer) {
+                // Guard against race condition: if checkbox was unchecked while layer was loading, discard it
+                const checkbox = document.getElementById(`overlay-${overlayType}`);
+                if (!checkbox || !checkbox.checked) {
+                    // Was unchecked during async load — do not add to map
+                    return;
+                }
                 activeOverlays[overlayType] = layer;
                 layer.addTo(map);
                 // Only call bringToBack if the method exists (not all layer types support it)
@@ -18255,107 +18263,67 @@ Total rows: ${csvData.length}${corsNote}`);
             
             // Boundary type lookup (Bird 2003 / PB2002 classifications)
             // Keys are plate pair codes matching PB2002 "Name" property
-            // Types: divergent, convergent, transform, unknown
+            // Types: divergent, convergent, transform, unknown (diffuse)
+            // Source: boundary_classifications-3.csv — NB classifications are open to debate; boundaries are rarely pure types.
             const boundaryTypeMap = {
-                // ── DIVERGENT (constructive) ── spreading ridges, new crust forms ──────────
-                // Major ocean ridges
-                'AF-AN': 'divergent', 'AN-NZ': 'divergent', 'AN-PA': 'divergent',
-                'AN-AU': 'divergent', 'AU-IN': 'divergent', 'CO-PA': 'divergent',
-                'CO-NZ': 'divergent', 'EU-NA': 'divergent', 'AF-NA': 'divergent',
-                'JF-PA': 'divergent', 'NZ-PA': 'divergent', 'SA-AF': 'divergent',
-                'CL-AN': 'divergent', 'IN-AF': 'divergent', 'MO-EU': 'divergent',
-                'SO-AN': 'divergent', 'IN-SO': 'divergent', 'SO-AF': 'divergent',
-                'AU-SO': 'divergent',
-                // Microplate spreading centres
-                'EA-NZ': 'divergent', 'EA-PA': 'divergent',         // Easter microplate (EPR)
-                'GP-CO': 'divergent', 'GP-NZ': 'divergent', 'GP-PA': 'divergent', // Galapagos
-                'JZ-NZ': 'divergent', 'JZ-PA': 'divergent',         // Juan Fernandez
-                'SO-AR': 'divergent',                                // Gulf of Aden ridge
-                'RI-PA': 'divergent',                                // Rivera-Pacific
-                // ── CONVERGENT (destructive) ── subduction zones and collisions ───────────
-                // Major subduction zones
-                'JF-NA': 'convergent', 'CO-NA': 'convergent', 'CO-CA': 'convergent',
-                'NZ-SA': 'convergent', 'NA-PA': 'convergent', 'PA-AU': 'convergent',
-                'PA-EU': 'convergent', 'PA-PH': 'convergent', 'PH-PA': 'convergent',
-                'PA-PS': 'convergent', 'PA-SA': 'convergent',
-                'PS-EU': 'convergent', 'PS-PA': 'convergent', 'SU-AU': 'convergent',
-                'AU-PS': 'convergent', 'OK-NA': 'convergent', 'OK-PA': 'convergent',
-                'SU-PS': 'convergent', 'MA-PA': 'convergent',
-                'IN-EU': 'convergent', 'AR-EU': 'convergent', 'AF-EU': 'convergent',
-                'AU-EU': 'convergent', 'SU-EU': 'convergent',
-                'EU-AF': 'convergent', 'EU-AR': 'convergent',
-                'ON-PS': 'convergent', 'AM-PS': 'convergent',
-                'CA-SA': 'convergent', 'NZ-ND': 'convergent', 'CL-PS': 'convergent',
-                'BH-PS': 'convergent', 'BH-SU': 'convergent', 'TI-AU': 'convergent',
-                'AU-MO': 'convergent', 'AU-WL': 'convergent', 'KE-PA': 'convergent',
-                'PS-SU': 'convergent',
-                // Microplate subduction / collision zones
-                'AM-PS': 'convergent',                               // Amur-Philippine Sea
-                'AP-SA': 'convergent',                               // Altiplano-South America
-                'AS-AF': 'convergent',                               // Aegean-Africa
-                'AT-AF': 'convergent',                               // Anatolia-Africa
-                'AU-BH': 'convergent',                               // Australia-Bird's Head
-                'AU-CR': 'convergent', 'AU-PA': 'convergent',       // Australia (extra)
-                'BR-AU': 'convergent', 'BR-CR': 'convergent', 'BR-NH': 'convergent', // Balmoral Reef
-                'BS-AU': 'convergent', 'BS-SU': 'convergent', 'BS-TI': 'convergent', // Banda Sea
-                'BU-AU': 'convergent', 'BU-IN': 'convergent',       // Burma
-                'CA-CO': 'convergent',                               // Caribbean-Cocos
-                'CL-NB': 'convergent',                               // Caroline-North Bismarck
-                'CO-PM': 'convergent',                               // Cocos-Papuan
-                'CR-NH': 'convergent',                               // Caroline-New Hebrides
-                'IN-BU': 'convergent',                               // India-Burma
-                'KE-AU': 'convergent', 'KE-TO': 'convergent',       // Kermadec
-                'MO-BH': 'convergent',                               // Molucca Sea-Bird's Head
-                'MS-BH': 'convergent', 'MS-BS': 'convergent', 'MS-SU': 'convergent', // Makassar/Maoke
-                'ND-NZ': 'convergent', 'ND-SA': 'convergent',       // North Andes
-                'NH-AU': 'convergent', 'NH-PA': 'convergent',       // New Hebrides
-                'NI-AU': 'convergent',                               // Niuafo'ou-Australia
-                'NZ-AP': 'convergent', 'NZ-PM': 'convergent',       // Nazca (extra)
-                'OK-PS': 'convergent',                               // Okhotsk-Philippine Sea
-                'PA-BR': 'convergent', 'PA-CL': 'convergent', 'PA-NB': 'convergent', // Pacific micro
-                'PA-NI': 'convergent', 'PA-OK': 'convergent', 'PA-SS': 'convergent', // Pacific micro
-                'PA-TO': 'convergent', 'PA-WL': 'convergent',       // Pacific micro
-                'PM-CA': 'convergent', 'PM-ND': 'convergent',       // Papuan
-                'PS-YA': 'convergent',                               // Philippine Sea-Yangtze
-                'SB-SS': 'convergent',                               // South Bismarck-Solomon Sea
-                'SU-BU': 'convergent', 'SU-TI': 'convergent',       // Sunda (extra)
-                'SW-SA': 'convergent',                               // Sandwich-South America
-                'TO-AU': 'convergent', 'TO-NI': 'convergent', 'TO-PA': 'convergent', // Tonga
-                'WL-BH': 'convergent', 'WL-MO': 'convergent', 'WL-SS': 'convergent', // Woodlark
-                // ── TRANSFORM (conservative) ── plates slide past each other ─────────────
-                'CA-NA': 'transform', 'AF-AR': 'transform', 'AR-IN': 'transform',
-                'AN-CA': 'transform', 'AN-SC': 'transform',
-                'SC-SA': 'transform', 'SC-NA': 'transform', 'SC-AF': 'transform',
-                'NA-NB': 'transform', 'AF-NB': 'transform', 'NB-SA': 'transform',
-                'EU-NB': 'transform', 'AT-EU': 'transform',
-                // Amur plate transforms
-                'AM-EU': 'transform', 'EU-AM': 'transform',
-                'AM-ON': 'transform', 'AM-YA': 'transform',
-                // Mediterranean microplate transforms
-                'AS-AT': 'transform', 'AS-EU': 'transform',
-                'AT-AR': 'transform',
-                // Southeast Asian transforms
-                'BH-BS': 'transform', 'BH-CL': 'transform',
-                'BU-EU': 'transform',
-                // Caribbean transforms
-                'CA-ND': 'transform', 'NA-SA': 'transform',
-                // Pacific microplate transforms
-                'CL-WL': 'transform',
-                'EU-YA': 'transform',
-                'FT-AU': 'transform', 'FT-PA': 'transform',         // Futuna
-                'MN-SB': 'transform',                               // Manus-South Bismarck
-                'NA-RI': 'transform', 'RI-CO': 'transform',         // Rivera
-                'NB-MN': 'transform', 'NB-SB': 'transform',         // North Bismarck
-                'NB-SS': 'transform', 'NB-WL': 'transform',         // North Bismarck
-                'NI-FT': 'transform',                               // Niuafo'ou-Futuna
-                'OK-AM': 'transform', 'OK-EU': 'transform',         // Okhotsk
-                'AN-SA': 'transform',                               // Antarctic-South America
-                'SB-WL': 'transform',                               // South Bismarck-Woodlark
-                'SL-AN': 'transform',                               // Solomon Sea (misc)
-                'SS-WL': 'transform',                               // Solomon Sea-Woodlark
-                'YA-ON': 'transform', 'YA-SU': 'transform',         // Yangtze
-                // ── DIFFUSE / UNKNOWN ─────────────────────────────────────────────────────
-                'IN-AU': 'unknown', 'PS-MA': 'unknown'
+                // ── CONVERGENT (destructive) ───────────────────────────────────────────────
+                'AF-EU': 'convergent', 'AM-PS': 'convergent', 'AN-SA': 'convergent',
+                'AP-SA': 'convergent', 'AR-EU': 'convergent', 'AR-IN': 'convergent',
+                'AS-AF': 'convergent', 'AT-AF': 'convergent', 'AU-BH': 'convergent',
+                'AU-CR': 'convergent', 'AU-EU': 'convergent', 'AU-MO': 'convergent',
+                'AU-PA': 'convergent', 'AU-PS': 'convergent', 'AU-WL': 'convergent',
+                'BH-PS': 'convergent', 'BH-SU': 'convergent', 'BR-AU': 'convergent',
+                'BR-CR': 'convergent', 'BR-NH': 'convergent', 'BS-AU': 'convergent',
+                'BS-SU': 'convergent', 'BS-TI': 'convergent', 'BU-AU': 'convergent',
+                'BU-IN': 'convergent', 'CA-CO': 'convergent', 'CA-SA': 'convergent',
+                'CL-NB': 'convergent', 'CL-PS': 'convergent', 'CO-CA': 'convergent',
+                'CO-NA': 'convergent', 'CO-PM': 'convergent', 'CR-NH': 'convergent',
+                'EU-AF': 'convergent', 'EU-AR': 'convergent', 'IN-BU': 'convergent',
+                'IN-EU': 'convergent', 'JF-NA': 'convergent', 'KE-AU': 'convergent',
+                'KE-PA': 'convergent', 'KE-TO': 'convergent', 'MA-PA': 'convergent',
+                'MO-BH': 'convergent', 'MS-BH': 'convergent', 'MS-BS': 'convergent',
+                'MS-SU': 'convergent', 'ND-NZ': 'convergent', 'ND-SA': 'convergent',
+                'NH-AU': 'convergent', 'NH-PA': 'convergent', 'NI-AU': 'convergent',
+                'NZ-AP': 'convergent', 'NZ-ND': 'convergent', 'NZ-PM': 'convergent',
+                'NZ-SA': 'convergent', 'OK-PA': 'convergent', 'OK-PS': 'convergent',
+                'ON-PS': 'convergent', 'PA-AU': 'convergent', 'PA-BR': 'convergent',
+                'PA-CL': 'convergent', 'PA-EU': 'convergent', 'PA-NB': 'convergent',
+                'PA-NI': 'convergent', 'PA-OK': 'convergent', 'PA-PH': 'convergent',
+                'PA-PS': 'convergent', 'PA-SA': 'convergent', 'PA-SS': 'convergent',
+                'PA-TO': 'convergent', 'PA-WL': 'convergent', 'PH-PA': 'convergent',
+                'PS-EU': 'convergent', 'PS-MA': 'convergent', 'PS-PA': 'convergent',
+                'PS-SU': 'convergent', 'PS-YA': 'convergent', 'SB-SS': 'convergent',
+                'SU-AU': 'convergent', 'SU-BU': 'convergent', 'SU-PS': 'convergent',
+                'SU-TI': 'convergent', 'SW-SA': 'convergent', 'TI-AU': 'convergent',
+                'TO-AU': 'convergent', 'TO-NI': 'convergent', 'TO-PA': 'convergent',
+                'WL-BH': 'convergent', 'WL-MO': 'convergent', 'WL-SS': 'convergent',
+                // ── DIVERGENT (constructive) ───────────────────────────────────────────────
+                'AF-AN': 'divergent', 'AF-NA': 'divergent', 'AN-AU': 'divergent',
+                'AN-NZ': 'divergent', 'AN-PA': 'divergent', 'AU-IN': 'divergent',
+                'AU-SO': 'divergent', 'CL-AN': 'divergent', 'CO-NZ': 'divergent',
+                'CO-PA': 'divergent', 'EA-NZ': 'divergent', 'EA-PA': 'divergent',
+                'EU-NA': 'divergent', 'GP-CO': 'divergent', 'GP-NZ': 'divergent',
+                'GP-PA': 'divergent', 'IN-AF': 'divergent', 'IN-SO': 'divergent',
+                'JF-PA': 'divergent', 'JZ-NZ': 'divergent', 'JZ-PA': 'divergent',
+                'MO-EU': 'divergent', 'NZ-PA': 'divergent', 'RI-PA': 'divergent',
+                'SA-AF': 'divergent', 'SO-AF': 'divergent', 'SO-AN': 'divergent',
+                'SO-AR': 'divergent',
+                // ── TRANSFORM (conservative) ───────────────────────────────────────────────
+                'AF-AR': 'transform', 'AM-EU': 'transform', 'AM-ON': 'transform',
+                'AM-YA': 'transform', 'AN-CA': 'transform', 'AN-SC': 'transform',
+                'AS-AT': 'transform', 'AS-EU': 'transform', 'AT-AR': 'transform',
+                'AT-EU': 'transform', 'BH-BS': 'transform', 'BH-CL': 'transform',
+                'BU-EU': 'transform', 'CA-NA': 'transform', 'CA-ND': 'transform',
+                'CL-WL': 'transform', 'EU-AM': 'transform', 'EU-NB': 'transform',
+                'EU-YA': 'transform', 'FT-AU': 'transform', 'FT-PA': 'transform',
+                'MN-SB': 'transform', 'NA-PA': 'transform', 'NA-RI': 'transform',
+                'NA-SA': 'transform', 'NB-MN': 'transform', 'NB-SB': 'transform',
+                'NB-SS': 'transform', 'NB-WL': 'transform', 'NI-FT': 'transform',
+                'OK-AM': 'transform', 'OK-EU': 'transform', 'RI-CO': 'transform',
+                'SB-WL': 'transform', 'SC-SA': 'transform', 'SL-AN': 'transform',
+                'SS-WL': 'transform', 'YA-ON': 'transform', 'YA-SU': 'transform',
+                // ── DIFFUSE ────────────────────────────────────────────────────────────────
+                'IN-AU': 'unknown', 'OK-NA': 'unknown', 'SU-EU': 'unknown'
             };
 
             // Separator-agnostic normalise: handles -, / and \ as plate-pair separators
@@ -18368,10 +18336,12 @@ Total rows: ${csvData.length}${corsNote}`);
                 // Wildcard: any boundary involving Scotia plate → transform
                 const parts = name.split('-');
                 if (parts.includes('SC')) return 'transform';
-                // AN (Antarctic) boundaries not already mapped as divergent → transform
+                // AN (Antarctic) boundaries not already mapped as divergent or convergent → transform
                 if (parts.includes('AN')) {
                     const divergentAN = new Set(['AF-AN','AN-NZ','AN-PA','AN-AU','CL-AN','SO-AN']);
-                    if (!divergentAN.has(name) && !divergentAN.has(reversed)) return 'transform';
+                    const convergentAN = new Set(['AN-SA']);
+                    if (!divergentAN.has(name) && !divergentAN.has(reversed) &&
+                        !convergentAN.has(name) && !convergentAN.has(reversed)) return 'transform';
                 }
                 return 'unknown';
             }
@@ -18380,7 +18350,7 @@ Total rows: ${csvData.length}${corsNote}`);
                 'convergent': { color: '#ff0000', label: 'Convergent boundary (destructive)', description: 'Plates move together. Oceanic crust sinks into the mantle (subduction) creating ocean trenches and volcanic arcs, or continents collide to form mountain ranges (e.g. Himalayas, Andes, Pacific Ring of Fire). Associated with powerful earthquakes and volcanoes.' },
                 'divergent':  { color: '#36cc00', label: 'Divergent boundary (constructive)', description: 'Plates move apart. New oceanic crust forms at spreading ridges as magma rises and solidifies (e.g. Mid-Atlantic Ridge, East African Rift). Associated with volcanic activity and shallow earthquakes.' },
                 'transform':  { color: '#ffae00', label: 'Transform boundary (conservative)', description: 'Plates slide horizontally past each other. No crust is created or destroyed. Associated with shallow, damaging earthquakes (e.g. San Andreas Fault, Dead Sea Transform).' },
-                'unknown':    { color: '#ff2eee', label: 'Diffuse or unknown boundary',       description: 'Boundary type not classified, or a diffuse zone where deformation is spread over a wide area rather than a sharp plate boundary.' }
+                'unknown':    { color: '#ff2eee', label: 'Diffuse boundary',                   description: 'Deformation is spread over a wide area rather than a sharp boundary (e.g. India–Australia, Okhotsk–North America, Sunda–Eurasia). NB: Plate boundary classifications are open to debate — boundaries are rarely pure types.' }
             };
             
             // Diagnostic: log all boundary names and their resolved types
@@ -18407,8 +18377,8 @@ Total rows: ${csvData.length}${corsNote}`);
                 const dbg = document.getElementById('boundaryDebugOutput');
                 if (dbg) {
                     dbg.style.display = 'block';
-                    dbg.innerHTML = `<strong>Boundary classification:</strong> ${summary.convergent} convergent, ${summary.divergent} divergent, ${summary.transform} transform, ${summary.unknown} unknown<br>` +
-                        `<strong>Unknown names:</strong> ${uniqueUnknown.length > 0 ? uniqueUnknown.join(', ') : 'none ✅'}`;
+                    dbg.innerHTML = `<strong>Boundary classification:</strong> ${summary.convergent} convergent, ${summary.divergent} divergent, ${summary.transform} transform, ${summary.unknown} diffuse<br>` +
+                        `<em style="font-size:0.75rem;color:#7f6000;">NB: Classifications are open to debate. Boundaries are rarely pure types.</em>`;
                 }
             }
 
@@ -21308,7 +21278,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.144 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.150 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
