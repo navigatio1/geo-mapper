@@ -1,3 +1,0 @@
-[build]
-  command = "sed -i 's/GITHUB_TOKEN_PLACEHOLDER/$GITHUB_PAT/g' index.html"
-  publish = "."
