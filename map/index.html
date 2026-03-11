@@ -5597,7 +5597,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
             };
             
-            const response = await fetch('https:///.netlify/functions/gist-proxy', {
+            const response = await fetch('/.netlify/functions/gist-proxy', {
                 method: 'POST',
                 headers: {
                     'Authorization': `token ${GITHUB_TOKEN}`,
