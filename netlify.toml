@@ -1,2 +1,3 @@
 [build]
   publish = "map"
+  functions = "netlify/functions"
