@@ -5576,10 +5576,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         // GITHUB GIST FUNCTIONS
         // ========================================
         
-        async function createGist(config) {
-            if (!GITHUB_TOKEN) {
-                throw new Error('GitHub token not configured');
-            }
+        async function createGist(config)
             
             const timestamp = new Date().toISOString();
             const mapTitle = config.settings.mapTitle || 'Untitled Map';
@@ -5600,9 +5597,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const response = await fetch('/.netlify/functions/gist-proxy', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/vnd.github.v3+json'
+'Content-Type': 'application/json',
+    'Accept': 'application/vnd.github.v3+json'
                 },
                 body: JSON.stringify(gistData)
             });
@@ -5649,13 +5645,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const maxSafeLength = 2000;
             
             // If URL is short enough or no GitHub token, use compressed URL
-            if (urlLength <= maxSafeLength || !GITHUB_TOKEN) {
+            if (urlLength <= maxSafeLength {
                 document.getElementById('shareURLInput').value = compressedURL;
                 document.getElementById('shareURLDisplay').style.display = 'block';
                 document.getElementById('copyShareBtn').style.display = 'block';
                 
                 const warningDiv = document.getElementById('urlWarning');
-                if (urlLength > maxSafeLength && !GITHUB_TOKEN) {
+                if (urlLength > maxSafeLength {
                     warningDiv.style.display = 'block';
                     warningDiv.innerHTML = `⚠️ <strong>URL is long</strong> (${urlLength.toLocaleString()} chars) — some messaging apps may truncate it. For large datasets, use "Save Map Configuration" instead.`;
                 } else {
