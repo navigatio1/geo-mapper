@@ -1,2 +1,3 @@
 [build]
   command = 'sed -i "s/GITHUB_TOKEN_PLACEHOLDER/$GITHUB_PAT/g" "geo-point-mapper latest.html"'
+  publish = "."
