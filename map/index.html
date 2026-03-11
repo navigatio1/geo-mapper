@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.150 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
+<!-- Geo Mapper v2.10.151 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -5586,7 +5586,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 public: !USE_PRIVATE_GISTS,
                 files: {
                     'geo-mapper-config.json': {
-                        content: JSON.stringify(config, null, 2)
+                        content: LZString.compressToEncodedURIComponent(JSON.stringify(config))
                     },
                     'README.md': {
                         content: `# ${mapTitle}\n\nCreated: ${timestamp}\n\nThis is a Geo Mapper configuration file.\nOpen it by pasting the Gist ID into the Geo Mapper application.`
@@ -5630,7 +5630,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 throw new Error('Invalid Gist: geo-mapper-config.json not found');
             }
             
-            return JSON.parse(configFile.content);
+            return JSON.parse(LZString.decompressFromEncodedURIComponent(configFile.content));
         }
         
         async function generateShareURL() {
@@ -5719,10 +5719,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 button.disabled = true;
                 button.innerHTML = '⏳ Creating Gist...';
                 
-                const response = await fetch('https:///.netlify/functions/gist-proxy', {
+                const response = await fetch('/.netlify/functions/gist-proxy', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
@@ -5782,7 +5781,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             try {
                 console.log('Loading map from Gist:', gistId);
                 
-                const response = await fetch(`https:///.netlify/functions/gist-proxy/${gistId}`);
+                const response = await fetch(`/.netlify/functions/gist-proxy?id=${gistId}`);
                 
                 if (!response.ok) {
                     throw new Error('Gist not found or not accessible');
