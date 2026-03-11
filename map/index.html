@@ -5613,7 +5613,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
         
         async function loadGist(gistId) {
-            const response = await fetch(`https:///.netlify/functions/gist-proxy/${gistId}`, {
+            const response = await fetch(`/.netlify/functions/gist-proxy?id=${gistId}`, {
                 headers: {
                     'Accept': 'application/vnd.github.v3+json'
                 }
@@ -5645,13 +5645,13 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const maxSafeLength = 2000;
             
             // If URL is short enough or no GitHub token, use compressed URL
-            if (urlLength <= maxSafeLength {
+           if (urlLength <= maxSafeLength) {
                 document.getElementById('shareURLInput').value = compressedURL;
                 document.getElementById('shareURLDisplay').style.display = 'block';
                 document.getElementById('copyShareBtn').style.display = 'block';
                 
                 const warningDiv = document.getElementById('urlWarning');
-                if (urlLength > maxSafeLength {
+               if (urlLength > maxSafeLength) {
                     warningDiv.style.display = 'block';
                     warningDiv.innerHTML = `⚠️ <strong>URL is long</strong> (${urlLength.toLocaleString()} chars) — some messaging apps may truncate it. For large datasets, use "Save Map Configuration" instead.`;
                 } else {
