@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper 3D v0.92</title>
+    <title>Geo Mapper 3D v0.93</title>
 
     <!-- Cesium -->
     <script>window.CESIUM_BASE_URL = 'https://unpkg.com/cesium@1.114.0/Build/Cesium/';</script>
@@ -764,7 +764,7 @@
     <div id="sidebar"><button id="eyeBtn" class="panel-open" title="Toggle Control Panel">👁️</button>
         <div id="sidebarInner">
             <div class="sidebar-header">
-                <h1>📍 Geo Mapper 3D <span class="version">v0.92</span></h1>
+                <h1>📍 Geo Mapper 3D <span class="version">v0.93/span></h1>
             </div>
 
             <div id="sidebarScroll">
@@ -1906,7 +1906,7 @@
                              Tile errors, basemap switches, and CSV events all appear here. -->
                         <div id="diagnosticOutput"
                              style="padding:0.6rem 0.75rem;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-family:monospace;font-size:0.7rem;white-space:pre-wrap;line-height:1.5;max-height:220px;overflow-y:auto;color:var(--text-soft);">
-                            Geo Mapper 3D v0.92 — Initialising…
+                            Geo Mapper 3D v0.93 — Initialising…
                         </div>
                         <button class="btn btn-secondary" onclick="copyDiagnostics()" style="margin-top:0.5rem;font-size:0.78rem;">
                             📋 Copy log to clipboard
@@ -3014,12 +3014,20 @@ function updateLegendLabel() {
     const count = csvData.length;
     if (!count) return;
     const label = document.getElementById('legendLabel').value || 'Data points';
-    const el = document.getElementById('legendData');
-    if (!el) return;
-    const dot = el.querySelector('.legend-dot');
-    if (!dot) return;
-    const span = dot.nextElementSibling;
-    if (span) span.textContent = _legendText(label, count);
+    // Target the stable id we set during renderering — avoids clobbering category swatches
+    const span = document.getElementById('legendDataLabel');
+    if (span) {
+        span.textContent = _legendText(label, count);
+        return;
+    }
+    // Fallback for category mode (label not shown separately — rebuild legend)
+    const colorByField = document.getElementById('colorByField')?.value || '';
+    if (!colorByField) {
+        // re-render with new label
+        updateLegend({ color: document.getElementById('pointColor')?.value || '#e74c3c',
+                       size:  parseInt(document.getElementById('pointSize')?.value) || 10,
+                       label: label, count: count });
+    }
 }
 
 function updateOpacity() {
@@ -3627,14 +3635,38 @@ function updateLegend(data) {
         const header = `<div style="font-size:0.72rem;color:var(--text-soft);margin-bottom:0.25rem;">${escapeHtml(colorByField)} — ${data.count} points</div>`;
         el.innerHTML = header + rows;
     } else {
-        // Fixed colour: single entry
-        const dotStyle = data.color
-            ? `background:${data.color};`
-            : 'background:#e74c3c;';
+        // Fixed colour: single entry — shape-aware symbol
+        const colour  = data.color || '#e74c3c';
+        const shape   = document.getElementById('markerShape')?.value || 'circle';
+        const size    = Math.max(8, Math.min(14, (data.size || 10)));
+        const half    = size / 2;
+        // Build a tiny inline SVG matching the chosen shape
+        const svgSymbol = (function() {
+            const s = size, h = half;
+            const fill = colour, stroke = document.getElementById('outlineColor')?.value || '#ffffff';
+            const sw = Math.min(1.5, parseInt(document.getElementById('outlineWidth')?.value) || 1);
+            switch(shape) {
+                case 'square':
+                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><rect x="${sw/2}" y="${sw/2}" width="${s-sw}" height="${s-sw}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+                case 'triangle':
+                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${h},${sw} ${s-sw},${s-sw} ${sw},${s-sw}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+                case 'diamond':
+                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${h},${sw} ${s-sw},${h} ${h},${s-sw} ${sw},${h}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+                case 'star':
+                    // 5-point star
+                    const pts = [];
+                    for (let i=0;i<10;i++){const r=(i%2===0)?h-sw:h*0.4;const a=(i*Math.PI/5)-Math.PI/2;pts.push(`${h+r*Math.cos(a)},${h+r*Math.sin(a)}`);}
+                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${pts.join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+                case 'pin':
+                    return `<svg width="${s}" height="${s+4}" viewBox="0 0 ${s} ${s+4}"><circle cx="${h}" cy="${h*0.85}" r="${h*0.75}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="${h}" y1="${h*1.6}" x2="${h}" y2="${s+3}" stroke="${fill}" stroke-width="${sw+0.5}"/></svg>`;
+                default: // circle
+                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><circle cx="${h}" cy="${h}" r="${h-sw/2}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+            }
+        })();
         el.innerHTML = `
-            <div class="legend-item">
-                <span class="legend-dot" style="${dotStyle}flex-shrink:0;"></span>
-                <span>${_legendText(data.label, data.count)}</span>
+            <div class="legend-item" id="legendDataMainEntry">
+                <span style="display:inline-flex;align-items:center;flex-shrink:0;margin-right:6px;">${svgSymbol}</span>
+                <span id="legendDataLabel">${_legendText(data.label, data.count)}</span>
             </div>`;
     }
 }
@@ -4593,12 +4625,14 @@ async function _loadOverlay(name) {
                 if (!onGrid) addLatLine(rounded, SPECIAL_LATS[rounded] || SPECIAL_LATS[String(rounded)]);
             });
 
-            // Regular grid longitude lines
-            for (let lng = -180; lng < 180; lng += spacing) {
+            // Regular grid longitude lines — skip -180 and 180 (handled separately as IDL)
+            for (let lng = -180 + spacing; lng < 180; lng += spacing) {
                 addLngLine(lng, SPECIAL_LNGS[lng] || SPECIAL_LNGS[String(lng)] || null);
             }
-            // IDL at 180 if not already drawn
-            if (180 % spacing !== 0) addLngLine(180, SPECIAL_LNGS[180]);
+            // Prime Meridian — always draw if not on grid
+            if (-180 % spacing !== 0) addLngLine(-180, null);
+            // IDL — always draw at 179.9999 to avoid CesiumJS ±180° antimeridian seam artifact
+            addLngLine(179.9999, SPECIAL_LNGS[180]);
             viewer.dataSources.add(ds);
             _overlayDS[name] = ds;
 
@@ -4619,16 +4653,20 @@ async function _loadOverlay(name) {
                     'convergent': '#ff0000',
                     'transform':  '#ffae00',
                     'divergent':  '#36cc00',
-                    'diffuse':    '#cc77ff',
+                    'diffuse':    '#ff2eee',  // matches legend
                 };
+                const widthProp = new Cesium.ConstantProperty(width);
                 ds.entities.values.forEach(e => {
                     const pairName = e.properties?.Name?.getValue?.() || e.properties?.name?.getValue?.() || '';
-                    const cls = _pb2002Lookup[pairName.trim()] || '';
-                    const col = classColors[cls] || '#ff0000'; // default red if not found
+                    // PB2002 Name field is e.g. "AF-AN 1" — strip trailing space+digits
+                    const pairKey = pairName.trim().replace(/\s+\d+$/, '');
+                    // Try both directions (AF-AN and AN-AF), default diffuse if unknown
+                    const cls = _pb2002Lookup[pairKey] || _pb2002Lookup[pairKey.split('-').reverse().join('-')] || 'diffuse';
+                    const col = classColors[cls] || '#ff2eee';
                     if (e.polyline) {
                         e.polyline.material = new Cesium.ColorMaterialProperty(
                             Cesium.Color.fromCssColorString(col).withAlpha(0.9));
-                        e.polyline.width = new Cesium.ConstantProperty(width);
+                        e.polyline.width = widthProp;
                     }
                 });
             }
@@ -4679,28 +4717,44 @@ async function _loadOverlay(name) {
         } else if (name === 'earthquakes') {
             const minmag = document.getElementById('eq-minmag')?.value || '4.5';
             const url = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=${minmag}&orderby=time&limit=500&starttime=${_getDateNDaysAgo(30)}`;
-            const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
-            ds.entities.values.forEach(entity => {
-                const mag   = entity.properties?.mag?.getValue() || 0;
-                const place = entity.properties?.place?.getValue() || '';
-                const depth = entity.properties?.depth?.getValue() || 0;
-                // Size = magnitude (larger = bigger), Colour = depth (shallow warm, deep blue)
+            // Load raw GeoJSON so we can read depth from geometry.coordinates[2]
+            // (USGS stores depth in coordinates, not in properties)
+            const rawResp = await fetch(url);
+            const rawGJ   = await rawResp.json();
+            const ds = new Cesium.CustomDataSource('overlay_earthquakes');
+            rawGJ.features.forEach(feat => {
+                const props = feat.properties || {};
+                const coords = feat.geometry?.coordinates || [];
+                const lon   = coords[0];
+                const lat   = coords[1];
+                const depth = coords[2] || 0;   // km below surface
+                const mag   = props.mag   || 0;
+                const place = props.place || '';
+                if (isNaN(lon) || isNaN(lat)) return;
                 const size  = Math.max(5, Math.min(30, mag * 4.5));
-                // Depth colour: shallow (<70 km) = coral/red, deep (≥70 km) = blue
-                const col   = depth < 70
-                    ? Cesium.Color.fromCssColorString('#E8735A').withAlpha(0.88)
-                    : Cesium.Color.fromCssColorString('#3A7DE8').withAlpha(0.88);
-                entity.billboard = undefined;
-                entity.point = new Cesium.PointGraphics({
-                    pixelSize: size, color: col,
-                    outlineColor: Cesium.Color.BLACK.withAlpha(0.5), outlineWidth: 1,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                // Depth colour: shallow (<70 km) = coral, intermediate (70–300 km) = orange, deep (>300 km) = blue
+                let col;
+                if (depth < 70)       col = Cesium.Color.fromCssColorString('#E8735A').withAlpha(0.88);
+                else if (depth < 300) col = Cesium.Color.fromCssColorString('#f39c12').withAlpha(0.88);
+                else                  col = Cesium.Color.fromCssColorString('#3A7DE8').withAlpha(0.88);
+                ds.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(lon, lat),
+                    point: new Cesium.PointGraphics({
+                        pixelSize: size, color: col,
+                        outlineColor: Cesium.Color.BLACK.withAlpha(0.5), outlineWidth: 1,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                    }),
+                    name: `M${mag.toFixed(1)} – ${place}`,
+                    properties: new Cesium.PropertyBag({
+                        mag: mag, depth: depth, place: place,
+                    }),
                 });
-                entity.name = entity.name || `M${mag.toFixed(1)} – ${place}`;
             });
             ds.name = 'overlay_earthquakes';
             viewer.dataSources.add(ds);
             _overlayDS[name] = ds;
+            addDiagnostic(`Overlay loaded: earthquakes (${ds.entities.values.length} features)`, 'success');
 
         } else if (name === 'tectonic-names') {
             // Fetch raw GeoJSON to compute polygon centroids — GeoJsonDataSource
@@ -4720,11 +4774,23 @@ async function _loadOverlay(name) {
                 else if (geom.type === 'MultiPolygon') ring = geom.coordinates[0][0];
                 else return;
                 if (!ring || ring.length === 0) return;
-                // Simple mean centroid of outer ring
+                // Antimeridian-aware centroid: unwrap longitudes relative to first vertex
+                // so plates crossing ±180° (e.g. Pacific) don't average to 0°.
+                let refLng = ring[0][0];
                 let sumLng = 0, sumLat = 0;
-                ring.forEach(([lng, lat]) => { sumLng += lng; sumLat += lat; });
-                const cLng = sumLng / ring.length;
+                ring.forEach(([lng, lat]) => {
+                    let dLng = lng - refLng;
+                    // Wrap delta into [-180, 180]
+                    if (dLng > 180)  dLng -= 360;
+                    if (dLng < -180) dLng += 360;
+                    sumLng += refLng + dLng;
+                    sumLat += lat;
+                });
+                let cLng = sumLng / ring.length;
                 const cLat = sumLat / ring.length;
+                // Re-wrap result to [-180, 180]
+                if (cLng > 180)  cLng -= 360;
+                if (cLng < -180) cLng += 360;
                 if (isNaN(cLng) || isNaN(cLat)) return;
                 labelDS.entities.add({
                     position: Cesium.Cartesian3.fromDegrees(cLng, cLat),
@@ -4737,7 +4803,7 @@ async function _loadOverlay(name) {
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                         verticalOrigin: Cesium.VerticalOrigin.CENTER,
                         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 12e6),
+                        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 30e6),
                         disableDepthTestDistance: Number.POSITIVE_INFINITY,
                     }),
                     name: plateName,
@@ -4842,8 +4908,12 @@ function _updateOverlayLegend() {
                   <span style="font-size:0.72rem;">Shallow (&lt;70 km)</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:0.4rem;padding:0.1rem 0 0.1rem 0.3rem;">
+                  <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f39c12;flex-shrink:0;margin-left:4px;"></span>
+                  <span style="font-size:0.72rem;">Intermediate (70–300 km)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.4rem;padding:0.1rem 0 0.1rem 0.3rem;">
                   <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3A7DE8;flex-shrink:0;margin-left:4px;"></span>
-                  <span style="font-size:0.72rem;">Deep (≥70 km)</span>
+                  <span style="font-size:0.72rem;">Deep (&gt;300 km)</span>
                 </div>
                 <div style="font-size:0.68rem;color:#aaa;margin-top:0.2rem;">Source: USGS GeoJSON feed</div>
             </div>`;
@@ -4896,12 +4966,12 @@ function showOverlayPopup(entity, screenPos) {
         bodyHtml = '';
     } else if (isEQ && props) {
         // Earthquake: show mag, depth, place
-        const mag   = props.mag?.getValue?.()   || '';
-        const depth = props.depth?.getValue?.() || '';
+        const mag   = props.mag?.getValue?.()   ?? '';
+        const depth = props.depth?.getValue?.() ?? null;  // 0 is valid — don't || ''
         const place = props.place?.getValue?.() || '';
         bodyHtml = `<div style="font-size:0.78rem;line-height:1.7;">
-            ${mag   ? `<div><strong>Magnitude:</strong> M${parseFloat(mag).toFixed(1)}</div>` : ''}
-            ${depth ? `<div><strong>Depth:</strong> ${depth} km</div>` : ''}
+            ${mag !== '' ? `<div><strong>Magnitude:</strong> M${parseFloat(mag).toFixed(1)}</div>` : ''}
+            ${depth !== null ? `<div><strong>Depth:</strong> ${depth} km</div>` : ''}
             ${place ? `<div style="color:#aaa;font-size:0.72rem;">${escapeHtml(place)}</div>` : ''}
         </div>`;
     } else if (props) {
