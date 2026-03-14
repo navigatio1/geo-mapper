@@ -606,7 +606,7 @@
         setTimeout(() => wrap.classList.remove('hint-visible'), 2000);
     }, { passive: true });
 
-    // Close via button, backdrop click, or Escape
+    // Close via button, backdrop click, or Escape 
     lbClose.addEventListener('click', closeLightbox);
     lightbox.addEventListener('click', function (e) {
         if (e.target === lightbox) closeLightbox();
