@@ -1231,6 +1231,14 @@
 
 
                         <!-- Category list (shown when colour-by active) -->
+                        <div class="form-group">
+                            <label>Colour by field (categorical)</label>
+                            <select id="colorByField" onchange="onColorByFieldChange()">
+                                <option value="">Fixed colour (all same)</option>
+                            </select>
+                        </div>
+
+                        <!-- Category list (shown when colour-by active) -->
                         <div id="categoryStyles" style="display:none; margin-bottom:0.75rem;">
                             <div id="categoryList"></div>
                             <button class="btn btn-secondary" onclick="resetCategoryStyles()" style="margin-top:0.4rem;font-size:0.78rem;width:100%;">Reset colours</button>
@@ -2446,7 +2454,9 @@ function initCesium() {
 
     // Restore terrain only if a real user token exists in localStorage
     const savedToken = localStorage.getItem('cesium_token') || DEFAULT_CESIUM_TOKEN;
-    if (savedToken) {
+    // When running locally as file://, the production token is domain-locked to navigatio.earth
+    // and will always fail — skip terrain silently rather than showing an error.
+    if (savedToken && window.location.protocol !== 'file:') {
         Cesium.Ion.defaultAccessToken = savedToken;
         try {
             const terrain = Cesium.Terrain.fromWorldTerrain({ requestWaterMask: true });
@@ -2462,6 +2472,9 @@ function initCesium() {
         } catch(e) {
             setStatus('ready', 'Ready — upload a CSV to begin');
         }
+    } else if (window.location.protocol === 'file:') {
+        addDiagnostic('Local file mode — terrain requires hosting on navigatio.earth', 'info');
+        setStatus('ready', 'Ready — upload a CSV to begin');
     } else {
         setStatus('ready', 'Ready — upload a CSV to begin');
     }
@@ -2539,6 +2552,7 @@ function loadCSV(file) {
         complete: function(results) {
             csvData = results.data;
             columns = results.meta.fields || [];
+            addDiagnostic(`CSV loaded: ${csvData.length} rows, ${columns.length} columns`, 'success');
             populateColumnSelectors();
             autoDetectCoordinates();
             document.getElementById('coordSelectors').style.display = 'block';
@@ -2547,6 +2561,7 @@ function loadCSV(file) {
             startAutoSave();
         },
         error: function(err) {
+            addDiagnostic(`CSV parse error: ${err.message}`, 'error');
             setStatus('error', 'CSV parse error: ' + err.message);
         }
     });
@@ -2563,6 +2578,7 @@ function populateColumnSelectors() {
     // Colour-by and size-by
     ['colorByField', 'sizeByField'].forEach(id => {
         const el = document.getElementById(id);
+        if (!el) return;
         const firstOpt = id === 'colorByField' ? 'Fixed colour (all same)' : 'Fixed size';
         el.innerHTML = `<option value="">${firstOpt}</option>`;
         columns.forEach(col => el.add(new Option(col, col)));
@@ -2571,6 +2587,7 @@ function populateColumnSelectors() {
     // Popup field helpers
     ['fieldHelperTitle', 'fieldHelperTemplate'].forEach(id => {
         const el = document.getElementById(id);
+        if (!el) return;
         el.innerHTML = '<option value="">\u2014 select field \u2014</option>';
         columns.forEach(col => el.add(new Option(col, col)));
     });
@@ -3652,6 +3669,17 @@ let _modernVal = 'esri_topo'; // which modern provider is currently in layer 0
 function _buildModernProvider(val) {
     switch(val) {
         case 'osm':
+            // Served from https://navigatio.earth → real OSM tiles work perfectly.
+            // Opened as file:// locally → OSM blocks requests (no Referer); silently
+            // use CartoDB Voyager instead — same OSM data, English labels, zoom 20.
+            if (window.location.protocol === 'file:') {
+                return new Cesium.UrlTemplateImageryProvider({
+                    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                    subdomains: ['a','b','c','d'],
+                    minimumLevel: 0, maximumLevel: 20,
+                    credit: new Cesium.Credit('© OpenStreetMap contributors © CARTO')
+                });
+            }
             return new Cesium.UrlTemplateImageryProvider({
                 url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 minimumLevel: 0, maximumLevel: 19,
