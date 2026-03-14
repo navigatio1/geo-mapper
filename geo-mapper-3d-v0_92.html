@@ -781,11 +781,11 @@
 
                 <!-- ── Load data ────────────────────────── -->
                 <div class="section">
-                    <div class="section-header" onclick="toggleSection(this)">
+                    <div class="section-header open" onclick="toggleSection(this)">
                         📁 Load data
                         <span class="chevron">▸</span>
                     </div>
-                    <div class="section-body">
+                    <div class="section-body open">
                         <div id="uploadZone" onclick="document.getElementById('fileInput').click()"
                              ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
                             <div class="upload-icon">📄</div>
@@ -796,6 +796,14 @@
                         <input type="file" id="configInput" accept=".json" style="display:none;">
 
                         <div id="coordSelectors" style="display:none;">
+                            <!-- Compact re-upload strip — always visible when data is loaded -->
+                            <div style="display:flex;gap:0.4rem;align-items:center;margin-bottom:0.6rem;padding:0.4rem 0.5rem;background:var(--input-bg);border:1px solid var(--input-border);border-radius:5px;">
+                                <span style="font-size:0.72rem;color:var(--text-soft);flex:1;">📄 CSV loaded</span>
+                                <label style="font-size:0.72rem;font-weight:600;color:var(--accent);cursor:pointer;white-space:nowrap;">
+                                    ↺ Load new CSV
+                                    <input type="file" accept=".csv" style="display:none;" onchange="handleFileSelect(event)">
+                                </label>
+                            </div>
                             <div class="form-group">
                                 <label>Latitude column</label>
                                 <select id="latColumn" onchange="plotPoints()"></select>
