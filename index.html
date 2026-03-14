@@ -98,7 +98,45 @@
 
         .launch-btn:active { transform: translateY(0); }
 
-        /* ── How to use accordion ───────────────────────────── */
+        /* ── Draft buttons ──────────────────────────────────── */
+        .draft-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .draft-btn {
+            display: inline-block;
+            padding: 0.45rem 1.1rem;
+            border-radius: 0.4rem;
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+            opacity: 0.82;
+        }
+
+        .draft-btn:hover {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        .draft-btn-gm {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .draft-btn-gm3d {
+            background: #c5cae9;
+            color: #283593;
+            border: 1px solid #9fa8da;
+        }
+
+
         .how-to-use {
             margin-top: 1.5rem;
             border: 1px solid #e0e3f0;
@@ -551,8 +589,10 @@
 
     <div class="footer">
         Built for geographic data visualisation in education
-        &nbsp;·&nbsp;
-        <a href="drafts/" style="color:rgba(255,255,255,0.35);text-decoration:none;font-size:0.75rem;letter-spacing:0.03em;" title="Drafts — testing version">GM Drafts</a>
+        <div class="draft-buttons">
+            <a href="drafts/" class="draft-btn draft-btn-gm" title="Geo Mapper drafts — testing version">🗺️ GM Drafts</a>
+            <a href="geo-mapper-3d-v0_92.html" class="draft-btn draft-btn-gm3d" title="Geo Mapper 3D drafts — testing version">🌐 GM3D Drafts</a>
+        </div>
     </div>
 
 </div>
