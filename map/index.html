@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.160 - BUGFIX: "Clear Map" button now hidden in view-only mode (was incorrectly visible). BUGFIX (from v2.10.159): loadMapFromGist() decompresses LZ-String content before JSON.parse — fixes "not valid JSON" error when loading a view-only link in a new tab. Falls back to plain JSON for older uncompressed Gists; fetches raw_url if GitHub API truncated content. v2.10.156-158 - VIEW-ONLY MODE. -->
-<!-- v2.10.151 original comment follows: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
+<!-- Geo Mapper v2.10.151 - UPDATES: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
 <!-- Geo Mapper v2.9.52 - HALO ANCHOR FIX! Fixed unwanted zoom when toggling halos (plotPoints now called with fitToView=false), explicitly calculate and use iconCenterX/Y for iconAnchor on custom icons to ensure geographic pin point always matches visual icon center regardless of halo size. Prevents icon displacement when halos are enabled/disabled. All v2.9.52 features preserved! -->
@@ -8,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.160</title>
+    <title>Geo Mapper v2.10.154</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1574,7 +1573,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.160</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.154</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1686,12 +1685,6 @@
                         <option value="nls-london-1940s">🗺️ OS 1:1,250 London (1940s–60s) — London/SE</option>
                         <option value="nls-os6inch-scotland">🗺️ OS 6-inch 1st Ed. (1843–82) — Scotland</option>
                         <option value="nls-os25inch-scotland">🗺️ OS 25-inch 1st Ed. (1892–1905) — Scotland</option>
-                        <optgroup label="─── Historical Maps (NLS Ireland) ───">
-                        <option value="nls-ireland-1inch-hills">🗺️ OS Ireland 1-inch 1st Ed. with Hills</option>
-                        <option value="nls-ireland-1inch-outline">🗺️ OS Ireland 1-inch 1st Ed. with Contours</option>
-                        <option value="nls-ireland-2nd-outline">🗺️ OS Ireland 1-inch 2nd Ed. (no contours)</option>
-                        <option value="nls-ireland-gsgs4136">🗺️ GSGS 4136 Ireland (WWII era)</option>
-                        </optgroup>
                         </optgroup>
                     </select>
                     <div id="nlsNotice" style="display:none;margin-top:0.4rem;padding:0.4rem 0.5rem;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:0.72rem;color:#795548;">
@@ -1891,19 +1884,11 @@
                         <select id="compareLeftSelect" style="width:100%;font-size:0.76rem;padding:0.3rem;" onchange="_onComparePanelChange()">
                             <optgroup label="Current Maps">
                                 <option value="osm">OpenStreetMap</option>
-                                <option value="osm-hot">Humanitarian OSM</option>
-                                <option value="cartodb-light">CartoDB Light</option>
-                                <option value="cartodb-dark">CartoDB Dark</option>
                                 <option value="cartodb-voyager">CartoDB Voyager</option>
                                 <option value="topo">OpenTopoMap</option>
                                 <option value="esri-world">Esri World Imagery</option>
                                 <option value="esri-world-hybrid">Esri World Imagery Hybrid</option>
                                 <option value="esri-topo">Esri World Topo</option>
-                                <option value="esri-street">Esri World Street</option>
-                                <option value="esri-physical">Esri World Physical</option>
-                                <option value="esri-natgeo">Esri National Geographic</option>
-                                <option value="esri-ocean">Esri Ocean Basemap</option>
-                                <option value="cyclosm">CyclOSM</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
                                 <option value="nls-os1inch-2nd">OS One Inch 2nd Ed. (1885–1903)</option>
@@ -1939,19 +1924,11 @@
                         <select id="compareRightSelect" style="width:100%;font-size:0.76rem;padding:0.3rem;" onchange="_onComparePanelChange()">
                             <optgroup label="Current Maps">
                                 <option value="osm" selected>OpenStreetMap</option>
-                                <option value="osm-hot">Humanitarian OSM</option>
-                                <option value="cartodb-light">CartoDB Light</option>
-                                <option value="cartodb-dark">CartoDB Dark</option>
                                 <option value="cartodb-voyager">CartoDB Voyager</option>
                                 <option value="topo">OpenTopoMap</option>
                                 <option value="esri-world">Esri World Imagery</option>
                                 <option value="esri-world-hybrid">Esri World Imagery Hybrid</option>
                                 <option value="esri-topo">Esri World Topo</option>
-                                <option value="esri-street">Esri World Street</option>
-                                <option value="esri-physical">Esri World Physical</option>
-                                <option value="esri-natgeo">Esri National Geographic</option>
-                                <option value="esri-ocean">Esri Ocean Basemap</option>
-                                <option value="cyclosm">CyclOSM</option>
                             </optgroup>
                             <optgroup label="Historical Maps (NLS)">
                                 <option value="nls-os1inch-2nd">OS One Inch 2nd Ed. (1885–1903)</option>
@@ -2132,7 +2109,7 @@
                         <img id="globalLibIconImg" src="" style="width:28px;height:28px;display:none;">
                         <span id="globalLibIconName" style="font-size:0.8rem;flex:1;">—</span>
                         <button onclick="openLibraryPicker(
-                            '#111111',
+                            document.getElementById('markerColor').value,
                             window._globalLibIconKey,
                             function(k){ applyGlobalLibraryIcon(k); }
                         )" style="font-size:0.75rem;padding:2px 8px;border:1px solid #aaa;border-radius:4px;background:#fff;cursor:pointer;">Change…</button>
@@ -2330,7 +2307,7 @@
                         <div class="color-size-group">
                             <div class="form-group">
                                 <label for="markerColor">Fill color</label>
-                                <input type="color" id="markerColor" value="#3498db">
+                                <input type="color" id="markerColor" value="#111111">
                             </div>
                             <div class="form-group">
                                 <label for="markerSize">Size</label>
@@ -3538,17 +3515,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     </div>
                 </div>
                 </div>
-                <div class=\"info-text\">
+                <div class="info-text">
                     Save your map settings and data to work on later, export as GeoJSON for use in GIS software, or share a link to your map.
-                </div>
-
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #2c3e50;">👁 Share as view-only</div>
-                    <div style="font-size: 0.78rem; color: #7f8c8d; margin-bottom: 0.5rem;">
-                        Share a read-only version of your map. Recipients can pan, zoom, use overlays and tools — but cannot edit or save.
-                    </div>
-                    <button class="btn" onclick="copyViewOnlyURL()" style="background: #8e44ad; font-size: 0.82rem; padding: 0.45rem 0.5rem; width: 100%;">👁 Copy view-only link</button>
-                    <div id="viewOnlyURLDisplay" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: #f5eef8; border: 1px solid #d7bde2; border-radius: 4px; font-size: 0.72rem; color: #6c3483; font-family: monospace; word-break: break-all;"></div>
                 </div>
                 </div>
             </details>
@@ -3595,7 +3563,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             </details>
             
             <!-- Clear Map button at bottom - subtle design -->
-            <div id="clearMapSection" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
                 <button class="btn btn-secondary" onclick="confirmClearMap()" style="background: #95a5a6; width: 100%; font-size: 0.85rem; padding: 0.5rem; opacity: 0.7;">Clear Map</button>
                 <div class="info-text" style="margin-top: 0.25rem; font-size: 0.7rem; color: #7f8c8d; text-align: center;">
                     Removes all data and settings
@@ -4840,55 +4808,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             if (chartHeightElem) chartConfig.height = parseInt(chartHeightElem.value);
         }
 
-        // ========================================
-        // VIEW-ONLY MODE
-        // ========================================
-        // Activated by ?mode=view in the URL query string.
-        // Hides all editing UI; pan/zoom/popups/compare/overlays/tools remain active.
-        const _viewModeParams = new URLSearchParams(window.location.search);
-        window.VIEW_MODE = _viewModeParams.get('mode') === 'view';
-
-        function applyViewMode() {
-            if (!window.VIEW_MODE) return;
-
-            // Hide sections that have IDs
-            const editIds = [
-                'fileUpload', 'columnSection', 'symbolConfigSection',
-                'popupSection', 'chartSection', 'timeAnimationSection',
-                'drawingToolsSection', 'saveExportSection', 'editDataSection',
-                'infoSection', 'diagnosticSection', 'clearMapSection'
-            ];
-            editIds.forEach(function(id) {
-                var el = document.getElementById(id);
-                if (!el) return;
-                // Walk up to enclosing details.section if the element is inside one
-                var details = el.closest('details.section');
-                if (details) { details.style.display = 'none'; } else { el.style.display = 'none'; }
-            });
-
-            // Hide sections identified by their summary text (no ID on the <details>)
-            document.querySelectorAll('.sidebar details.section').forEach(function(section) {
-                var summary = section.querySelector('summary');
-                if (!summary) return;
-                var text = summary.textContent.trim();
-                if (text.includes('Load data') || text.includes('Bookmarks')) {
-                    section.style.display = 'none';
-                }
-            });
-
-            // Add a small view-only badge so users know the mode
-            if (!document.getElementById('viewModeBadge')) {
-                var badge = document.createElement('div');
-                badge.id = 'viewModeBadge';
-                badge.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);' +
-                    'background:#c0392b;color:#fff;padding:4px 14px;border-radius:12px;' +
-                    'font-size:0.75rem;font-weight:600;z-index:2000;letter-spacing:0.03em;' +
-                    'pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,0.25);';
-                badge.textContent = '\uD83D\uDC41 View only';
-                document.body.appendChild(badge);
-            }
-        }
-
         // Initialize map
         function initMap() {
             map = L.map('map', {
@@ -5875,19 +5794,26 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     throw new Error('Configuration file not found in Gist');
                 }
                 
-                // Content may be LZ-compressed (new) or plain JSON (old) — try both
-                let configString = configFile.content;
-                if (!configString || configString.trim() === '') {
-                    // Truncated by GitHub API — fetch from raw_url
+                // GitHub truncates large Gist files — fetch raw_url if content is missing/truncated
+                let rawContent = configFile.content;
+                if (!rawContent || configFile.truncated) {
+                    console.log('Gist content truncated, fetching from raw_url...');
                     const rawResponse = await fetch(configFile.raw_url);
-                    configString = await rawResponse.text();
+                    if (!rawResponse.ok) throw new Error('Failed to fetch raw Gist content');
+                    rawContent = await rawResponse.text();
                 }
+
+                // Content may be LZ-compressed (auto-Gist path) or plain JSON (manual Gist button)
                 let config;
                 try {
-                    const decompressed = LZString.decompressFromEncodedURIComponent(configString);
-                    config = JSON.parse(decompressed || configString);
-                } catch(e) {
-                    config = JSON.parse(configString);
+                    const decompressed = LZString.decompressFromEncodedURIComponent(rawContent);
+                    if (decompressed) {
+                        config = JSON.parse(decompressed);
+                    } else {
+                        config = JSON.parse(rawContent);
+                    }
+                } catch (_) {
+                    config = JSON.parse(rawContent);
                 }
                 console.log('Config loaded from Gist:', config);
                 
@@ -5907,67 +5833,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             input.select();
             document.execCommand('copy');
             alert('Share URL copied to clipboard! Paste it to share your map.');
-        }
-
-        async function copyViewOnlyURL() {
-            const btn = document.querySelector('[onclick="copyViewOnlyURL()"]');
-            const display = document.getElementById('viewOnlyURLDisplay');
-
-            // Helper: apply ?mode=view and copy
-            function applyAndCopy(baseURL) {
-                const u = new URL(baseURL);
-                u.searchParams.set('mode', 'view');
-                const viewURL = u.toString();
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(viewURL).catch(function() { _fallbackCopyViewOnly(viewURL); });
-                } else {
-                    _fallbackCopyViewOnly(viewURL);
-                }
-                if (display) { display.style.display = 'block'; display.textContent = viewURL; }
-                alert('✅ View-only link copied!\n\nRecipients can view and interact with the map but cannot edit or save.');
-            }
-
-            // Reuse an existing Gist URL if one has already been generated this session
-            const shareInput = document.getElementById('shareURLInput');
-            const existing = shareInput ? shareInput.value.trim() : '';
-            if (existing.includes('#gist=')) {
-                applyAndCopy(existing);
-                return;
-            }
-
-            // No Gist yet — create one now
-            if (btn) { btn.textContent = '⏳ Creating link…'; btn.disabled = true; }
-            if (display) { display.style.display = 'block'; display.textContent = 'Creating Gist, please wait…'; }
-
-            try {
-                const config = createConfigObject();
-                const gistId = await createGist(config);
-                const base = window.location.origin + window.location.pathname + '#gist=' + gistId;
-                // Keep the main share input consistent
-                if (shareInput) {
-                    shareInput.value = base;
-                    document.getElementById('shareURLDisplay').style.display = 'block';
-                    document.getElementById('copyShareBtn').style.display = 'block';
-                    const warn = document.getElementById('urlWarning');
-                    if (warn) warn.style.display = 'none';
-                }
-                applyAndCopy(base);
-            } catch(err) {
-                if (display) { display.style.display = 'block'; display.textContent = '⚠️ ' + err.message; }
-                alert('⚠️ Could not create Gist: ' + err.message + '\n\nMake sure you are running from navigatio.earth (not a local file).');
-            } finally {
-                if (btn) { btn.textContent = '👁 Copy view-only link'; btn.disabled = false; }
-            }
-        }
-
-        function _fallbackCopyViewOnly(text) {
-            var ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
         }
 
         // Load map from URL hash on page load
@@ -6017,7 +5882,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     document.getElementById('chartSection').style.display = 'block';
                     document.getElementById('saveExportSection').style.display = 'block';
                     document.getElementById('infoSection').style.display = 'block';
-                    applyViewMode(); // re-assert view-only mode after sections revealed
                     
                     // Populate selectors - this creates the dropdowns
                     populateColumnSelectors();
@@ -6458,7 +6322,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         // Continue anyway - show sections manually
                         document.getElementById('columnSection').style.display = 'block';
                         document.getElementById('diagnosticSection').style.display = 'block';
-                        applyViewMode();
                     }
                     
                     addDiagnostic('Attempting auto-detect coordinates...');
@@ -6572,7 +6435,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 document.getElementById('drawingToolsSection').style.display = 'block';
                 document.getElementById('timeAnimationSection').style.display = 'block';
                 document.getElementById('saveExportSection').style.display = 'block';
-                applyViewMode(); // re-assert view-only mode after sections revealed
                 
                 addDiagnostic('  Checking chart configuration...');
                 
@@ -14404,8 +14266,8 @@ Total rows: ${csvData.length}${corsNote}`);
                 'arrow-two-way': { fill: '#111111', outline: '#111111', width: 2 },
                 'arrow-two-way-thick': { fill: '#111111', outline: '#111111', width: 2 },
                 
-                // Basic shapes: blue fill, dark outline by default
-                'default': { fill: '#3498db', outline: '#2c3e50', width: 2 }
+                // Basic shapes: black by default
+                'default': { fill: '#111111', outline: '#111111', width: 2 }
             };
             
             const colors = colorDefaults[symbolType] || colorDefaults['default'];
@@ -14433,8 +14295,8 @@ Total rows: ${csvData.length}${corsNote}`);
                 shapeStyleSection.style.display = 'none';
                 if (globalLibSection) globalLibSection.style.display = 'none';
             } else if (this.value === 'library') {
-                // Open picker with black as default regardless of current fill colour
-                const color = '#111111';
+                // Open picker immediately
+                const color = document.getElementById('markerColor').value;
                 openLibraryPicker(color, window._globalLibIconKey, function(iconKey) {
                     applyGlobalLibraryIcon(iconKey);
                 });
@@ -15528,16 +15390,15 @@ Total rows: ${csvData.length}${corsNote}`);
             // stroke controls all apply (fill colour = icon colour when no badge is set).
             if (libName)    libName.textContent       = getLibraryIconLabel(iconKey);
             
-            // Library icons default to black — reset synchronously before plotPoints
-            // so the map renders in black, not the shape default blue.
-            const colorEl = document.getElementById('markerColor');
-            if (colorEl && colorEl.value.toLowerCase() === '#3498db') {
-                colorEl.value = '#111111';
-            }
-
-            // Update preview image asynchronously
+            // Update preview image — use current markerColor if user has deliberately set it,
+            // but if it's still the default blue (#3498db) reset to #111111 so the panel
+            // preview matches what the picker showed (neutral black).
             fetchLibraryIconSvg(iconKey).then(svg => {
                 if (svg && libImg) {
+                    const colorEl = document.getElementById('markerColor');
+                    if (colorEl && colorEl.value.toLowerCase() === '#3498db') {
+                        colorEl.value = '#111111';
+                    }
                     const color = document.getElementById('markerColor').value || '#111111';
                     libImg.src   = librarySvgToDataUrl(svg, color);
                     libImg.style.display = 'block';
@@ -17691,18 +17552,16 @@ Total rows: ${csvData.length}${corsNote}`);
                 html += '<div class="legend-section">';
                 html += `<div class="legend-section-title">${legendTitle}</div>`;
                 
+                // Use getMarkerIcon to create proper symbol without rotation
                 // Use at least strokeWidth=1 so stroke-only shapes (arrows etc.) are visible in legend
-                // Library icons need full size (not halved) to be legible
-                const _isLibIcon = shape && typeof shape === 'string' && shape.includes('/');
-                const _defLegendSize = _isLibIcon ? Math.max(defaultSize, 16) : Math.max(Math.round(defaultSize / 2), 10);
+                const _defLegendSize = Math.max(Math.round(defaultSize / 2), 10);
                 const _legendStroke = Math.max(strokeWidth, 1);
                 const icon = getMarkerIcon(shape, color, _defLegendSize, strokeColor, _legendStroke, 0);
                 const iconHtml = icon.options.html;
                 
-                const _legendContainerSz = _isLibIcon ? Math.max(defaultSize * 2 + 4, 36) : 32;
                 html += `<div class="legend-item">
-                    <div class="legend-symbol" style="width: ${_legendContainerSz}px; height: ${_legendContainerSz}px; display: flex; align-items: center; justify-content: center; overflow: visible; flex-shrink: 0;">
-                        <div style="transform: scale(${_isLibIcon ? 1 : 0.75}); transform-origin: center center;">${iconHtml}</div>
+                    <div class="legend-symbol" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; overflow: visible; flex-shrink: 0;">
+                        <div style="transform: scale(0.75); transform-origin: center center;">${iconHtml}</div>
                     </div>
                 </div>`;
                 html += '</div>';
@@ -21431,11 +21290,10 @@ Press OK to copy full config to console.`;
             console.log('Page loaded, initializing map...');
             initMap();
             initFileUpload();
-            applyViewMode();
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.160 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.154 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -21461,7 +21319,6 @@ Press OK to copy full config to console.`;
             setTimeout(function() {
                 console.log('Now attempting to load from URL...');
                 loadMapFromURL();
-                applyViewMode();
                 
                 // Check for auto-save after URL load completes
                 setTimeout(() => {
