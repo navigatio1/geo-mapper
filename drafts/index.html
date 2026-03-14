@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.162 - BUGFIX: loadMapFromGist() now always fetches from raw_url (avoids GitHub API truncation of large files — truncated content caused LZString to return null, falling through to plain JSON.parse of compressed data). Decompresses LZ-String with plain-JSON fallback for older Gists. Also: Map Title and Clear Map hidden in view-only mode. -->
+<!-- Geo Mapper v2.10.163 - VIEW-ONLY MODE enhancements: (1) Map Status section hidden. (2) Auto-save and cache-restore prompt disabled in view-only mode — prevents unwanted popup when loading a shared map. (3) Share as view-only panel now has checkboxes to optionally hide Compare Layers and/or Analysis Tools; unticked sections add ?hide=compare,analysis to the URL and applyViewMode() reads the hide= param. v2.10.162 - raw_url fix for Gist loading. -->
 <!-- v2.10.151 original comment follows: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.162</title>
+    <title>Geo Mapper v2.10.163</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1574,7 +1574,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.162</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.163</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -2855,7 +2855,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
 
 
             <!-- Analysis Tools Section -->
-            <details class="section">
+            <details class="section" id="analysisToolsSection">
                 <summary class="section-title">🔧 Analysis Tools</summary>
                 <div class="section-content">
                     
@@ -3544,9 +3544,18 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
                     <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #2c3e50;">👁 Share as view-only</div>
-                    <div style="font-size: 0.78rem; color: #7f8c8d; margin-bottom: 0.5rem;">
-                        Share a read-only version of your map. Recipients can pan, zoom, use overlays and tools — but cannot edit or save.
+                    <div style="font-size: 0.78rem; color: #7f8c8d; margin-bottom: 0.6rem;">
+                        Recipients can view and interact with the map but cannot edit or save.
                     </div>
+                    <div style="margin-bottom: 0.6rem; font-size: 0.8rem; color: #2c3e50; font-weight: 600;">Include in shared view:</div>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="checkbox" id="viewShareCompare" checked style="width:auto;">
+                        🔀 Compare Layers
+                    </label>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;margin-bottom:0.75rem;cursor:pointer;">
+                        <input type="checkbox" id="viewShareAnalysis" checked style="width:auto;">
+                        🔧 Analysis Tools
+                    </label>
                     <button class="btn" onclick="copyViewOnlyURL()" style="background: #8e44ad; font-size: 0.82rem; padding: 0.45rem 0.5rem; width: 100%;">👁 Copy view-only link</button>
                     <div id="viewOnlyURLDisplay" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: #f5eef8; border: 1px solid #d7bde2; border-radius: 4px; font-size: 0.72rem; color: #6c3483; font-family: monospace; word-break: break-all;"></div>
                 </div>
@@ -4844,14 +4853,16 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         // VIEW-ONLY MODE
         // ========================================
         // Activated by ?mode=view in the URL query string.
+        // Optional: ?hide=compare,analysis hides those sections too.
         // Hides all editing UI; pan/zoom/popups/compare/overlays/tools remain active.
         const _viewModeParams = new URLSearchParams(window.location.search);
         window.VIEW_MODE = _viewModeParams.get('mode') === 'view';
+        window.VIEW_HIDE  = ((_viewModeParams.get('hide') || '').split(',').map(s => s.trim().toLowerCase()));
 
         function applyViewMode() {
             if (!window.VIEW_MODE) return;
 
-            // Hide sections that have IDs
+            // Always-hidden editing sections
             const editIds = [
                 'fileUpload', 'columnSection', 'symbolConfigSection',
                 'popupSection', 'chartSection', 'timeAnimationSection',
@@ -4859,15 +4870,19 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 'infoSection', 'diagnosticSection', 'clearMapSection',
                 'mapTitleSection'
             ];
+
+            // Optionally hidden sections (controlled by ?hide=compare,analysis)
+            if (window.VIEW_HIDE.includes('compare')) editIds.push('compareSection');
+            if (window.VIEW_HIDE.includes('analysis')) editIds.push('analysisToolsSection');
+
             editIds.forEach(function(id) {
                 var el = document.getElementById(id);
                 if (!el) return;
-                // Walk up to enclosing details.section if the element is inside one
                 var details = el.closest('details.section');
                 if (details) { details.style.display = 'none'; } else { el.style.display = 'none'; }
             });
 
-            // Hide sections identified by their summary text (no ID on the <details>)
+            // Hide sections identified only by summary text (no ID)
             document.querySelectorAll('.sidebar details.section').forEach(function(section) {
                 var summary = section.querySelector('summary');
                 if (!summary) return;
@@ -4877,7 +4892,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 }
             });
 
-            // Add a small view-only badge so users know the mode
+            // Add a small view-only badge
             if (!document.getElementById('viewModeBadge')) {
                 var badge = document.createElement('div');
                 badge.id = 'viewModeBadge';
@@ -5917,10 +5932,17 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const btn = document.querySelector('[onclick="copyViewOnlyURL()"]');
             const display = document.getElementById('viewOnlyURLDisplay');
 
-            // Helper: apply ?mode=view and copy
+            // Build hide= parameter from checkboxes
+            const hideList = [];
+            if (!document.getElementById('viewShareCompare').checked) hideList.push('compare');
+            if (!document.getElementById('viewShareAnalysis').checked) hideList.push('analysis');
+            const hideSuffix = hideList.length ? '&hide=' + hideList.join(',') : '';
+
+            // Helper: apply ?mode=view[&hide=...] and copy
             function applyAndCopy(baseURL) {
                 const u = new URL(baseURL);
                 u.searchParams.set('mode', 'view');
+                if (hideList.length) u.searchParams.set('hide', hideList.join(','));
                 const viewURL = u.toString();
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(viewURL).catch(function() { _fallbackCopyViewOnly(viewURL); });
@@ -5928,10 +5950,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                     _fallbackCopyViewOnly(viewURL);
                 }
                 if (display) { display.style.display = 'block'; display.textContent = viewURL; }
-                alert('✅ View-only link copied!\n\nRecipients can view and interact with the map but cannot edit or save.');
+                const hiddenMsg = hideList.length ? '\nHidden from recipients: ' + hideList.join(', ') : '';
+                alert('✅ View-only link copied!\n\nRecipients can view and interact with the map but cannot edit or save.' + hiddenMsg);
             }
 
-            // Reuse an existing Gist URL if one has already been generated this session
+            // Reuse an existing Gist URL if already generated this session
             const shareInput = document.getElementById('shareURLInput');
             const existing = shareInput ? shareInput.value.trim() : '';
             if (existing.includes('#gist=')) {
@@ -5947,7 +5970,6 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 const config = createConfigObject();
                 const gistId = await createGist(config);
                 const base = window.location.origin + window.location.pathname + '#gist=' + gistId;
-                // Keep the main share input consistent
                 if (shareInput) {
                     shareInput.value = base;
                     document.getElementById('shareURLDisplay').style.display = 'block';
@@ -21439,7 +21461,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.162 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.163 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -21456,8 +21478,8 @@ Press OK to copy full config to console.`;
                 }
             }, 250);
             
-            // Start auto-save timer
-            startAutoSave();
+            // Start auto-save timer (disabled in view-only mode — no editing, no cache prompt)
+            if (!window.VIEW_MODE) startAutoSave();
             
             console.log('Map initialized, waiting before loading from URL...');
             
@@ -21467,9 +21489,9 @@ Press OK to copy full config to console.`;
                 loadMapFromURL();
                 applyViewMode();
                 
-                // Check for auto-save after URL load completes
+                // Check for auto-save after URL load completes (disabled in view-only mode)
                 setTimeout(() => {
-                    checkForAutoSave();
+                    if (!window.VIEW_MODE) checkForAutoSave();
                 }, 500);
             }, 300);
         });
