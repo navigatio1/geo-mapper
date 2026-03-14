@@ -552,7 +552,7 @@
     <div class="footer">
         Built for geographic data visualisation in education
         &nbsp;·&nbsp;
-        <a href="beta/" style="color:rgba(255,255,255,0.35);text-decoration:none;font-size:0.75rem;letter-spacing:0.03em;" title="Beta version for testing">GM Beta</a>
+        <a href="drafts/" style="color:rgba(255,255,255,0.35);text-decoration:none;font-size:0.75rem;letter-spacing:0.03em;" title="Drafts — testing version">GM Drafts</a>
     </div>
 
 </div>
@@ -606,7 +606,7 @@
         setTimeout(() => wrap.classList.remove('hint-visible'), 2000);
     }, { passive: true });
 
-    // Close via button, backdrop click, or Escape 
+    // Close via button, backdrop click, or Escape
     lbClose.addEventListener('click', closeLightbox);
     lightbox.addEventListener('click', function (e) {
         if (e.target === lightbox) closeLightbox();
