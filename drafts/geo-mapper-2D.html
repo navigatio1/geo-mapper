@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Geo Mapper v2.10.167 - BUGFIX: drawingsPane z-index reduced from 670→655, below markersPane (660). Previously drawings sat ABOVE CSV markers in the Leaflet pane stack, so any polygon covering a region (e.g. Africa Stage 2 buffer) captured all click events inside it — marker popups couldn't open, drawing popup couldn't be closed (clicked X opened the drawing again), and the popup appeared "behind" the drawing. Now markers (660) are always above drawings (655), so clicks pass through polygon fills to the markers beneath. Drawing labels (tooltipPane 680) and popups (popupPane 700) remain above everything. measurementsPane adjusted from 665→657 to keep it between drawings and markers. v2.10.166 - BUGFIX: loadBookmark() now closes all open popups (map.closePopup + drawnFeatures loop) before restoring the bookmark state, so popups from the previous view never persist into the newly loaded bookmark. v2.10.164 - Lock in changes hidden in view-only. v2.10.163 - Map Status hidden; auto-save/cache disabled in view-only; optional hide=compare,analysis. v2.10.162 - raw_url Gist fix. -->
+<!-- Geo Mapper v2.10.168 - BUGFIXES: (1) Drawn polygon/polyline fills are now click-through: CSS pointer-events:stroke on .leaflet-drawingsPane path.leaflet-interactive means only the border captures clicks, so CSV markers inside drawn polygons remain fully clickable. Previously the polygon fill intercepted all clicks, making markers unreachable and drawing popups uncloseable. (2) VIEW_MODE: added 1200ms delayed popup close in loadMapFromGist as belt-and-suspenders against async popup restoration sneaking through after applyViewMode() runs. v2.10.167 - BUGFIX: drawingsPane z-index reduced from 670→655, below markersPane (660). Previously drawings sat ABOVE CSV markers in the Leaflet pane stack, so any polygon covering a region (e.g. Africa Stage 2 buffer) captured all click events inside it — marker popups couldn't open, drawing popup couldn't be closed (clicked X opened the drawing again), and the popup appeared "behind" the drawing. Now markers (660) are always above drawings (655), so clicks pass through polygon fills to the markers beneath. Drawing labels (tooltipPane 680) and popups (popupPane 700) remain above everything. measurementsPane adjusted from 665→657 to keep it between drawings and markers. v2.10.166 - BUGFIX: loadBookmark() now closes all open popups (map.closePopup + drawnFeatures loop) before restoring the bookmark state, so popups from the previous view never persist into the newly loaded bookmark. v2.10.164 - Lock in changes hidden in view-only. v2.10.163 - Map Status hidden; auto-save/cache disabled in view-only; optional hide=compare,analysis. v2.10.162 - raw_url Gist fix. -->
 <!-- v2.10.151 original comment follows: (1) Boundary map: EU-AF & PS-SU added as convergent (were missing); SC-NA/SC-AF added as transform; SC wildcard fallback added so any unmapped Scotia boundary → transform; getBoundaryType() helper replaces inline lookup. (2) Simultaneous animation: "Keep previous steps visible" checkbox — cumulative mode builds up all waves on map, clears only on loop restart. Tectonic boundary map corrected — NA-PA/CA-SA moved to convergent; EU-AR/ON-PS/AM-PS/NZ-ND/CL-PS/BH-PS/BH-SU/TI-AU/AU-MO/AU-WL/KE-PA added as convergent; AU-SO added as divergent; AT-EU added as transform; IN-AU/PS-MA set as diffuse/unknown. Settings panel legend reformatted to 2×2 grid. Steps-per-location auto-detect now skipped when user has manually set the value.
 <!-- v2.10.59 original comment follows:
 <!-- Geo Mapper v2.10.59 - BUGFIXES: (1) Category ▲▼ reorder now persists through plotPoints: detectAndBuildCategoryLegend uses categoryOrder when set, appends new categories, drops removed ones. categoryOrder saved/restored in config. (2) Per-category Fill colour AND Line colour: strokeColor added to categoryStyle, shown in UI, used in marker rendering, saved automatically with categoryStyles. Back-fills missing strokeColor from global on load. Bare buildCategoryLegendUI() no-arg calls removed from both config restore blocks (they cleared the panel). (3) Popup tip direction: when popup placed below marker, .popup-placed-below CSS class flips tip to point upward toward marker. Applied in both CSV marker popupopen and attachSmartPopupPositioning handlers. (4) categoryOrder and categoryStyles reset on CSV clear and resetCategoryStyles. BUGFIXES: (1) Bookmark popup restore switched from fixed 400ms timeout to map.once(moveend) + 800ms fallback — eliminates race with setView animation. (2) Config now saves currentOpenPopups/currentOpenDrawingPopups at top level and restores them after plotPoints on config load. (3) proportionalMarkerColor, proportionalStrokeColor, proportionalStrokeWidth added to createConfigObject and both config restore blocks. v2.10.57 - BUGFIXES: (1) Title bg slider no longer overflows panel (min-width:0 + overflow:hidden). (2) Animation guard: plotPoints bails out if animationInterval active, preventing mid-animation revert to default symbols. (3) Icon library clicks now apply selection: saved callback ref before closeLibraryPicker() nulled it. (4) Popup below-placement offset corrected: offsetY = markerRadius + popupHeight + margin so popup body fully clears the marker. (5) Bookmark popup state now survives debounced replot: open row indices saved before clearMarkers and restored after replot. v2.10.56 - Title lock redesign: lock/unlock moved to control panel (green/red button); title overlay is plain text again; ringfence clamps drag so title stays fully on-screen; titleLocked saved/restored in config. v2.10.55 - BUGFIXES: (1) Bookmarks now save/restore open drawn-feature pop-ups (by index). (2) Smart pop-up positioning for drawn features fixed: lines/polygons now use getBounds().getCenter() as anchor; left-panel and toolbar margins respected. (3) Drawn features list: ▲▼ reorder buttons added; moveDrawnFeature() re-stacks Leaflet layers to match new order. (4) Label not appearing: showLabelOnMap set at creation; list refreshed after prompt; all three feature types initialise with label/showLabelOnMap/popupHtml. v2.10.54 - BUGFIXES: (1) Icon library picker clicks now work — functions exposed to window scope. (2) Legend category ▲▼ buttons now work — same fix. (3) Map title lock/unlock button added (🔓/🔒) to prevent accidental moves. (4) Template <img src="{field}"> no longer double-wraps URLs. (5) Drawings GeoJSON export now includes pop-up content and showLabelOnMap. (6) Pop-up content restored on GeoJSON re-import. (7) "popup only" spelling fixed to "pop-up only". v2.10.53 - SECURITY: SVG sanitisation on all fetched library icons (strips <script>, on* handlers, javascript: URIs). CDN connectivity check on picker open with clear user-facing message if blocked by school web filter. v2.10.52 - LIBRARY ICONS: Added Maki icon library (80+ curated icons, CC0) with thumbnail picker panel grouped by theme. Icons render in category colour, support circle/square background badges, appear in Legend, available for drawn points and CSV categories. v2.10.51 - Popup width enforcement, bookmark popup state, legend category reorder, draggable map title. v2.10.50 - CSV column-header quoting fix, point size slider, label offset, popup defaults. -->
@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper v2.10.167</title>
+    <title>Geo Mapper v2.10.168</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -691,6 +691,15 @@
         }
         .leaflet-popup-content {
             margin: 0.75rem;
+        }
+
+        /* Drawn polygon and polyline SVG paths: only the STROKE (border) captures
+           click events, not the fill area. This means CSV markers sitting inside
+           a drawn polygon remain fully clickable. The polygon popup can still be
+           opened by clicking the polygon's visible border.
+           CircleMarker drawn points (SVG <circle> elements) are unaffected. */
+        .leaflet-drawingsPane path.leaflet-interactive {
+            pointer-events: stroke;
         }
 
         /* BELOW: hide default bottom tip; JS injects .popup-below-arrow at wrapper top */
@@ -1575,7 +1584,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.167</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.168</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -5926,6 +5935,22 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 
                 console.log('Config loaded from Gist:', config);
                 restoreConfiguration(config);
+                
+                // VIEW_MODE: belt-and-suspenders popup close.
+                // restoreConfiguration skips popup restoration when VIEW_MODE is true,
+                // but the restore uses a 800ms async timeout; applyViewMode() runs before
+                // that fires. This 1200ms cleanup catches any popups that sneak through.
+                if (window.VIEW_MODE) {
+                    setTimeout(function() {
+                        if (map) map.closePopup();
+                        if (typeof drawnFeatures !== 'undefined' && drawnFeatures) {
+                            drawnFeatures.forEach(function(f) {
+                                if (f && f.layer && f.layer.closePopup) f.layer.closePopup();
+                            });
+                        }
+                    }, 1200);
+                }
+                
                 alert('✅ Map loaded successfully from GitHub Gist!');
                 
             } catch (error) {
@@ -21492,7 +21517,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER v2.10.167 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER v2.10.168 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -21973,7 +21998,7 @@ Press OK to copy full config to console.`;
             <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
                 <button onclick="document.getElementById('bufferDialog').style.display='none'"
                     style="padding:0.5rem 1rem;border:1px solid #ccc;background:white;border-radius:4px;cursor:pointer;font-size:0.85rem;">
-                    Cancel 
+                    Cancel
                 </button>
                 <button onclick="applyDrawingBuffer()"
                     style="padding:0.5rem 1rem;background:#00897b;color:white;border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:600;">
