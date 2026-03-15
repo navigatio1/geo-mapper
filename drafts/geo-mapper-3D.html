@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper 3D v0.93</title>
+    <title>Geo Mapper 3D v0.94</title>
 
     <!-- Cesium -->
     <script>window.CESIUM_BASE_URL = 'https://unpkg.com/cesium@1.114.0/Build/Cesium/';</script>
@@ -764,7 +764,7 @@
     <div id="sidebar"><button id="eyeBtn" class="panel-open" title="Toggle Control Panel">👁️</button>
         <div id="sidebarInner">
             <div class="sidebar-header">
-                <h1>📍 Geo Mapper 3D <span class="version">v0.93/span></h1>
+                <h1>📍 Geo Mapper 3D <span class="version">v0.94</span></h1>
             </div>
 
             <div id="sidebarScroll">
@@ -1906,7 +1906,7 @@
                              Tile errors, basemap switches, and CSV events all appear here. -->
                         <div id="diagnosticOutput"
                              style="padding:0.6rem 0.75rem;background:var(--input-bg);border:1px solid var(--input-border);border-radius:6px;font-family:monospace;font-size:0.7rem;white-space:pre-wrap;line-height:1.5;max-height:220px;overflow-y:auto;color:var(--text-soft);">
-                            Geo Mapper 3D v0.93 — Initialising…
+                            Geo Mapper 3D v0.94 — Initialising…
                         </div>
                         <button class="btn btn-secondary" onclick="copyDiagnostics()" style="margin-top:0.5rem;font-size:0.78rem;">
                             📋 Copy log to clipboard
@@ -3641,28 +3641,43 @@ function updateLegend(data) {
         const size    = Math.max(8, Math.min(14, (data.size || 10)));
         const half    = size / 2;
         // Build a tiny inline SVG matching the chosen shape
-        const svgSymbol = (function() {
-            const s = size, h = half;
-            const fill = colour, stroke = document.getElementById('outlineColor')?.value || '#ffffff';
-            const sw = Math.min(1.5, parseInt(document.getElementById('outlineWidth')?.value) || 1);
-            switch(shape) {
-                case 'square':
-                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><rect x="${sw/2}" y="${sw/2}" width="${s-sw}" height="${s-sw}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
-                case 'triangle':
-                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${h},${sw} ${s-sw},${s-sw} ${sw},${s-sw}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
-                case 'diamond':
-                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${h},${sw} ${s-sw},${h} ${h},${s-sw} ${sw},${h}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
-                case 'star':
-                    // 5-point star
-                    const pts = [];
-                    for (let i=0;i<10;i++){const r=(i%2===0)?h-sw:h*0.4;const a=(i*Math.PI/5)-Math.PI/2;pts.push(`${h+r*Math.cos(a)},${h+r*Math.sin(a)}`);}
-                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${pts.join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
-                case 'pin':
-                    return `<svg width="${s}" height="${s+4}" viewBox="0 0 ${s} ${s+4}"><circle cx="${h}" cy="${h*0.85}" r="${h*0.75}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><line x1="${h}" y1="${h*1.6}" x2="${h}" y2="${s+3}" stroke="${fill}" stroke-width="${sw+0.5}"/></svg>`;
-                default: // circle
-                    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><circle cx="${h}" cy="${h}" r="${h-sw/2}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+        // Each case wrapped in braces to allow block-scoped const declarations (strict mode safe)
+        const _svgS  = size, _svgH = half;
+        const _svgFill   = colour;
+        const _svgStroke = document.getElementById('outlineColor')?.value || '#ffffff';
+        const _svgSW     = Math.min(1.5, parseInt(document.getElementById('outlineWidth')?.value) || 1);
+        let svgSymbol;
+        switch(shape) {
+            case 'square': {
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS}" viewBox="0 0 ${_svgS} ${_svgS}"><rect x="${_svgSW/2}" y="${_svgSW/2}" width="${_svgS-_svgSW}" height="${_svgS-_svgSW}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/></svg>`;
+                break;
             }
-        })();
+            case 'triangle': {
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS}" viewBox="0 0 ${_svgS} ${_svgS}"><polygon points="${_svgH},${_svgSW} ${_svgS-_svgSW},${_svgS-_svgSW} ${_svgSW},${_svgS-_svgSW}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/></svg>`;
+                break;
+            }
+            case 'diamond': {
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS}" viewBox="0 0 ${_svgS} ${_svgS}"><polygon points="${_svgH},${_svgSW} ${_svgS-_svgSW},${_svgH} ${_svgH},${_svgS-_svgSW} ${_svgSW},${_svgH}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/></svg>`;
+                break;
+            }
+            case 'star': {
+                const pts = [];
+                for (let i = 0; i < 10; i++) {
+                    const r = (i % 2 === 0) ? _svgH - _svgSW : _svgH * 0.4;
+                    const a = (i * Math.PI / 5) - Math.PI / 2;
+                    pts.push(`${(_svgH + r * Math.cos(a)).toFixed(2)},${(_svgH + r * Math.sin(a)).toFixed(2)}`);
+                }
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS}" viewBox="0 0 ${_svgS} ${_svgS}"><polygon points="${pts.join(' ')}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/></svg>`;
+                break;
+            }
+            case 'pin': {
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS+4}" viewBox="0 0 ${_svgS} ${_svgS+4}"><circle cx="${_svgH}" cy="${_svgH*0.85}" r="${_svgH*0.75}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/><line x1="${_svgH}" y1="${_svgH*1.6}" x2="${_svgH}" y2="${_svgS+3}" stroke="${_svgFill}" stroke-width="${_svgSW+0.5}"/></svg>`;
+                break;
+            }
+            default: { // circle
+                svgSymbol = `<svg width="${_svgS}" height="${_svgS}" viewBox="0 0 ${_svgS} ${_svgS}"><circle cx="${_svgH}" cy="${_svgH}" r="${_svgH-_svgSW/2}" fill="${_svgFill}" stroke="${_svgStroke}" stroke-width="${_svgSW}"/></svg>`;
+            }
+        }
         el.innerHTML = `
             <div class="legend-item" id="legendDataMainEntry">
                 <span style="display:inline-flex;align-items:center;flex-shrink:0;margin-right:6px;">${svgSymbol}</span>
@@ -4648,7 +4663,7 @@ async function _loadOverlay(name) {
                 // Map boundary type codes to colors (PB2002 dataset uses 'Type' field)
                 // PB2002 boundary Name field = plate pair code e.g. "AF-AN"
                 // Lookup classification from embedded CSV data
-                const _pb2002Lookup = {"AF-EU": "convergent", "AM-PS": "convergent", "AN-SA": "convergent", "AP-SA": "convergent", "AR-EU": "convergent", "AR-IN": "convergent", "AS-AF": "convergent", "AT-AF": "convergent", "AU-BH": "convergent", "AU-CR": "convergent", "AU-EU": "convergent", "AU-MO": "convergent", "AU-PA": "convergent", "AU-PS": "convergent", "AU-WL": "convergent", "BH-PS": "convergent", "BH-SU": "convergent", "BR-AU": "convergent", "BR-CR": "convergent", "BR-NH": "convergent", "BS-AU": "convergent", "BS-SU": "convergent", "BS-TI": "convergent", "BU-AU": "convergent", "BU-IN": "convergent", "CA-CO": "convergent", "CA-SA": "convergent", "CL-NB": "convergent", "CL-PS": "convergent", "CO-CA": "convergent", "CO-NA": "convergent", "CO-PM": "convergent", "CR-NH": "convergent", "EU-AF": "convergent", "EU-AR": "convergent", "IN-BU": "convergent", "IN-EU": "convergent", "JF-NA": "convergent", "KE-AU": "convergent", "KE-PA": "convergent", "KE-TO": "convergent", "MA-PA": "convergent", "MO-BH": "convergent", "MS-BH": "convergent", "MS-BS": "convergent", "MS-SU": "convergent", "ND-NZ": "convergent", "ND-SA": "convergent", "NH-AU": "convergent", "NH-PA": "convergent", "NI-AU": "convergent", "NZ-AP": "convergent", "NZ-ND": "convergent", "NZ-PM": "convergent", "NZ-SA": "convergent", "OK-PA": "convergent", "OK-PS": "convergent", "ON-PS": "convergent", "PA-AU": "convergent", "PA-BR": "convergent", "PA-CL": "convergent", "PA-EU": "convergent", "PA-NB": "convergent", "PA-NI": "convergent", "PA-OK": "convergent", "PA-PH": "convergent", "PA-PS": "convergent", "PA-SA": "convergent", "PA-SS": "convergent", "PA-TO": "convergent", "PA-WL": "convergent", "PH-PA": "convergent", "PS-EU": "convergent", "PS-MA": "convergent", "PS-PA": "convergent", "PS-SU": "convergent", "PS-YA": "convergent", "SB-SS": "convergent", "SU-AU": "convergent", "SU-BU": "convergent", "SU-PS": "convergent", "SU-TI": "convergent", "SW-SA": "convergent", "TI-AU": "convergent", "TO-AU": "convergent", "TO-NI": "convergent", "TO-PA": "convergent", "WL-BH": "convergent", "WL-MO": "convergent", "WL-SS": "convergent", "IN-AU": "diffuse", "OK-NA": "diffuse", "SU-EU": "diffuse", "AF-AN": "divergent", "AF-NA": "divergent", "AN-AU": "divergent", "AN-NZ": "divergent", "AN-PA": "divergent", "AU-IN": "divergent", "AU-SO": "divergent", "CL-AN": "divergent", "CO-NZ": "divergent", "CO-PA": "divergent", "EA-NZ": "divergent", "EA-PA": "divergent", "EU-NA": "divergent", "GP-CO": "divergent", "GP-NZ": "divergent", "GP-PA": "divergent", "IN-AF": "divergent", "IN-SO": "divergent", "JF-PA": "divergent", "JZ-NZ": "divergent", "JZ-PA": "divergent", "MO-EU": "divergent", "NZ-PA": "divergent", "RI-PA": "divergent", "SA-AF": "divergent", "SO-AF": "divergent", "SO-AN": "divergent", "SO-AR": "divergent", "AF-AR": "transform", "AM-EU": "transform", "AM-ON": "transform", "AM-YA": "transform", "AN-CA": "transform", "AN-SC": "transform", "AS-AT": "transform", "AS-EU": "transform", "AT-AR": "transform", "AT-EU": "transform", "BH-BS": "transform", "BH-CL": "transform", "BU-EU": "transform", "CA-NA": "transform", "CA-ND": "transform", "CL-WL": "transform", "EU-AM": "transform", "EU-NB": "transform", "EU-YA": "transform", "FT-AU": "transform", "FT-PA": "transform", "MN-SB": "transform", "NA-PA": "transform", "NA-RI": "transform", "NA-SA": "transform", "NB-MN": "transform", "NB-SB": "transform", "NB-SS": "transform", "NB-WL": "transform", "NI-FT": "transform", "OK-AM": "transform", "OK-EU": "transform", "RI-CO": "transform", "SB-WL": "transform", "SC-SA": "transform", "SL-AN": "transform", "SS-WL": "transform", "YA-ON": "transform", "YA-SU": "transform"};
+                const _pb2002Lookup = {"AF-EU":"convergent","EU-AF":"convergent","AM-PS":"convergent","PS-AM":"convergent","AN-SA":"convergent","SA-AN":"convergent","AP-SA":"convergent","SA-AP":"convergent","AR-EU":"convergent","EU-AR":"convergent","AR-IN":"convergent","IN-AR":"convergent","AS-AF":"convergent","AF-AS":"convergent","AT-AF":"convergent","AF-AT":"convergent","AU-BH":"convergent","BH-AU":"convergent","AU-CR":"convergent","CR-AU":"convergent","AU-EU":"convergent","EU-AU":"convergent","AU-MO":"convergent","MO-AU":"convergent","AU-PA":"convergent","PA-AU":"convergent","AU-PS":"convergent","PS-AU":"convergent","AU-WL":"convergent","WL-AU":"convergent","BH-PS":"convergent","PS-BH":"convergent","BH-SU":"convergent","SU-BH":"convergent","BR-AU":"convergent","AU-BR":"convergent","BR-CR":"convergent","CR-BR":"convergent","BR-NH":"convergent","NH-BR":"convergent","BS-AU":"convergent","AU-BS":"convergent","BS-SU":"convergent","SU-BS":"convergent","BS-TI":"convergent","TI-BS":"convergent","BU-AU":"convergent","AU-BU":"convergent","BU-IN":"convergent","IN-BU":"convergent","CA-CO":"convergent","CO-CA":"convergent","CA-SA":"convergent","SA-CA":"convergent","CL-NB":"convergent","NB-CL":"convergent","CL-PS":"convergent","PS-CL":"convergent","CO-NA":"convergent","NA-CO":"convergent","CO-PM":"convergent","PM-CO":"convergent","CR-NH":"convergent","NH-CR":"convergent","IN-EU":"convergent","EU-IN":"convergent","JF-NA":"convergent","NA-JF":"convergent","KE-AU":"convergent","AU-KE":"convergent","KE-PA":"convergent","PA-KE":"convergent","KE-TO":"convergent","TO-KE":"convergent","MA-PA":"convergent","PA-MA":"convergent","MO-BH":"convergent","BH-MO":"convergent","MS-BH":"convergent","BH-MS":"convergent","MS-BS":"convergent","BS-MS":"convergent","MS-SU":"convergent","SU-MS":"convergent","ND-NZ":"convergent","NZ-ND":"convergent","ND-SA":"convergent","SA-ND":"convergent","NH-AU":"convergent","AU-NH":"convergent","NH-PA":"convergent","PA-NH":"convergent","NI-AU":"convergent","AU-NI":"convergent","NZ-AP":"convergent","AP-NZ":"convergent","NZ-PM":"convergent","PM-NZ":"convergent","NZ-SA":"convergent","SA-NZ":"convergent","OK-PA":"convergent","PA-OK":"convergent","OK-PS":"convergent","PS-OK":"convergent","ON-PS":"convergent","PS-ON":"convergent","PA-BR":"convergent","BR-PA":"convergent","PA-CL":"convergent","CL-PA":"convergent","PA-EU":"convergent","EU-PA":"convergent","PA-NB":"convergent","NB-PA":"convergent","PA-NI":"convergent","NI-PA":"convergent","PA-PH":"convergent","PH-PA":"convergent","PA-PS":"convergent","PS-PA":"convergent","PA-SA":"convergent","SA-PA":"convergent","PA-SS":"convergent","SS-PA":"convergent","PA-TO":"convergent","TO-PA":"convergent","PA-WL":"convergent","WL-PA":"convergent","PS-EU":"convergent","EU-PS":"convergent","PS-MA":"convergent","MA-PS":"convergent","PS-SU":"convergent","SU-PS":"convergent","PS-YA":"convergent","YA-PS":"convergent","SB-SS":"convergent","SS-SB":"convergent","SU-AU":"convergent","AU-SU":"convergent","SU-BU":"convergent","BU-SU":"convergent","SU-TI":"convergent","TI-SU":"convergent","SW-SA":"convergent","SA-SW":"convergent","TI-AU":"convergent","AU-TI":"convergent","TO-AU":"convergent","AU-TO":"convergent","TO-NI":"convergent","NI-TO":"convergent","WL-BH":"convergent","BH-WL":"convergent","WL-MO":"convergent","MO-WL":"convergent","WL-SS":"convergent","SS-WL":"transform","IN-AU":"diffuse","AU-IN":"divergent","OK-NA":"diffuse","NA-OK":"diffuse","SU-EU":"diffuse","EU-SU":"diffuse","AF-AN":"divergent","AN-AF":"divergent","AF-NA":"divergent","NA-AF":"divergent","AN-AU":"divergent","AU-AN":"divergent","AN-NZ":"divergent","NZ-AN":"divergent","AN-PA":"divergent","PA-AN":"divergent","AU-SO":"divergent","SO-AU":"divergent","CL-AN":"divergent","AN-CL":"divergent","CO-NZ":"divergent","NZ-CO":"divergent","CO-PA":"divergent","PA-CO":"divergent","EA-NZ":"divergent","NZ-EA":"divergent","EA-PA":"divergent","PA-EA":"divergent","EU-NA":"divergent","NA-EU":"divergent","GP-CO":"divergent","CO-GP":"divergent","GP-NZ":"divergent","NZ-GP":"divergent","GP-PA":"divergent","PA-GP":"divergent","IN-AF":"divergent","AF-IN":"divergent","IN-SO":"divergent","SO-IN":"divergent","JF-PA":"divergent","PA-JF":"divergent","JZ-NZ":"divergent","NZ-JZ":"divergent","JZ-PA":"divergent","PA-JZ":"divergent","MO-EU":"divergent","EU-MO":"divergent","NZ-PA":"divergent","PA-NZ":"divergent","RI-PA":"divergent","PA-RI":"divergent","SA-AF":"divergent","AF-SA":"divergent","SO-AF":"divergent","AF-SO":"divergent","SO-AN":"divergent","AN-SO":"divergent","SO-AR":"divergent","AR-SO":"divergent","AF-AR":"transform","AR-AF":"transform","AM-EU":"transform","EU-AM":"transform","AM-ON":"transform","ON-AM":"transform","AM-YA":"transform","YA-AM":"transform","AN-CA":"transform","CA-AN":"transform","AN-SC":"transform","SC-AN":"transform","AS-AT":"transform","AT-AS":"transform","AS-EU":"transform","EU-AS":"transform","AT-AR":"transform","AR-AT":"transform","AT-EU":"transform","EU-AT":"transform","BH-BS":"transform","BS-BH":"transform","BH-CL":"transform","CL-BH":"transform","BU-EU":"transform","EU-BU":"transform","CA-NA":"transform","NA-CA":"transform","CA-ND":"transform","ND-CA":"transform","CL-WL":"transform","WL-CL":"transform","EU-NB":"transform","NB-EU":"transform","EU-YA":"transform","YA-EU":"transform","FT-AU":"transform","AU-FT":"transform","FT-PA":"transform","PA-FT":"transform","MN-SB":"transform","SB-MN":"transform","NA-PA":"transform","PA-NA":"transform","NA-RI":"transform","RI-NA":"transform","NA-SA":"transform","SA-NA":"transform","NB-MN":"transform","MN-NB":"transform","NB-SB":"transform","SB-NB":"transform","NB-SS":"transform","SS-NB":"transform","NB-WL":"transform","WL-NB":"transform","NI-FT":"transform","FT-NI":"transform","OK-AM":"transform","AM-OK":"transform","OK-EU":"transform","EU-OK":"transform","RI-CO":"transform","CO-RI":"transform","SB-WL":"transform","WL-SB":"transform","SC-SA":"transform","SA-SC":"transform","SL-AN":"transform","AN-SL":"transform","YA-ON":"transform","ON-YA":"transform","YA-SU":"transform","SU-YA":"transform"};
                 const classColors = {
                     'convergent': '#ff0000',
                     'transform':  '#ffae00',
@@ -4657,11 +4672,15 @@ async function _loadOverlay(name) {
                 };
                 const widthProp = new Cesium.ConstantProperty(width);
                 ds.entities.values.forEach(e => {
-                    const pairName = e.properties?.Name?.getValue?.() || e.properties?.name?.getValue?.() || '';
-                    // PB2002 Name field is e.g. "AF-AN 1" — strip trailing space+digits
-                    const pairKey = pairName.trim().replace(/\s+\d+$/, '');
-                    // Try both directions (AF-AN and AN-AF), default diffuse if unknown
-                    const cls = _pb2002Lookup[pairKey] || _pb2002Lookup[pairKey.split('-').reverse().join('-')] || 'diffuse';
+                    const rawName = e.properties?.Name?.getValue?.() || e.properties?.name?.getValue?.() || '';
+                    // PB2002 Name field formats vary: "NZ-SA 1", "NZ\SA 1", "NZ/SA 1"
+                    // Normalise any separator to hyphen, strip trailing digits
+                    const pairKey = rawName.trim()
+                        .replace(/[\\\/ ]+\d*$/, '')   // strip trailing sep+digits
+                        .replace(/[\\\/ ]/g, '-')         // normalise \ / space → -
+                        .toUpperCase().trim();
+                    // Lookup uses authoritative CSV (both directions pre-built)
+                    const cls = _pb2002Lookup[pairKey] || 'diffuse';
                     const col = classColors[cls] || '#ff2eee';
                     if (e.polyline) {
                         e.polyline.material = new Cesium.ColorMaterialProperty(
@@ -4743,7 +4762,8 @@ async function _loadOverlay(name) {
                         pixelSize: size, color: col,
                         outlineColor: Cesium.Color.BLACK.withAlpha(0.5), outlineWidth: 1,
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                        // 12e6 m: near-side terrain won't occlude; far-side globe occludes correctly
+                        disableDepthTestDistance: 12e6,
                     }),
                     name: `M${mag.toFixed(1)} – ${place}`,
                     properties: new Cesium.PropertyBag({
@@ -4803,8 +4823,11 @@ async function _loadOverlay(name) {
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                         verticalOrigin: Cesium.VerticalOrigin.CENTER,
                         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 30e6),
-                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 20e6),
+                        // 12e6 m threshold: labels within 12,000 km of camera bypass depth test
+                        // (prevents terrain occlusion on near side). Labels on far side of globe
+                        // are >12,000 km away so depth test re-engages and globe occludes them.
+                        disableDepthTestDistance: 12e6,
                     }),
                     name: plateName,
                     properties: new Cesium.PropertyBag({ type: 'Tectonic plate', PlateName: plateName }),
@@ -5841,4 +5864,3 @@ window.reloadOverlay        = reloadOverlay;
 
 </body>
 </html>
-
