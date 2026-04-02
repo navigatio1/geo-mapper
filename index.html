@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigatio — Geographic Mapping Tools</title>
+    <title>Navigatio — Geographic Tools for Education</title>
+    <meta name="description" content="Navigatio — free geographic mapping and data visualisation tools for education. Built at navigatio.earth.">
+    <meta name="author" content="Navigatio — navigatio.earth">
+    <meta property="og:title" content="Navigatio — Geographic Tools for Education">
+    <meta property="og:description" content="Free geographic mapping and data visualisation tools for education. Geo Mapper 2D, Geo Mapper 3D, Geolympics Racer and more.">
+    <meta property="og:url" content="https://navigatio.earth">
+    <!--
+        © Navigatio — navigatio.earth
+        Geographic tools for education.
+        Unauthorised copying or redistribution of this software is prohibited.
+    -->
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -26,7 +36,6 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Header ─────────────────────────────────────────── */
         .header {
             background: white;
             border-radius: 1rem 1rem 0 0;
@@ -48,7 +57,6 @@
 
         .header-text .subtitle { font-size: 1.05rem; color: #666; }
 
-        /* ── Cards ──────────────────────────────────────────── */
         .card {
             background: white;
             padding: 2rem 3rem;
@@ -67,7 +75,6 @@
             gap: 0.5rem;
         }
 
-        /* ── Geo Mapper launch card ─────────────────────────── */
         .geo-mapper-card { background: #f8f9fa; }
 
         .app-description {
@@ -98,7 +105,40 @@
 
         .launch-btn:active { transform: translateY(0); }
 
-        /* ── Draft buttons ──────────────────────────────────── */
+        .gm3d-row {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #ececec;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .gm3d-label {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #999;
+        }
+
+        .launch-btn-disabled {
+            display: inline-block;
+            background: #e8e8e8;
+            color: #bbb;
+            padding: 0.7rem 1.8rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: not-allowed;
+            letter-spacing: 0.01em;
+        }
+
+        .watch-note {
+            font-size: 0.82rem;
+            color: #bbb;
+            font-style: italic;
+        }
+
         .draft-buttons {
             display: flex;
             justify-content: center;
@@ -119,10 +159,7 @@
             opacity: 0.82;
         }
 
-        .draft-btn:hover {
-            opacity: 1;
-            transform: translateY(-1px);
-        }
+        .draft-btn:hover { opacity: 1; transform: translateY(-1px); }
 
         .draft-btn-gm {
             background: #c8e6c9;
@@ -135,7 +172,6 @@
             color: #283593;
             border: 1px solid #9fa8da;
         }
-
 
         .how-to-use {
             margin-top: 1.5rem;
@@ -194,7 +230,6 @@
             font-size: 0.85rem;
         }
 
-        /* ── Sample data section ────────────────────────────── */
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -256,7 +291,6 @@
             line-height: 1.5;
         }
 
-        /* ── Guides section ─────────────────────────────────── */
         .guides-note {
             background: #fffbea;
             border-left: 4px solid #f0b429;
@@ -269,7 +303,6 @@
 
         .guides-note strong { display: block; margin-bottom: 0.3rem; color: #5c4400; }
 
-        /* ── GIF showcase section ───────────────────────────── */
         .gif-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -305,9 +338,6 @@
             padding: 1rem;
         }
 
-        /* Replace .gif-placeholder with a real img once you have GIF files:
-           <img src="gifs/animation-demo.gif" alt="..."> */
-
         .gif-placeholder-icon { font-size: 2rem; }
 
         .gif-card img {
@@ -324,7 +354,52 @@
             color: #444;
         }
 
-        /* ── Coming soon / footer ───────────────────────────── */
+        /* Geolympics Racer section */
+        .more-tools-card { background: #f8f9fa; }
+
+        .more-tools-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: #bbb;
+            margin-bottom: 1.1rem;
+        }
+
+        .tool-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.4rem;
+        }
+
+        .tool-desc {
+            font-size: 0.88rem;
+            color: #666;
+            line-height: 1.55;
+            margin-bottom: 1rem;
+            max-width: 520px;
+        }
+
+        .launch-btn-secondary {
+            display: inline-block;
+            background: linear-gradient(135deg, #f5a623 0%, #e8850a 100%);
+            color: white;
+            padding: 0.75rem 1.9rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 10px rgba(245, 166, 35, 0.38);
+            letter-spacing: 0.01em;
+        }
+
+        .launch-btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 16px rgba(245, 166, 35, 0.5);
+        }
+
         .coming-soon {
             background: #fff8e1;
             border-left: 4px solid #ffc107;
@@ -342,7 +417,12 @@
             font-size: 0.85rem;
         }
 
-        /* ── GIF lightbox ───────────────────────────────────── */
+        .footer-copyright {
+            margin-top: 0.6rem;
+            font-size: 0.74rem;
+            color: rgba(255,255,255,0.4);
+        }
+
         .gif-expandable {
             cursor: zoom-in;
             position: relative;
@@ -363,9 +443,7 @@
         }
 
         .gif-expandable:hover .gif-expand-hint,
-        .gif-expandable.hint-visible .gif-expand-hint {
-            opacity: 1;
-        }
+        .gif-expandable.hint-visible .gif-expand-hint { opacity: 1; }
 
         #gifLightbox {
             display: none;
@@ -428,13 +506,13 @@
             white-space: nowrap;
         }
 
-        /* ── Mobile ─────────────────────────────────────────── */
         @media (max-width: 600px) {
             .header { flex-direction: column; gap: 1rem; padding: 2rem 1.5rem 1.5rem; }
             .header-text { text-align: center; }
             .header-text h1 { font-size: 2rem; }
             .card { padding: 1.75rem 1.5rem; }
             .data-grid, .gif-grid { grid-template-columns: 1fr 1fr; }
+            .gm3d-row { gap: 0.75rem; }
         }
 
         @media (max-width: 420px) {
@@ -452,22 +530,29 @@
         </div>
         <div class="header-text">
             <h1>Navigatio</h1>
-            <p class="subtitle">Geographic Mapping Tools for Education</p>
+            <p class="subtitle">Geographic Tools for Education</p>
         </div>
     </div>
 
-    <!-- Geo Mapper launch card -->
+    <!-- Geo Mapper 2D launch card -->
     <div class="card geo-mapper-card">
-        <div class="card-title">📍 Geo Mapper</div>
+        <div class="card-title">📍 Geo Mapper 2D</div>
         <p class="app-description">
             Create rich interactive maps from your own CSV data. Visualise, analyse, annotate and share geographic data — no GIS experience needed.
         </p>
 
-        <a href="map/" class="launch-btn">Launch Geo Mapper →</a>
+        <a href="map/" class="launch-btn">Launch Geo Mapper 2D →</a>
+
+        <!-- Geo Mapper 3D — coming soon -->
+        <div class="gm3d-row">
+            <span class="gm3d-label">🌐 Geo Mapper 3D</span>
+            <span class="launch-btn-disabled">Coming soon</span>
+            <span class="watch-note">Watch this space</span>
+        </div>
 
         <!-- How to use — collapsed by default -->
         <details class="how-to-use">
-            <summary>How to use Geo Mapper</summary>
+            <summary>How to use Geo Mapper 2D</summary>
             <ul>
                 <li>Upload a <strong>CSV file</strong> with georeferenced data (latitude and longitude in separate columns)</li>
                 <li>Configure the visualisation using drop-down menus in the <strong>Control Panel</strong> on the left (toggle open/close by clicking the eye icon 👁️)</li>
@@ -579,7 +664,17 @@
         </div>
     </div>
 
-    <!-- Other apps -->
+    <!-- Geolympics Racer -->
+    <div class="card more-tools-card">
+        <div class="more-tools-title">Also from Navigatio</div>
+        <div class="tool-name">🏅 Geolympics Racer</div>
+        <p class="tool-desc">
+            An animated bar chart race visualising Olympic and Paralympic medal tallies across the history of the Games. Watch countries rise and fall through the decades.
+        </p>
+        <a href="geolympics-racer.html" class="launch-btn-secondary">Launch Geolympics Racer →</a>
+    </div>
+
+    <!-- More tools coming -->
     <div class="card" style="border-radius: 0 0 1rem 1rem;">
         <div class="coming-soon">
             <strong>🚧 More tools in the pipeline</strong>
@@ -590,12 +685,14 @@
     <div class="footer">
         Built for geographic data visualisation in education
         <div class="draft-buttons">
-            <a href="geo-mapper-2D.html" class="draft-btn draft-btn-gm" title="Geo Mapper drafts — testing version">🗺️ GM Drafts</a>
+            <a href="geo-mapper-2D.html" class="draft-btn draft-btn-gm" title="Geo Mapper 2D drafts — testing version">🗺️ GM Drafts</a>
             <a href="geo-mapper-3D.html" class="draft-btn draft-btn-gm3d" title="Geo Mapper 3D drafts — testing version">🌐 GM3D Drafts</a>
         </div>
+        <div class="footer-copyright">© Navigatio — navigatio.earth. All rights reserved.</div>
     </div>
 
 </div>
+
 <!-- GIF lightbox overlay -->
 <div id="gifLightbox" role="dialog" aria-modal="true" aria-label="Expanded GIF">
     <button id="gifLightboxClose" aria-label="Close">×</button>
@@ -615,7 +712,7 @@
     const wrap        = document.getElementById('ashbrookeGifWrap');
 
     function openLightbox() {
-        lbImg.src       = GIF_SRC;
+        lbImg.src             = GIF_SRC;
         lbCaption.textContent = GIF_CAPTION;
         lightbox.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -626,34 +723,23 @@
         document.body.style.overflow = '';
     }
 
-    // Desktop: double-click
     wrap.addEventListener('dblclick', openLightbox);
 
-    // Mobile: double-tap (two taps within 300 ms)
     let _lastTap = 0;
     wrap.addEventListener('touchend', function (e) {
         const now = Date.now();
-        if (now - _lastTap < 300) {
-            e.preventDefault();   // prevent zoom on some browsers
-            openLightbox();
-        }
+        if (now - _lastTap < 300) { e.preventDefault(); openLightbox(); }
         _lastTap = now;
     }, { passive: false });
 
-    // Show hint briefly on first touch (mobile users won't see hover)
     wrap.addEventListener('touchstart', function () {
         wrap.classList.add('hint-visible');
         setTimeout(() => wrap.classList.remove('hint-visible'), 2000);
     }, { passive: true });
 
-    // Close via button, backdrop click, or Escape
     lbClose.addEventListener('click', closeLightbox);
-    lightbox.addEventListener('click', function (e) {
-        if (e.target === lightbox) closeLightbox();
-    });
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeLightbox();
-    });
+    lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox(); });
 })();
 </script>
 </body>
