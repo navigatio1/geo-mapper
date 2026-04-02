@@ -36,6 +36,7 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ── Header ─────────────────────────────────────────── */
         .header {
             background: white;
             border-radius: 1rem 1rem 0 0;
@@ -57,6 +58,7 @@
 
         .header-text .subtitle { font-size: 1.05rem; color: #666; }
 
+        /* ── Cards ──────────────────────────────────────────── */
         .card {
             background: white;
             padding: 2rem 3rem;
@@ -75,27 +77,51 @@
             gap: 0.5rem;
         }
 
+        /* ── Geo Mapper apps card — two columns ─────────────── */
         .geo-mapper-card { background: #f8f9fa; }
+
+        .apps-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .app-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-col-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
 
         .app-description {
             color: #555;
             line-height: 1.6;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.95rem;
         }
 
         .launch-btn {
             display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.95rem 2.5rem;
+            padding: 0.85rem 1.5rem;
             border-radius: 0.5rem;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.25s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.45);
             letter-spacing: 0.01em;
+            text-align: center;
         }
 
         .launch-btn:hover {
@@ -105,40 +131,109 @@
 
         .launch-btn:active { transform: translateY(0); }
 
-        .gm3d-row {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #ececec;
+        /* ── Geo Mapper 3D placeholder column ───────────────── */
+        .app-col-placeholder {
+            background: #f0f0f0;
+            border-radius: 0.6rem;
+            padding: 1.5rem;
             display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 160px;
         }
 
-        .gm3d-label {
-            font-weight: 700;
-            font-size: 1rem;
-            color: #999;
-        }
-
-        .launch-btn-disabled {
-            display: inline-block;
-            background: #e8e8e8;
-            color: #bbb;
-            padding: 0.7rem 1.8rem;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: not-allowed;
-            letter-spacing: 0.01em;
-        }
+        .app-col-placeholder .app-col-title { color: #aaa; }
 
         .watch-note {
-            font-size: 0.82rem;
+            font-size: 0.88rem;
             color: #bbb;
             font-style: italic;
+            margin-top: auto;
+            padding-top: 0.75rem;
         }
 
+        /* ── How to use — constrained width in 2-col layout ─── */
+        /* The <details> sits inside a half-width column but opens
+           to full card width using negative margins + overflow:visible */
+        .how-to-use-wrap {
+            /* Takes up only the left column width at rest */
+        }
+
+        .how-to-use {
+            margin-top: 1.25rem;
+            border: 1px solid #e0e3f0;
+            border-radius: 0.5rem;
+            overflow: visible;
+            position: relative;
+            /* When open, expand to roughly double width to fill card */
+        }
+
+        .how-to-use[open] {
+            /* Expand to fill the full card width (2 columns + gap) */
+            width: calc(200% + 1.5rem);
+        }
+
+        .how-to-use summary {
+            padding: 0.85rem 1.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            background: #f0f2ff;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            font-size: 0.95rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .how-to-use[open] summary {
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .how-to-use summary::-webkit-details-marker { display: none; }
+
+        .how-to-use summary::after {
+            content: '▸';
+            font-size: 0.85rem;
+            transition: transform 0.2s ease;
+            color: #888;
+            margin-left: 0.5rem;
+        }
+
+        .how-to-use[open] summary::after { transform: rotate(90deg); }
+
+        .how-to-use ul {
+            list-style: none;
+            padding: 1rem 1.25rem 1.25rem;
+            background: white;
+            border-radius: 0 0 0.5rem 0.5rem;
+            border: 1px solid #e0e3f0;
+            border-top: none;
+        }
+
+        .how-to-use li {
+            padding: 0.45rem 0 0.45rem 1.4rem;
+            position: relative;
+            color: #555;
+            line-height: 1.5;
+            font-size: 0.92rem;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .how-to-use li:last-child { border-bottom: none; }
+
+        .how-to-use li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-size: 0.85rem;
+        }
+
+        /* ── Draft buttons ──────────────────────────────────── */
         .draft-buttons {
             display: flex;
             justify-content: center;
@@ -173,63 +268,7 @@
             border: 1px solid #9fa8da;
         }
 
-        .how-to-use {
-            margin-top: 1.5rem;
-            border: 1px solid #e0e3f0;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .how-to-use summary {
-            padding: 0.85rem 1.25rem;
-            cursor: pointer;
-            font-weight: 600;
-            color: #667eea;
-            background: #f0f2ff;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            user-select: none;
-            font-size: 0.95rem;
-        }
-
-        .how-to-use summary::-webkit-details-marker { display: none; }
-
-        .how-to-use summary::after {
-            content: '▸';
-            font-size: 0.85rem;
-            transition: transform 0.2s ease;
-            color: #888;
-        }
-
-        .how-to-use[open] summary::after { transform: rotate(90deg); }
-
-        .how-to-use ul {
-            list-style: none;
-            padding: 1rem 1.25rem 1.25rem;
-            background: white;
-        }
-
-        .how-to-use li {
-            padding: 0.45rem 0 0.45rem 1.4rem;
-            position: relative;
-            color: #555;
-            line-height: 1.5;
-            font-size: 0.92rem;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .how-to-use li:last-child { border-bottom: none; }
-
-        .how-to-use li::before {
-            content: '→';
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-size: 0.85rem;
-        }
-
+        /* ── Sample data section ────────────────────────────── */
         .data-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -291,6 +330,7 @@
             line-height: 1.5;
         }
 
+        /* ── Guides section ─────────────────────────────────── */
         .guides-note {
             background: #fffbea;
             border-left: 4px solid #f0b429;
@@ -303,6 +343,7 @@
 
         .guides-note strong { display: block; margin-bottom: 0.3rem; color: #5c4400; }
 
+        /* ── GIF showcase section ───────────────────────────── */
         .gif-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -354,7 +395,7 @@
             color: #444;
         }
 
-        /* Geolympics Racer section */
+        /* ── Geolympics Racer section ───────────────────────── */
         .more-tools-card { background: #f8f9fa; }
 
         .more-tools-title {
@@ -400,6 +441,7 @@
             box-shadow: 0 5px 16px rgba(245, 166, 35, 0.5);
         }
 
+        /* ── Coming soon / footer ───────────────────────────── */
         .coming-soon {
             background: #fff8e1;
             border-left: 4px solid #ffc107;
@@ -423,6 +465,7 @@
             color: rgba(255,255,255,0.4);
         }
 
+        /* ── GIF lightbox ───────────────────────────────────── */
         .gif-expandable {
             cursor: zoom-in;
             position: relative;
@@ -506,13 +549,15 @@
             white-space: nowrap;
         }
 
+        /* ── Mobile ─────────────────────────────────────────── */
         @media (max-width: 600px) {
             .header { flex-direction: column; gap: 1rem; padding: 2rem 1.5rem 1.5rem; }
             .header-text { text-align: center; }
             .header-text h1 { font-size: 2rem; }
             .card { padding: 1.75rem 1.5rem; }
+            .apps-columns { grid-template-columns: 1fr; }
+            .how-to-use[open] { width: 100%; }
             .data-grid, .gif-grid { grid-template-columns: 1fr 1fr; }
-            .gm3d-row { gap: 0.75rem; }
         }
 
         @media (max-width: 420px) {
@@ -534,42 +579,50 @@
         </div>
     </div>
 
-    <!-- Geo Mapper 2D launch card -->
+    <!-- Geo Mapper apps card — two columns -->
     <div class="card geo-mapper-card">
-        <div class="card-title">📍 Geo Mapper 2D</div>
-        <p class="app-description">
-            Create rich interactive maps from your own CSV data. Visualise, analyse, annotate and share geographic data — no GIS experience needed.
-        </p>
+        <div class="card-title">📍 Geo Mapper</div>
 
-        <a href="map/" class="launch-btn">Launch Geo Mapper 2D →</a>
+        <div class="apps-columns">
 
-        <!-- Geo Mapper 3D — coming soon -->
-        <div class="gm3d-row">
-            <span class="gm3d-label">🌐 Geo Mapper 3D</span>
-            <span class="launch-btn-disabled">Coming soon</span>
-            <span class="watch-note">Watch this space</span>
+            <!-- Left column: Geo Mapper 2D -->
+            <div class="app-col">
+                <div class="app-col-title">🗺️ Geo Mapper 2D</div>
+                <p class="app-description">
+                    Create rich interactive maps from your own CSV data. Visualise, analyse, annotate and share geographic data — no GIS experience needed.
+                </p>
+                <a href="map/" class="launch-btn">Launch Geo Mapper 2D →</a>
+
+                <details class="how-to-use">
+                    <summary>How to use Geo Mapper 2D</summary>
+                    <ul>
+                        <li>Upload a <strong>CSV file</strong> with georeferenced data (latitude and longitude in separate columns)</li>
+                        <li>Configure the visualisation using drop-down menus in the <strong>Control Panel</strong> on the left (toggle open/close by clicking the eye icon 👁️)</li>
+                        <li>View the <strong>Legend</strong> in the right panel (toggle open/close by clicking the key icon 🗝️)</li>
+                        <li>Choose from a selection of <strong>basemaps</strong> and <strong>overlays</strong>, as required</li>
+                        <li>Customise spatial data visualisation using <strong>symbol configuration</strong></li>
+                        <li><strong>Configure pop-ups</strong> including numerical and categorical data, images, charts</li>
+                        <li><strong>Animate symbols</strong> using time or sequence if data allows (including <strong>pulse animation</strong>)</li>
+                        <li>Use <strong>Analysis Tools</strong> such as <strong>Filter</strong> and <strong>Buffer</strong> tools; generate <strong>Desire Lines</strong></li>
+                        <li>Use <strong>Measurement Tools</strong> e.g. distance, area, generate <strong>Survey Points</strong>; find georeferences</li>
+                        <li>Use <strong>Drawing Tools</strong> including Point, Line, Polygon, Freehand — with export/import options for use in other apps</li>
+                        <li>Use <strong>Bookmarks</strong> with configurable <strong>tabs</strong> to pre-plan presentations and manage cognitive load</li>
+                        <li>Use <strong>Data Editor</strong> for instant corrections and/or additions and export as CSV</li>
+                        <li>Use <strong>Lock in changes</strong> to update the visualisation so that it is cached</li>
+                        <li><strong>Save your work</strong> using export (HTML and GeoJSON files) and share with others including a 'View only' share option</li>
+                    </ul>
+                </details>
+            </div>
+
+            <!-- Right column: Geo Mapper 3D placeholder -->
+            <div class="app-col">
+                <div class="app-col-title" style="color:#aaa;">🌐 Geo Mapper 3D</div>
+                <div class="app-col-placeholder">
+                    <span class="watch-note" style="margin-top:0; padding-top:0;">Watch this space</span>
+                </div>
+            </div>
+
         </div>
-
-        <!-- How to use — collapsed by default -->
-        <details class="how-to-use">
-            <summary>How to use Geo Mapper 2D</summary>
-            <ul>
-                <li>Upload a <strong>CSV file</strong> with georeferenced data (latitude and longitude in separate columns)</li>
-                <li>Configure the visualisation using drop-down menus in the <strong>Control Panel</strong> on the left (toggle open/close by clicking the eye icon 👁️)</li>
-                <li>View the <strong>Legend</strong> in the right panel (toggle open/close by clicking the key icon 🗝️)</li>
-                <li>Choose from a selection of <strong>basemaps</strong> and <strong>overlays</strong>, as required</li>
-                <li>Customise spatial data visualisation using <strong>symbol configuration</strong></li>
-                <li><strong>Configure pop-ups</strong> including numerical and categorical data, images, charts</li>
-                <li><strong>Animate symbols</strong> using time or sequence if data allows (including <strong>pulse animation</strong>)</li>
-                <li>Use <strong>Analysis Tools</strong> such as <strong>Filter</strong> and <strong>Buffer</strong> tools; generate <strong>Desire Lines</strong></li>
-                <li>Use <strong>Measurement Tools</strong> e.g. distance, area, generate <strong>Survey Points</strong>; find georeferences</li>
-                <li>Use <strong>Drawing Tools</strong> including Point, Line, Polygon, Freehand — with export/import options for use in other apps</li>
-                <li><strong>Bookmarks</strong> with configurable <strong>tabs</strong> to help pre-plan presentations and manage cognitive load</li>
-                <li>Use <strong>Data Editor</strong> for instant corrections and/or additions and export as CSV</li>
-                <li>Use <strong>Lock in changes</strong> to update the visualisation so that it is cached</li>
-                <li><strong>Save your work</strong> using export (HTML and GeoJSON files) and share with others</li>
-            </ul>
-        </details>
     </div>
 
     <!-- Sample data sets -->
@@ -600,7 +653,7 @@
         <div class="card-title">📖 Guides</div>
         <div class="guides-note">
             <strong>Why no detailed guides yet?</strong>
-            Geo Mapper is under active development. Detailed written guides would quickly become out of date and cause confusion as features change. The best way to learn is to experiment — upload one of the sample datasets above and explore the Control Panel.
+            Apps are under active development. Detailed written guides would quickly become out of date and cause confusion as features change. So for now, experiment by uploading a sample dataset or a similar dataset of your own and use the drop-down sections in Control Panel as appropriate for the data.
         </div>
         <p class="section-note" style="margin-top:1rem;">Guides will be added here once the feature set has stabilised.</p>
     </div>
@@ -674,11 +727,11 @@
         <a href="geolympics-racer.html" class="launch-btn-secondary">Launch Geolympics Racer →</a>
     </div>
 
-    <!-- More tools coming -->
+    <!-- More apps coming -->
     <div class="card" style="border-radius: 0 0 1rem 1rem;">
         <div class="coming-soon">
-            <strong>🚧 More tools in the pipeline</strong>
-            <p>Additional geographic tools are under development and will appear here.</p>
+            <strong>🚧 More apps in the pipeline</strong>
+            <p>Additional geographic apps are under development and will appear here.</p>
         </div>
     </div>
 
