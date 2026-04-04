@@ -92,6 +92,11 @@
             flex-direction: column;
         }
 
+        /* Description grows to push launch button to same level in both columns */
+        .app-col .app-description {
+            flex-grow: 1;
+        }
+
         .app-col-title {
             font-size: 1.05rem;
             font-weight: 700;
@@ -591,7 +596,7 @@
                 <p class="app-description">
                     Create rich interactive maps from your own CSV data. Visualise, analyse, annotate and share geographic data — no GIS experience needed.
                 </p>
-                <a href="map/" class="launch-btn">Launch Geo Mapper 2D →</a>
+                <a href="map/" class="launch-btn">🗺️ Launch Geo Mapper 2D →</a>
 
                 <details class="how-to-use">
                     <summary>How to use Geo Mapper 2D</summary>
@@ -614,12 +619,34 @@
                 </details>
             </div>
 
-            <!-- Right column: Geo Mapper 3D placeholder -->
+            <!-- Right column: Geo Mapper 3D -->
             <div class="app-col">
-                <div class="app-col-title" style="color:#aaa;">🌐 Geo Mapper 3D</div>
-                <div class="app-col-placeholder">
-                    <span class="watch-note" style="margin-top:0; padding-top:0;">Watch this space</span>
-                </div>
+                <div class="app-col-title">🌐 Geo Mapper 3D</div>
+                <p class="app-description">
+                    Explore your data on an interactive 3D globe — same CSV workflow as Geo Mapper 2D.
+                </p>
+                <a href="map-3d/" class="launch-btn">🌐 Launch Geo Mapper 3D →</a>
+
+                <details class="how-to-use">
+                    <summary>How to use Geo Mapper 3D</summary>
+                    <ul>
+                        <li>Upload a <strong>CSV file</strong> with georeferenced data (latitude and longitude in separate columns)</li>
+                        <li>Configure the visualisation using drop-down menus in the <strong>Control Panel</strong> on the left (toggle open/close by clicking the eye icon 👁️) to access <strong>Terrain</strong>, <strong>Basemap</strong>, <strong>Overlays</strong> and <strong>Analysis Tools</strong></li>
+                        <li>Explore the 3D globe using <strong>pan, zoom, rotate</strong>. It can take a while to learn the controls but it's worth the effort!</li>
+                        <li>View the <strong>Legend</strong> in the right panel (toggle open/close by clicking the key icon 🗝️)</li>
+                        <li>Choose from a selection of <strong>basemaps</strong>, <strong>terrain</strong> and <strong>overlays</strong></li>
+                        <li>Customise spatial data visualisation using <strong>symbol configuration</strong></li>
+                        <li><strong>Configure pop-ups</strong> including numerical and categorical data, images, charts</li>
+                        <li>In <strong>Analysis Tools</strong>, create <strong>Elevation Profiles</strong> by drawing simple transect lines. 🏔️ An Elevation Profile requires 3D terrain. To enable this, open the Control Panel → Terrain → select <em>Cesium World Terrain</em> or <em>Cesium World Bathymetry</em></li>
+                        <li><strong>Animate symbols</strong> using time or sequence if data allows (including <strong>pulse animation</strong>)</li>
+                        <li>Use <strong>Analysis Tools</strong> such as <strong>Filter</strong> and <strong>Buffer</strong> tools; generate <strong>Desire Lines</strong></li>
+                        <li>Use <strong>Measurement Tools</strong> e.g. distance, area, generate <strong>Survey Points</strong>; find georeferences</li>
+                        <li>Use <strong>Drawing Tools</strong> — import and use drawings saved in other apps</li>
+                        <li>Use <strong>Bookmarks</strong> with configurable <strong>tabs</strong> to pre-plan presentations and manage cognitive load</li>
+                        <li>Use <strong>Data Editor</strong> for instant corrections and/or additions and export as CSV</li>
+                        <li><strong>Save your work</strong> using export (HTML and GeoJSON files) and share with others including a 'View only' share option</li>
+                    </ul>
+                </details>
             </div>
 
         </div>
