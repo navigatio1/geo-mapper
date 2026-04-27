@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Marathon WR Racer · navigatio</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0f;color:#e8e0f0;font-family:'Trebuchet MS','Lucida Grande',sans-serif;
+    min-height:100vh;padding:16px 12px 40px;overflow-x:hidden}
+  h1{text-align:center;font-size:clamp(1.4rem,4vw,2.2rem);font-weight:900;
+    letter-spacing:0.03em;color:#f0c060;text-shadow:0 0 30px rgba(240,192,96,0.4);
+    margin:6px 0 2px}
+  .eyebrow{text-align:center;font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;
+    color:rgba(232,224,240,0.35);margin-bottom:4px}
+  .subtitle{text-align:center;font-size:0.66rem;color:rgba(232,224,240,0.38);
+    letter-spacing:0.05em;margin-bottom:16px}
+  .chart-wrap{background:linear-gradient(160deg,#0f0f1a 0%,#0a0a0f 100%);
+    border:1px solid rgba(240,192,96,0.12);border-radius:12px;
+    padding:14px 6px 6px;margin-bottom:10px;overflow:hidden}
+  svg.chart{width:100%;display:block;overflow:visible}
+  .controls{display:flex;align-items:center;justify-content:center;gap:7px;
+    margin:10px 0;flex-wrap:wrap}
+  .btn{background:rgba(240,192,96,0.08);border:1px solid rgba(240,192,96,0.22);
+    color:#f0c060;padding:6px 16px;border-radius:18px;cursor:pointer;
+    font-family:inherit;font-size:0.7rem;letter-spacing:0.04em;transition:all 0.2s}
+  .btn:hover{background:rgba(240,192,96,0.16);border-color:rgba(240,192,96,0.5)}
+  .btn.active{background:rgba(240,192,96,0.18);border-color:#f0c060;font-weight:700}
+  .speed-label{font-size:0.6rem;color:rgba(232,224,240,0.35)}
+  .record-board{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+  .record-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px;padding:10px 16px;text-align:center;min-width:160px;flex:1;max-width:240px}
+  .record-card.men{border-color:rgba(220,80,80,0.4);background:rgba(220,80,80,0.06)}
+  .record-card.women{border-color:rgba(200,100,220,0.4);background:rgba(200,100,220,0.06)}
+  .rc-label{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;
+    color:rgba(232,224,240,0.4);margin-bottom:4px}
+  .rc-time{font-size:1.6rem;font-weight:900;line-height:1;letter-spacing:0.05em}
+  .rc-time.men{color:#f06060}
+  .rc-time.women{color:#d060e0}
+  .rc-name{font-size:0.7rem;margin-top:3px;color:rgba(232,224,240,0.8)}
+  .rc-event{font-size:0.58rem;color:rgba(232,224,240,0.4);margin-top:1px}
+  .year-display{text-align:center;font-size:clamp(2.2rem,7vw,3.8rem);font-weight:900;
+    color:#f0c060;text-shadow:0 0 24px rgba(240,192,96,0.5);line-height:1;margin:6px 0}
+  .scrubber-wrap{padding:2px 16px;margin-bottom:6px}
+  input[type=range]{width:100%;accent-color:#f0c060;cursor:pointer}
+  .footer{text-align:center;font-size:0.57rem;color:rgba(232,224,240,0.28);
+    margin-top:14px;letter-spacing:0.05em;line-height:1.6}
+  .tooltip{position:fixed;background:rgba(10,10,15,0.96);border:1px solid rgba(240,192,96,0.3);
+    border-radius:8px;padding:8px 12px;font-size:0.65rem;pointer-events:none;
+    z-index:100;display:none;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="tooltip" id="tooltip"></div>
+
+<div class="eyebrow">navigatio · sport · v2</div>
+<h1>Marathon World Record ⏱</h1>
+<p class="subtitle">Men & Women · Official IAAF / World Athletics ratified records · 1908–2026</p>
+
+<div class="year-display" id="yearNum">1908</div>
+
+<div class="record-board">
+  <div class="record-card men">
+    <div class="rc-label">🥇 Men's WR</div>
+    <div class="rc-time men" id="menTime">2:55:18</div>
+    <div class="rc-name" id="menName">🇺🇸 John Hayes</div>
+    <div class="rc-event" id="menEvent">London 1908</div>
+  </div>
+  <div class="record-card women">
+    <div class="rc-label">🥇 Women's WR</div>
+    <div class="rc-time women" id="womenTime">—</div>
+    <div class="rc-name" id="womenName">—</div>
+    <div class="rc-event" id="womenEvent">No ratified record yet</div>
+  </div>
+</div>
+
+<div class="chart-wrap" style="position:relative">
+  <svg class="chart" id="chart" viewBox="0 0 860 400"></svg>
+  <img id="menFlagImg" src="" alt="" width="28" height="21"
+    style="position:absolute;display:none;border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.6);pointer-events:none"/>
+  <img id="womenFlagImg" src="" alt="" width="28" height="21"
+    style="position:absolute;display:none;border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.6);pointer-events:none"/>
+</div>
+
+<div class="controls">
+  <button class="btn" onclick="reset()">⏮</button>
+  <button class="btn active" id="btnPlay" onclick="togglePlay()">▶ Play</button>
+  <span class="speed-label">Speed:</span>
+  <button class="btn" id="spd0" onclick="setSpeed(400)">🐢</button>
+  <button class="btn active" id="spd1" onclick="setSpeed(120)">🐇</button>
+  <button class="btn" id="spd2" onclick="setSpeed(30)">⚡</button>
+</div>
+<div class="scrubber-wrap">
+  <input type="range" id="scrubber" min="1908" max="2026" value="1908" oninput="scrubYear(+this.value)"/>
+</div>
+
+<div class="footer">
+  Data: World Athletics (IAAF) · Wikipedia · Men's WR: Sabastian Sawe 1:59:30 London 26 Apr 2026 — first legal sub-2hr marathon ·
+  Women's WR: Ruth Chepngetich 2:09:56 Chicago Oct 2024 (mixed race) · Women-only WR: Tigst Assefa 2:15:41 London 26 Apr 2026 ·
+  Records subject to World Athletics ratification
+</div>
+
+<script>
+const VERSION = "v2";
+
+// ── DATA — all times in seconds ───────────────────────────────────────────
+function t(h,m,s){ return h*3600+m*60+s; }
+
+const MEN = [
+  {year:1908,secs:t(2,55,18),name:"John Hayes",     iso:"us",event:"London OG"},
+  {year:1909,secs:t(2,52,45),name:"Henri St. Yves", iso:"fr",event:"Polytechnic"},
+  {year:1913,secs:t(2,38,16),name:"Harry Green",    iso:"gb",event:"Polytechnic"},
+  {year:1920,secs:t(2,32,35),name:"Hannes Kolehmainen",iso:"fi",event:"Antwerp OG"},
+  {year:1925,secs:t(2,29,1), name:"Albert Michelsen",iso:"us",event:"Port Chester"},
+  {year:1935,secs:t(2,26,42),name:"Sohn Kee-chung", iso:"kr",event:"Berlin (for JPN)"},
+  {year:1947,secs:t(2,25,39),name:"Suh Yun-bok",    iso:"kr",event:"Boston"},
+  {year:1952,secs:t(2,20,42),name:"Jim Peters",      iso:"gb",event:"Polytechnic"},
+  {year:1953,secs:t(2,18,40),name:"Jim Peters",      iso:"gb",event:"Polytechnic"},
+  {year:1954,secs:t(2,17,39),name:"Jim Peters",      iso:"gb",event:"Polytechnic"},
+  {year:1958,secs:t(2,15,17),name:"Sergei Popov",    iso:"ru",event:"Moscow–Podolsk"},
+  {year:1960,secs:t(2,15,16),name:"Abebe Bikila",    iso:"et",event:"Rome OG"},
+  {year:1963,secs:t(2,14,28),name:"Buddy Edelen",    iso:"us",event:"Polytechnic"},
+  {year:1964,secs:t(2,13,55),name:"Basil Heatley",   iso:"gb",event:"Polytechnic"},
+  {year:1964,secs:t(2,12,11),name:"Abebe Bikila",    iso:"et",event:"Tokyo OG"},
+  {year:1965,secs:t(2,12,0), name:"Morio Shigematsu",iso:"jp",event:"Polytechnic"},
+  {year:1967,secs:t(2,9,36), name:"Derek Clayton",   iso:"au",event:"Fukuoka"},
+  {year:1969,secs:t(2,8,33), name:"Derek Clayton",   iso:"au",event:"Antwerp"},
+  {year:1984,secs:t(2,8,5),  name:"Steve Jones",     iso:"gb",event:"Chicago"},
+  {year:1985,secs:t(2,7,12), name:"Carlos Lopes",    iso:"pt",event:"Rotterdam"},
+  {year:1988,secs:t(2,6,50), name:"Belayneh Dinsamo",iso:"et",event:"Rotterdam"},
+  {year:1998,secs:t(2,6,5),  name:"Ronaldo da Costa",iso:"br",event:"Berlin"},
+  {year:1999,secs:t(2,5,42), name:"Khalid Khannouchi",iso:"ma",event:"Chicago"},
+  {year:2002,secs:t(2,5,38), name:"Khalid Khannouchi",iso:"us",event:"London"},
+  {year:2003,secs:t(2,4,55), name:"Paul Tergat",     iso:"ke",event:"Berlin"},
+  {year:2007,secs:t(2,4,26), name:"Haile Gebrselassie",iso:"et",event:"Berlin"},
+  {year:2008,secs:t(2,3,59), name:"Haile Gebrselassie",iso:"et",event:"Berlin"},
+  {year:2011,secs:t(2,3,38), name:"Patrick Makau",   iso:"ke",event:"Berlin"},
+  {year:2013,secs:t(2,3,23), name:"Wilson Kipsang",  iso:"ke",event:"Berlin"},
+  {year:2014,secs:t(2,2,57), name:"Dennis Kimetto",  iso:"ke",event:"Berlin"},
+  {year:2018,secs:t(2,1,39), name:"Eliud Kipchoge",  iso:"ke",event:"Berlin"},
+  {year:2022,secs:t(2,1,9),  name:"Eliud Kipchoge",  iso:"ke",event:"Berlin"},
+  {year:2023,secs:t(2,0,35), name:"Kelvin Kiptum",   iso:"ke",event:"Chicago"},
+  {year:2026,secs:t(1,59,30),name:"Sabastian Sawe",  iso:"ke",event:"London ★ Sub-2hr!"},
+];
+
+const WOMEN = [
+  {year:1967,secs:t(3,7,26), name:"Anni Pede-Erdkamp",iso:"de",event:"Waldniel"},
+  {year:1970,secs:t(3,1,42), name:"Sara Mae Berman",  iso:"us",event:"Boston"},
+  {year:1971,secs:t(2,55,22),name:"Beth Bonner",       iso:"us",event:"New York"},
+  {year:1971,secs:t(2,46,30),name:"Adrienne Beames",   iso:"au",event:"Werribee"},
+  {year:1973,secs:t(2,46,24),name:"Chantal Langlacé",  iso:"fr",event:"Châtel-Chéhéry"},
+  {year:1974,secs:t(2,43,54),name:"Jacqueline Hansen", iso:"us",event:"Culver City"},
+  {year:1975,secs:t(2,42,24),name:"Liane Winter",      iso:"de",event:"Boston"},
+  {year:1975,secs:t(2,40,15),name:"Christa Vahlensieck",iso:"de",event:"Dülmen"},
+  {year:1975,secs:t(2,38,19),name:"Jacqueline Hansen", iso:"us",event:"Culver City"},
+  {year:1977,secs:t(2,34,47),name:"Christa Vahlensieck",iso:"de",event:"Berlin"},
+  {year:1979,secs:t(2,32,30),name:"Grete Waitz",        iso:"no",event:"New York"},
+  {year:1980,secs:t(2,25,42),name:"Grete Waitz",        iso:"no",event:"New York"},
+  {year:1982,secs:t(2,25,29),name:"Grete Waitz",        iso:"no",event:"London"},
+  {year:1983,secs:t(2,22,43),name:"Joan Benoit",        iso:"us",event:"Boston"},
+  {year:1985,secs:t(2,21,6), name:"Ingrid Kristiansen", iso:"no",event:"London"},
+  {year:2001,secs:t(2,19,46),name:"Naoko Takahashi",    iso:"jp",event:"Berlin"},
+  {year:2002,secs:t(2,17,18),name:"Paula Radcliffe",    iso:"gb",event:"London"},
+  {year:2003,secs:t(2,15,25),name:"Paula Radcliffe",    iso:"gb",event:"London"},
+  {year:2019,secs:t(2,14,4), name:"Brigid Kosgei",      iso:"ke",event:"Chicago"},
+  {year:2023,secs:t(2,11,53),name:"Tigst Assefa",       iso:"et",event:"Berlin"},
+  {year:2024,secs:t(2,9,56), name:"Ruth Chepngetich",   iso:"ke",event:"Chicago (mixed)"},
+];
+
+// Key annotations to label on chart
+const MEN_NOTES = [
+  {year:1925,label:"Michelsen\n2:29:01"},
+  {year:1952,label:"Jim Peters\n2:20:42"},
+  {year:1967,label:"Clayton\n2:09:36"},
+  {year:1985,label:"Lopes\n2:07:12"},
+  {year:2003,label:"Tergat\n2:04:55"},
+  {year:2008,label:"Gebrselassie\n2:03:59"},
+  {year:2014,label:"Kimetto\n2:02:57"},
+  {year:2018,label:"Kipchoge\n2:01:39"},
+  {year:2023,label:"Kiptum\n2:00:35"},
+  {year:2026,label:"Sawe\n1:59:30 ★"},
+];
+const WOMEN_NOTES = [
+  {year:1979,label:"Waitz\n2:32:30"},
+  {year:1983,label:"Benoit\n2:22:43"},
+  {year:1985,label:"Kristiansen\n2:21:06"},
+  {year:2003,label:"Radcliffe\n2:15:25"},
+  {year:2019,label:"Kosgei\n2:14:04"},
+  {year:2023,label:"Assefa\n2:11:53"},
+  {year:2024,label:"Chepngetich\n2:09:56"},
+];
+
+// ── CHART SETUP ───────────────────────────────────────────────────────────
+const W=860,H=400,PL=62,PR=12,PT=18,PB=40,CW=W-PL-PR,CH=H-PT-PB;
+const X_MIN=1908,X_MAX=2026;
+const Y_MIN=t(1,54,0), Y_MAX=t(3,12,0); // 1:54 → 3:12
+
+function xPx(yr)  { return PL + (yr-X_MIN)/(X_MAX-X_MIN)*CW; }
+function yPx(sec) { return PT + CH - (sec-Y_MIN)/(Y_MAX-Y_MIN)*CH; }
+
+function fmtTime(s) {
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+const ns='http://www.w3.org/2000/svg';
+const svg=document.getElementById('chart');
+function el(tag,attrs,parent){
+  const e=document.createElementNS(ns,tag);
+  for(const[k,v]of Object.entries(attrs||{}))e.setAttribute(k,v);
+  if(parent)parent.appendChild(e);return e;
+}
+
+// ── Grid ──────────────────────────────────────────────────────────────────
+const gridG=el('g',{},svg);
+// Y ticks: every 10 min
+const yTickSecs=[t(2,0,0),t(2,10,0),t(2,20,0),t(2,30,0),t(2,40,0),t(2,50,0),t(3,0,0),t(3,10,0)];
+for(const s of yTickSecs){
+  const y=yPx(s);
+  const isTwoHr = s===t(2,0,0);
+  el('line',{x1:PL,y1:y,x2:PL+CW,y2:y,
+    stroke: isTwoHr?'rgba(255,220,60,0.5)':'rgba(255,255,255,0.07)',
+    'stroke-width': isTwoHr?'1.5':'1',
+    'stroke-dasharray': isTwoHr?'6,4':'none'}, gridG);
+  el('text',{x:PL-6,y:y+4,'text-anchor':'end',fill:isTwoHr?'rgba(255,220,60,0.9)':'rgba(232,224,240,0.55)',
+    'font-size':'11','font-family':'Trebuchet MS,sans-serif'}, gridG).textContent=fmtTime(s);
+  if(isTwoHr){
+    el('text',{x:PL+10,y:y-5,'text-anchor':'start',fill:'rgba(255,220,60,0.65)',
+      'font-size':'9.5','font-family':'Trebuchet MS,sans-serif','font-style':'italic'}, gridG)
+      .textContent='2-hour barrier';
+  }
+}
+// X ticks: decades
+for(let yr=1910;yr<=2020;yr+=10){
+  const x=xPx(yr);
+  el('line',{x1:x,y1:PT,x2:x,y2:PT+CH,stroke:'rgba(255,255,255,0.05)',
+    'stroke-width':'1','stroke-dasharray':'3,5'}, gridG);
+  el('text',{x:x,y:PT+CH+16,'text-anchor':'middle',fill:'rgba(232,224,240,0.55)',
+    'font-size':'11','font-family':'Trebuchet MS,sans-serif'}, gridG).textContent=yr;
+}
+el('text',{x:PL,y:PT+CH+16,'text-anchor':'middle',fill:'rgba(232,224,240,0.55)',
+  'font-size':'11','font-family':'Trebuchet MS,sans-serif'}, gridG).textContent='1908';
+el('text',{x:PL+CW,y:PT+CH+16,'text-anchor':'middle',fill:'rgba(232,224,240,0.55)',
+  'font-size':'11','font-family':'Trebuchet MS,sans-serif'}, gridG).textContent='2026';
+
+// ── Defs: glow filter, clip ───────────────────────────────────────────────
+const defs=el('defs',{},svg);
+const filt=el('filter',{id:'glow',x:'-60%',y:'-60%',width:'220%',height:'220%'},defs);
+el('feGaussianBlur',{stdDeviation:'3.5',result:'cb'},filt);
+const fm=el('feMerge',{},filt);
+el('feMergeNode',{in:'cb'},fm);el('feMergeNode',{in:'SourceGraphic'},fm);
+
+const filtW=el('filter',{id:'glowW',x:'-60%',y:'-60%',width:'220%',height:'220%'},defs);
+el('feGaussianBlur',{stdDeviation:'3',result:'cbw'},filtW);
+const fmw=el('feMerge',{},filtW);
+el('feMergeNode',{in:'cbw'},fmw);el('feMergeNode',{in:'SourceGraphic'},fmw);
+
+// Clip so lines don't extend past current year cursor
+const clipId='clipMain';
+const clipEl=el('clipPath',{id:clipId},defs);
+const clipRect=el('rect',{x:0,y:0,width:PL,height:H},clipEl);
+
+// ── Line paths ────────────────────────────────────────────────────────────
+const linesG=el('g',{'clip-path':`url(#${clipId})`},svg);
+const menPath=el('path',{fill:'none',stroke:'#f06060','stroke-width':'3',
+  'stroke-linejoin':'round','stroke-linecap':'round',
+  filter:'url(#glow)',opacity:'0.9'},linesG);
+const womenPath=el('path',{fill:'none',stroke:'#d060e0','stroke-width':'2.5',
+  'stroke-linejoin':'round','stroke-linecap':'round',
+  filter:'url(#glowW)',opacity:'0.85'},linesG);
+
+// Annotation groups (above clip)
+const annotG=el('g',{},svg);
+const dotG=el('g',{},svg);
+const cursorLine=el('line',{x1:PL,y1:PT,x2:PL,y2:PT+CH,
+  stroke:'rgba(240,192,96,0.45)','stroke-width':'1.5','stroke-dasharray':'5,4'},svg);
+
+// ── Record dots (endpoint) ────────────────────────────────────────────────
+const menDot=el('circle',{r:'6',fill:'#f06060',stroke:'#f09090','stroke-width':'1.5',
+  filter:'url(#glow)'},dotG);
+const womenDot=el('circle',{r:'5.5',fill:'#d060e0',stroke:'#e090f0','stroke-width':'1.5',
+  filter:'url(#glowW)'},dotG);
+
+// Flags are HTML <img> overlaid on the chart-wrap div
+
+// ── Build step-function path ──────────────────────────────────────────────
+function buildPath(records, upToYear) {
+  const pts=records.filter(r=>r.year<=upToYear);
+  if(!pts.length) return '';
+  let d='';
+  // Step function: hold each record until the next one
+  for(let i=0;i<pts.length;i++){
+    const x1=xPx(pts[i].year);
+    const y=yPx(pts[i].secs);
+    const x2=i<pts.length-1 ? xPx(pts[i+1].year) : xPx(Math.min(upToYear, X_MAX));
+    if(i===0) d+=`M${x1.toFixed(1)},${y.toFixed(1)}`;
+    else d+=`L${x1.toFixed(1)},${y.toFixed(1)}`;
+    d+=`H${x2.toFixed(1)}`;
+  }
+  return d;
+}
+
+// ── Get current record at year ────────────────────────────────────────────
+function currentRecord(records, year){
+  const past=records.filter(r=>r.year<=year);
+  return past.length ? past[past.length-1] : null;
+}
+
+// ── Render annotations ────────────────────────────────────────────────────
+function renderAnnotations(year){
+  while(annotG.firstChild) annotG.removeChild(annotG.firstChild);
+  const showNotes=[...MEN_NOTES,...WOMEN_NOTES].filter(n=>n.year<=year);
+  for(const note of showNotes){
+    const rec=MEN_NOTES.includes(note)
+      ? currentRecord(MEN,note.year)
+      : currentRecord(WOMEN,note.year);
+    if(!rec) continue;
+    const isMen=MEN_NOTES.includes(note);
+    const x=xPx(note.year), y=yPx(rec.secs);
+    // small dot
+    el('circle',{cx:x,cy:y,r:'3',fill:isMen?'#f09090':'#e090f0',opacity:'0.6'},annotG);
+    // only show text label near current year (last 5 annotated)
+    const allShown=showNotes.filter(n=>MEN_NOTES.includes(n)===isMen);
+    if(allShown.indexOf(note)>=allShown.length-3){
+      const lines=note.label.split('\n');
+      const tx=x+5, ty=y-(lines.length>1?10:4);
+      for(let i=0;i<lines.length;i++){
+        el('text',{x:tx,y:ty+i*12,'text-anchor':'start',fill:isMen?'rgba(255,160,160,0.75)':'rgba(220,160,240,0.75)',
+          'font-size':i===0?'8.5':'9.5','font-weight':i>0?'700':'400',
+          'font-family':'Trebuchet MS,sans-serif'},annotG).textContent=lines[i];
+      }
+    }
+  }
+}
+
+// ── Main render ───────────────────────────────────────────────────────────
+function render(year){
+  currentYear=year;
+  const xCur=xPx(year);
+  clipRect.setAttribute('width',xCur);
+  cursorLine.setAttribute('x1',xCur); cursorLine.setAttribute('x2',xCur);
+
+  menPath.setAttribute('d', buildPath(MEN, year));
+  womenPath.setAttribute('d', buildPath(WOMEN, year));
+
+  const mr=currentRecord(MEN,year);
+  const wr=currentRecord(WOMEN,year);
+
+  // Helper: convert SVG coords to CSS position over .chart-wrap
+  const svgEl=document.getElementById('chart');
+  const svgRect=svgEl.getBoundingClientRect();
+  const wrapRect=svgEl.parentElement.getBoundingClientRect();
+  const scaleX=svgRect.width/W, scaleY=svgRect.height/H;
+
+  // Men dot + flag
+  const mfImg=document.getElementById('menFlagImg');
+  if(mr){
+    const my=yPx(mr.secs);
+    menDot.setAttribute('cx',xCur); menDot.setAttribute('cy',my);
+    menDot.setAttribute('opacity','1');
+    mfImg.src=`https://flagcdn.com/28x21/${mr.iso}.png`;
+    mfImg.style.left=(svgRect.left-wrapRect.left+xCur*scaleX+7)+'px';
+    mfImg.style.top=(svgRect.top-wrapRect.top+my*scaleY-10)+'px';
+    mfImg.style.display='block';
+    document.getElementById('menTime').textContent=fmtTime(mr.secs);
+    document.getElementById('menName').innerHTML=`<img src='https://flagcdn.com/20x15/${mr.iso}.png' style='border-radius:1px;vertical-align:middle;margin-right:4px'>${mr.name}`;
+    document.getElementById('menEvent').textContent=mr.event;
+  } else {
+    menDot.setAttribute('opacity','0'); mfImg.style.display='none';
+    document.getElementById('menTime').textContent='—';
+    document.getElementById('menName').textContent='—';
+    document.getElementById('menEvent').textContent='No record yet';
+  }
+
+  // Women dot + flag
+  const wfImg=document.getElementById('womenFlagImg');
+  if(wr){
+    const wy=yPx(wr.secs);
+    womenDot.setAttribute('cx',xCur); womenDot.setAttribute('cy',wy);
+    womenDot.setAttribute('opacity','1');
+    wfImg.src=`https://flagcdn.com/28x21/${wr.iso}.png`;
+    wfImg.style.left=(svgRect.left-wrapRect.left+xCur*scaleX+7)+'px';
+    wfImg.style.top=(svgRect.top-wrapRect.top+wy*scaleY-10)+'px';
+    wfImg.style.display='block';
+    document.getElementById('womenTime').textContent=fmtTime(wr.secs);
+    document.getElementById('womenName').innerHTML=`<img src='https://flagcdn.com/20x15/${wr.iso}.png' style='border-radius:1px;vertical-align:middle;margin-right:4px'>${wr.name}`;
+    document.getElementById('womenEvent').textContent=wr.event;
+  } else {
+    womenDot.setAttribute('opacity','0'); wfImg.style.display='none';
+    document.getElementById('womenTime').textContent='—';
+    document.getElementById('womenName').textContent='—';
+    document.getElementById('womenEvent').textContent='No record yet';
+  }
+
+  renderAnnotations(year);
+  document.getElementById('yearNum').textContent=year;
+  document.getElementById('scrubber').value=year;
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+svg.addEventListener('mousemove',e=>{
+  const rect=svg.getBoundingClientRect();
+  const sx=(e.clientX-rect.left)*(W/rect.width);
+  const yr=Math.round(X_MIN+(sx-PL)/CW*(X_MAX-X_MIN));
+  if(yr<X_MIN||yr>X_MAX) return;
+  const mr=currentRecord(MEN,yr), wr=currentRecord(WOMEN,yr);
+  const tt=document.getElementById('tooltip');
+  let html=`<strong style="color:#f0c060">${yr}</strong><br/>`;
+  if(mr) html+=`<span style="color:#f06060">♂ ${mr.name} (${mr.event}): ${fmtTime(mr.secs)}</span><br/>`;
+  if(wr) html+=`<span style="color:#d060e0">♀ ${wr.name} (${wr.event}): ${fmtTime(wr.secs)}</span>`;
+  tt.innerHTML=html; tt.style.display='block';
+  tt.style.left=(e.clientX+14)+'px'; tt.style.top=(e.clientY-20)+'px';
+});
+svg.addEventListener('mouseleave',()=>{document.getElementById('tooltip').style.display='none';});
+
+// ── Animation ─────────────────────────────────────────────────────────────
+let currentYear=X_MIN, playing=false, speedMs=120, raf=null, lastTs=null, elapsed=0;
+
+function loop(ts){
+  if(!playing) return;
+  if(!lastTs) lastTs=ts;
+  elapsed+=ts-lastTs; lastTs=ts;
+  if(elapsed>=speedMs){
+    elapsed=0;
+    if(currentYear>=X_MAX){
+      playing=false;
+      document.getElementById('btnPlay').textContent='▶ Play';
+      return;
+    }
+    render(currentYear+1);
+  }
+  raf=requestAnimationFrame(loop);
+}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('btnPlay').textContent=playing?'⏸ Pause':'▶ Play';
+  if(playing){
+    if(currentYear>=X_MAX) render(X_MIN);
+    lastTs=null; elapsed=0;
+    raf=requestAnimationFrame(loop);
+  } else cancelAnimationFrame(raf);
+}
+function reset(){
+  playing=false; cancelAnimationFrame(raf);
+  document.getElementById('btnPlay').textContent='▶ Play';
+  lastTs=null; elapsed=0; render(X_MIN);
+}
+function scrubYear(yr){
+  playing=false; cancelAnimationFrame(raf);
+  document.getElementById('btnPlay').textContent='▶ Play';
+  render(yr);
+}
+function setSpeed(ms){
+  speedMs=ms;
+  document.querySelectorAll('.btn[id^=spd]').forEach(b=>b.classList.remove('active'));
+  const map={400:'spd0',120:'spd1',30:'spd2'};
+  if(map[ms]) document.getElementById(map[ms]).classList.add('active');
+}
+
+// Init — start fully revealed
+render(X_MAX);
+</script>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8f8157896ab84d1b9c3bdb2c8a0f333d"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
