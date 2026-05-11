@@ -1,0 +1,6 @@
+# Geo Mapper — Netlify proxy redirects
+# Routes Gist API calls through navigatio.earth so school endpoint software
+# never sees the Cloudflare Worker URL. Browser makes same-origin requests;
+# Netlify forwards to the Worker server-side with the original Referer header,
+# which the Worker already accepts (navigatio.earth is in ALLOWED_HOSTS).
+/gist-proxy/*  https://geo-mapper-gist-proxy.bconway.workers.dev/:splat  200
