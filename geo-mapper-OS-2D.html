@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper OS 2D v2.10.352-OS</title>
+    <title>Geo Mapper OS 2D v2.10.353-OS</title>
     <!-- Font Awesome Free for professional disaster icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1636,7 +1636,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.352-OS</span></h1>
+        <h1>📍 Geo Mapper <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v2.10.353-OS</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -1734,9 +1734,19 @@
                         📍 <strong>NLS map:</strong> Coverage is UK only. Zoom to the UK to see tiles. 
                         <a href="https://maps.nls.uk" target="_blank" style="color:#6d4c41;">© NLS</a> — free for educational use.
                     </div>
-                    <div id="osLeisureNotice" style="display:block;margin-top:0.4rem;padding:0.4rem 0.5rem;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;font-size:0.72rem;color:#2e7d32;">
-                        🗺️ <strong>OS Current map:</strong> Coverage is GB only. Zoom to the UK to see tiles.
-                        Contains OS data © Crown copyright and database right 2026.
+                    <!-- Dynamic basemap notice — updated by updateBasemapNotice() -->
+                    <div id="basemapNotice" style="display:block;margin-top:0.4rem;padding:0.4rem 0.5rem;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;font-size:0.72rem;color:#2e7d32;">
+                        🗺️ <strong>OS Leisure:</strong> Coverage is GB only. Contains OS data © Crown copyright and database right 2026.
+                    </div>
+                    <!-- BGS Geology legend panel — shown only when bgs-geology is selected -->
+                    <div id="bgsLegendPanel" style="display:none;margin-top:0.5rem;">
+                        <div style="padding:0.4rem 0.5rem;background:#f3e5f5;border:1px solid #ce93d8;border-radius:4px 4px 0 0;font-size:0.72rem;color:#6a1b9a;display:flex;justify-content:space-between;align-items:center;">
+                            <span>🪨 <strong>BGS Bedrock Geology key</strong> — 1:625,000</span>
+                            <a href="https://geologyviewer.bgs.ac.uk/" target="_blank" style="color:#6a1b9a;font-size:0.68rem;">Open full viewer ↗</a>
+                        </div>
+                        <div id="bgsLegendInner" style="border:1px solid #ce93d8;border-top:none;border-radius:0 0 4px 4px;background:#fff;max-height:220px;overflow-y:auto;text-align:center;padding:0.3rem;">
+                            <span style="font-size:0.68rem;color:#888;">Loading key…</span>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #eee;">
@@ -6730,6 +6740,58 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             return new ESRILayer(Object.assign({ baseUrl, tileSize: 256 }, options));
         }
 
+        // ── Per-basemap notice + BGS legend ──────────────────────────────────────
+        // Called by changeBasemap() after the new layer is added.
+        // Updates the #basemapNotice text and shows/hides the BGS legend panel.
+        let _bgsLegendLoaded = false;
+        function updateBasemapNotice(key) {
+            const notice = document.getElementById('basemapNotice');
+            const bgsPanel = document.getElementById('bgsLegendPanel');
+            if (!notice) return;
+
+            const osAttrib = 'Contains OS data © Crown copyright and database right 2026.';
+            const configs = {
+                'os-leisure':         { bg:'#e8f5e9', border:'#a5d6a7', color:'#2e7d32', text:'🗺️ <strong>OS Leisure:</strong> Detailed topographic map (1:25,000 / 1:50,000). GB only. ' + osAttrib },
+                'os-road':            { bg:'#e8f5e9', border:'#a5d6a7', color:'#2e7d32', text:'🚗 <strong>OS Road:</strong> Road-emphasis style — good compare with Leisure to see what each highlights. GB only. ' + osAttrib },
+                'os-outdoor':         { bg:'#e8f5e9', border:'#a5d6a7', color:'#2e7d32', text:'🥾 <strong>OS Outdoor:</strong> Walking / access focus — shows rights of way, open access land. GB only. ' + osAttrib },
+                'os-light':           { bg:'#e8f5e9', border:'#a5d6a7', color:'#2e7d32', text:'◻️ <strong>OS Light:</strong> Minimal grey base — good for making data points stand out. GB only. ' + osAttrib },
+                'esri-imagery':       { bg:'#e3f2fd', border:'#90caf9', color:'#1565c0', text:'🛰️ <strong>ESRI Imagery:</strong> Satellite / aerial photography. Global coverage. Imagery © Esri, Maxar, Earthstar Geographics.' },
+                'esri-imagery-hybrid':{ bg:'#e3f2fd', border:'#90caf9', color:'#1565c0', text:'🛰️ <strong>ESRI Imagery + Labels:</strong> Satellite with place name overlay. Global coverage.' },
+                'esri-hillshade':     { bg:'#e3f2fd', border:'#90caf9', color:'#1565c0', text:'⛰️ <strong>ESRI Hillshade:</strong> Terrain shading from elevation data. Compare with OS Leisure to see how contours relate to actual landform shape. Global coverage.' },
+                'bgs-geology':        { bg:'#f3e5f5', border:'#ce93d8', color:'#6a1b9a', text:'🪨 <strong>BGS Geology 1:625k:</strong> Bedrock lithology across the UK. Colours show different rock types. Free for all uses — © UKRI/BGS 2024, OneGeology WMS.' },
+            };
+            const cfg = configs[key] || configs['os-leisure'];
+            notice.style.background   = cfg.bg;
+            notice.style.borderColor  = cfg.border;
+            notice.style.color        = cfg.color;
+            notice.innerHTML          = cfg.text;
+            notice.style.display      = 'block';
+
+            // BGS legend panel
+            if (bgsPanel) {
+                if (key === 'bgs-geology') {
+                    bgsPanel.style.display = 'block';
+                    // Only fetch the legend image once per session
+                    if (!_bgsLegendLoaded) {
+                        _bgsLegendLoaded = true;
+                        const inner = document.getElementById('bgsLegendInner');
+                        const legendUrl = 'https://proxy.navigatio.earth/bgs-legend';
+                        const img = document.createElement('img');
+                        img.alt   = 'BGS bedrock geology colour key';
+                        img.style.cssText = 'max-width:100%;height:auto;display:block;margin:0 auto;';
+                        img.onload  = () => { if (inner) inner.innerHTML = ''; if (inner) inner.appendChild(img); };
+                        img.onerror = () => {
+                            if (inner) inner.innerHTML =
+                                '<span style="font-size:0.68rem;color:#888;">Key unavailable — <a href="https://geologyviewer.bgs.ac.uk/" target="_blank" style="color:#6a1b9a;">open BGS viewer</a> for colours.</span>';
+                        };
+                        img.src = legendUrl;
+                    }
+                } else {
+                    bgsPanel.style.display = 'none';
+                }
+            }
+        }
+
         function changeBasemap() {
             const selected = document.getElementById('basemapSelect').value;
 
@@ -6780,7 +6842,9 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                         maxZoom:     basemapConfig.maxZoom,
                         minZoom:     basemapConfig.minZoom || 0,
                         transparent: true,
-                        dpi:         192,  // larger labels for hybrid view
+                        dpi:         48,   // low DPI = ESRI renders labels larger on-screen
+                                           // (192 made them tiny — ESRI treats high DPI as
+                                           // high-res display and shrinks glyphs accordingly)
                     }).addTo(map);
                 }
             } else if (basemapConfig.wmsLayer) {
@@ -6816,7 +6880,8 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 markerLayer.bringToFront();
             }
             
-            // OS Leisure notice is always visible (only basemap in this fork)
+            // Update per-basemap notice and BGS legend panel
+            updateBasemapNotice(selected);
             
             // Update compare layer selectors if compare mode is active
             if (window._compareMode) updateCompareLayerA(selected);
@@ -23754,7 +23819,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER OS 2D v2.10.352-OS READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER OS 2D v2.10.353-OS READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
@@ -23873,14 +23938,14 @@ Press OK to copy full config to console.`;
                 });
                 if (cfg.hybrid && cfg.labelsUrl) {
                     // Wrap imagery + labels in a LayerGroup for the compare view.
-                    // BUG FIX v2.10.352-OS: L.layerGroup has no getContainer() so the
+                    // BUG FIX v2.10.353-OS: L.layerGroup has no getContainer() so the
                     // compare clip logic crashed. We add getContainer() (proxy to
                     // imgLayer) and _applyClip() (clips both sub-layers) directly onto
                     // the group instance. map.removeLayer(group) still works correctly
                     // because L.LayerGroup.onRemove iterates its own layers.
                     const lblLayer = buildESRILayer(cfg.labelsUrl, {
                         attribution: '', maxZoom: cfg.maxZoom || 9,
-                        minZoom: cfg.minZoom || 0, transparent: true, dpi: 192,
+                        minZoom: cfg.minZoom || 0, transparent: true, dpi: 48,
                     });
                     const group = L.layerGroup([imgLayer, lblLayer]);
                     group.getContainer = function () { return imgLayer.getContainer(); };
@@ -23926,7 +23991,7 @@ Press OK to copy full config to console.`;
             const se = map.containerPointToLayerPoint(mapSize);
             const clipX = nw.x + xPx;  // divider position in layer-space
 
-            // BUG FIX v2.10.352-OS: use _applyClip() when available (hybrid LayerGroups
+            // BUG FIX v2.10.353-OS: use _applyClip() when available (hybrid LayerGroups
             // expose it to clip both their sub-layers); fall back to getContainer() for
             // plain tile/ESRI layers. This replaces the direct getContainer() call that
             // crashed when either slot contained the hybrid (L.layerGroup) layer.
@@ -23958,7 +24023,7 @@ Press OK to copy full config to console.`;
 
             if (window._compareMode) {
                 // ── UPDATE path ───────────────────────────────────────────────────
-                // BUG FIX v2.10.352-OS: the previous code set _compareMode=false
+                // BUG FIX v2.10.353-OS: the previous code set _compareMode=false
                 // BEFORE calling stopCompareMode, which triggered stopCompareMode's
                 // own guard (if !_compareMode return) causing it to exit immediately
                 // without tearing down layers/divider/listeners. Old layers then
@@ -24067,7 +24132,7 @@ Press OK to copy full config to console.`;
             setTimeout(() => _updateDividerClip(xPx), 200);
             
             // ── Drag logic ──────────────────────────────────────────────────────
-            // BUG FIX v2.10.352-OS: store handler refs on window so stopCompareMode
+            // BUG FIX v2.10.353-OS: store handler refs on window so stopCompareMode
             // can remove them precisely. Previously anonymous functions were added to
             // document and never removed — every Start/Update call leaked another set.
             let dragging = false;
@@ -24120,7 +24185,7 @@ Press OK to copy full config to console.`;
                 map.dragging.disable();
             }, {passive: true});
             
-            // BUG FIX v2.10.352-OS: store map listener ref so stopCompareMode can
+            // BUG FIX v2.10.353-OS: store map listener ref so stopCompareMode can
             // remove it precisely instead of calling map.off('move zoom resize') with
             // no handler (which was nuking all listeners, including the grid overlay's).
             window._compareMapListener = () => _updateDividerClip(xPx);
@@ -24157,7 +24222,7 @@ Press OK to copy full config to console.`;
             if (lr) lr.remove();
             
             // Clear clip from both compare layers.
-            // BUG FIX v2.10.352-OS: use _applyClip() when available (hybrid LayerGroup)
+            // BUG FIX v2.10.353-OS: use _applyClip() when available (hybrid LayerGroup)
             // so both sub-layers get their clip cleared, not just the proxy container.
             function _clearLayerClip(layer) {
                 if (!layer) return;
@@ -24171,7 +24236,7 @@ Press OK to copy full config to console.`;
             const rightPane = map.getPane('compareRightPane');
             if (rightPane) rightPane.style.clipPath = '';
             
-            // BUG FIX v2.10.352-OS: remove map listener by stored ref (not nuclear
+            // BUG FIX v2.10.353-OS: remove map listener by stored ref (not nuclear
             // map.off with no handler, which was removing ALL move/zoom/resize
             // listeners including the National Grid overlay's _update handler).
             if (window._compareMapListener) {
@@ -24179,7 +24244,7 @@ Press OK to copy full config to console.`;
                 window._compareMapListener = null;
             }
 
-            // BUG FIX v2.10.352-OS: remove document listeners by stored refs.
+            // BUG FIX v2.10.353-OS: remove document listeners by stored refs.
             // Previously anonymous handlers were added and never removed — every
             // Start/Update call accumulated another set on document.
             if (window._cmpMouseMove) {
