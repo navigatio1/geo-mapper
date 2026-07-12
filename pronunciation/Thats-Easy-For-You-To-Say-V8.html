@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>That's easy for you to say</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Spectral+SC:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --ink: #141f2b;
+    --ink-2: #1c2b3a;
+    --line: #34485c;
+    --paper: #efe6d3;
+    --paper-dim: #cbc0a6;
+    --gold: #c9a227;
+    --gold-dim: #8d7423;
+    --brick: #b5533c;
+    --text: #e9e2d0;
+    --text-dim: #9fb0bd;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin: 0;
+    background: var(--ink);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,162,39,0.06), transparent 60%),
+      radial-gradient(ellipse at 100% 100%, rgba(181,83,60,0.05), transparent 55%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 18px 60px;
+  }
+
+  header{
+    text-align: center;
+    max-width: 560px;
+    margin-bottom: 28px;
+  }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  h1{
+    font-family: 'Spectral', serif;
+    font-weight: 600;
+    font-size: 30px;
+    margin: 0 0 8px;
+    color: var(--paper);
+  }
+  header p{
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .panel{
+    width: 100%;
+    max-width: 560px;
+    background: var(--ink-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 28px 24px;
+  }
+
+  .picker{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .picker-row2{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  select, input[type="text"]{
+    flex: 1;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+  select:focus, input:focus, button:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+  .picker button{
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .picker button:hover{ background: #ddb43a; }
+  .filter-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    flex: none;
+    padding-right: 2px;
+  }
+
+  .stage{
+    text-align: center;
+    padding: 6px 0 20px;
+  }
+  .word{
+    font-family: 'Spectral', serif;
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 600;
+    color: var(--paper);
+    word-break: break-word;
+  }
+  .origin{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .primary-phonetic{
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    color: var(--gold);
+  }
+  .primary-phonetic .cap{
+    color: var(--brick);
+    font-weight: 600;
+  }
+
+  .dial-row{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 26px;
+    margin: 22px 0 8px;
+  }
+  .dial{
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 2px solid var(--gold-dim);
+    background: radial-gradient(circle at 35% 30%, #223244, var(--ink));
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .dial:hover{ border-color: var(--gold); }
+  .dial:active{ transform: scale(0.96); }
+  .dial svg{ width: 30px; height: 30px; fill: var(--paper); }
+  .needle{
+    position: absolute;
+    width: 2px;
+    height: 30px;
+    background: var(--gold);
+    top: 8px;
+    left: 50%;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(var(--needle-angle, -35deg));
+    transition: transform 0.35s ease;
+    border-radius: 2px;
+  }
+  .speed-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .speed-toggle{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .speed-btns{
+    display: flex;
+    gap: 6px;
+  }
+  .speed-btns button{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .speed-btns button.active{
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .reveal-row{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0 6px;
+    flex-wrap: wrap;
+  }
+  .reveal-btn{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .reveal-btn:hover{ color: var(--paper); border-color: var(--paper-dim); }
+  .reveal-btn.on{
+    background: rgba(201,162,39,0.12);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .reveal-btn:disabled{
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .detail{
+    margin-top: 16px;
+    padding: 16px 18px;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    display: none;
+  }
+  .detail.show{ display: block; }
+  .detail-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .syllables{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+  .syl{
+    font-family: 'Spectral', serif;
+    font-size: 17px;
+    background: var(--ink-2);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .syl:hover{ border-color: var(--gold); color: var(--paper); }
+  .syl.stressed{
+    border-color: var(--brick);
+    color: var(--paper);
+    box-shadow: 0 0 0 1px var(--brick) inset;
+    font-weight: 600;
+  }
+  .syl-note{
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .ipa-line{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    text-align: center;
+    color: var(--paper);
+    letter-spacing: 0.02em;
+  }
+  .phonetic-line{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    text-align: center;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .lang-row{
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .lang-row select{
+    flex: none;
+    width: auto;
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  footer{
+    max-width: 560px;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 24px;
+    line-height: 1.6;
+  }
+  .voice-warning{
+    max-width: 560px;
+    font-size: 12px;
+    color: var(--brick);
+    text-align: center;
+    margin-top: 12px;
+    display: none;
+  }
+  .voice-warning.show{ display: block; }
+
+  .data-row{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .data-note{
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .needle, .dial{ transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">THAT'S EASY FOR YOU TO SAY — V8</div>
+  <h1>That's easy for you to say</h1>
+  <p>The voice reads the phonetic respelling below, not the actual spelling, as one continuous phrase. CAPITALS mark the stressed syllable.</p>
+</header>
+
+<div class="panel">
+
+  <div class="picker">
+    <select id="countrySelect" aria-label="Filter by country"></select>
+    <select id="presetSelect" aria-label="Choose a placename"></select>
+  </div>
+  <div class="picker-row2">
+    <input type="text" id="customInput" placeholder="…or type your own (pick a matching Voice below)" aria-label="Type a placename">
+    <button id="loadCustom">Go</button>
+  </div>
+
+  <div class="stage">
+    <div class="word" id="wordDisplay">Eyjafjallajökull</div>
+    <div class="origin" id="originDisplay">ICELANDIC · VOLCANO</div>
+    <div class="primary-phonetic" id="primaryPhonetic"></div>
+  </div>
+
+  <div class="dial-row">
+    <div class="speed-toggle">
+      <div class="dial" id="playDial" role="button" tabindex="0" aria-label="Play pronunciation">
+        <div class="needle" id="needle"></div>
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="speed-btns">
+        <button id="slowBtn" class="active" data-rate="0.55">slow</button>
+        <button id="normalBtn" data-rate="1">normal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal-row">
+    <button class="reveal-btn" id="toggleSyllables">Show syllables</button>
+    <button class="reveal-btn" id="toggleIpa">Show IPA</button>
+  </div>
+
+  <div class="detail" id="syllableDetail">
+    <div class="detail-label">Syllables</div>
+    <div class="syllables" id="syllableList"></div>
+    <div class="syl-note">Tap any syllable to hear it on its own. The reddish outline marks the stressed syllable.</div>
+  </div>
+
+  <div class="detail" id="ipaDetail">
+    <div class="detail-label">IPA</div>
+    <div class="ipa-line" id="ipaLine"></div>
+  </div>
+
+  <div class="lang-row">
+    <span>Voice:</span>
+    <select id="langSelect"></select>
+  </div>
+
+  <div class="voice-warning" id="voiceWarning">
+    Your browser doesn't have a matching voice installed for this accent — playback will use its default voice instead.
+  </div>
+
+  <div class="data-row" id="dataSection">
+    <button class="reveal-btn" id="downloadCsv">Download CSV</button>
+    <button class="reveal-btn" id="uploadCsvBtn">Upload CSV</button>
+    <input type="file" id="uploadCsvInput" accept=".csv" style="display:none">
+  </div>
+  <div class="data-note" id="dataNote">Edit the CSV in a spreadsheet and re-upload to replace this list — columns: name, country, origin, phonetic, ipa (optional). Separate syllables with hyphens; ALL CAPS marks the stressed one.</div>
+
+</div>
+
+<footer>
+  Pronunciation is played using your browser's built-in speech voices, so quality varies by device and by how many voices are installed. Playback reads the phonetic respelling shown on screen, not the placename's actual spelling — treat it as a guide to the sounds, not a strict recording.
+</footer>
+
+<script>
+  // Data shape: `phonetic` is the source of truth for both display and
+  // speech. Syllables are separated by hyphens; an ALL-CAPS syllable marks
+  // the stress. `ipa` is optional — set to null/empty where not available.
+  //
+  // Fallback dataset — used only if place-pronunciation.csv can't be
+  // fetched (e.g. the file is opened directly with file:// rather than
+  // served over http/https, which blocks fetch() in most browsers).
+  const FALLBACK_PLACES = [
+    {
+      name: "Eyjafjallajökull",
+      country: "Iceland",
+      origin: "Iceland · volcano",
+      phonetic: "AY-uh-fyat-luh-yoer-kutl",
+      ipa: null
+    },
+    {
+      name: "Lisnagunogue",
+      country: "Northern Ireland",
+      origin: "Northern Ireland · townland, Co. Antrim",
+      phonetic: "liss-na-GUN-yah",
+      ipa: null
+    },
+    {
+      name: "Llanfairpwllgwyngyll",
+      country: "Wales",
+      origin: "Wales · village, Anglesey (short form)",
+      phonetic: "HLAN-vire-poolh-GWIN-gihlh",
+      ipa: "ɬanˈvairpuɬɡwɨ̞ŋɡɪɬ"
+    },
+    {
+      name: "Cholmondeley",
+      country: "England",
+      origin: "England · village and castle, Cheshire",
+      phonetic: "CHUM-lee",
+      ipa: "ˈtʃʌmli"
+    },
+    {
+      name: "Featherstonehaugh",
+      country: "England",
+      origin: "England · surname and place, Northumberland",
+      phonetic: "FAN-shaw",
+      ipa: "ˈfænʃɔː"
+    },
+    {
+      name: "Glamis",
+      country: "Scotland",
+      origin: "Scotland · village and castle, Angus (one syllable)",
+      phonetic: "GLAHMZ",
+      ipa: "ɡlɑːmz"
+    },
+    {
+      name: "Kirkcudbright",
+      country: "Scotland",
+      origin: "Scotland · town, Dumfries and Galloway",
+      phonetic: "kur-KOO-bree",
+      ipa: "kərˈkuːbri"
+    },
+    {
+      name: "Auchtermuchty",
+      country: "Scotland",
+      origin: "Scotland · town, Fife",
+      phonetic: "OKH-ter-MUKH-tee",
+      ipa: "ˌɔxtərˈmʌxti"
+    },
+    {
+      name: "Ouagadougou",
+      country: "Burkina Faso",
+      origin: "Burkina Faso · capital city",
+      phonetic: "wah-ga-DOO-goo",
+      ipa: "waɡaduɡu"
+    },
+    {
+      name: "Reykjavík",
+      country: "Iceland",
+      origin: "Iceland · capital city",
+      phonetic: "RAY-kya-veek",
+      ipa: "ˈreɪkjaviːk"
+    },
+    {
+      name: "Tegucigalpa",
+      country: "Honduras",
+      origin: "Honduras · capital city",
+      phonetic: "teh-goo-see-GAHL-pa",
+      ipa: "teɣusiˈɣalpa"
+    },
+    {
+      name: "Xochimilco",
+      country: "Mexico",
+      origin: "Mexico City · borough, canal district",
+      phonetic: "so-chee-MEEL-koh",
+      ipa: "so.tʃiˈmil.ko"
+    },
+    {
+      name: "Frome",
+      country: "England",
+      origin: "England · town, Somerset (rhymes with 'broom')",
+      phonetic: "Froom",
+      ipa: null
+    },
+    {
+      name: "Bicester",
+      country: "England",
+      origin: "England · town, Oxfordshire",
+      phonetic: "BISS-tah",
+      ipa: null
+    },
+    {
+      name: "Loughborough",
+      country: "England",
+      origin: "England · town, Leicestershire",
+      phonetic: "LUFF-bruh",
+      ipa: null
+    },
+    {
+      name: "Woolfardisworthy",
+      country: "England",
+      origin: "England · village, Devon",
+      phonetic: "WOOL-ser-ree",
+      ipa: null
+    },
+    {
+      name: "Godmanchester",
+      country: "England",
+      origin: "England · town, Cambridgeshire",
+      phonetic: "GOD-mun-chester",
+      ipa: null
+    },
+    {
+      name: "Hunstanton",
+      country: "England",
+      origin: "England · town, Norfolk",
+      phonetic: "HUN-ston",
+      ipa: null
+    },
+    {
+      name: "Worcestershire",
+      country: "England",
+      origin: "England · county",
+      phonetic: "WOOS-ter-sher",
+      ipa: null
+    },
+    {
+      name: "Marylebone",
+      country: "England",
+      origin: "England · district, London",
+      phonetic: "MAR-lee-bone",
+      ipa: null
+    },
+    {
+      name: "Durham",
+      country: "England",
+      origin: "England · city and county",
+      phonetic: "DUR-um",
+      ipa: null
+    },
+    {
+      name: "Beaulieu",
+      country: "England",
+      origin: "England · village, Hampshire",
+      phonetic: "BEW-lee",
+      ipa: null
+    },
+    {
+      name: "Thames",
+      country: "England",
+      origin: "England · river",
+      phonetic: "Temz",
+      ipa: null
+    },
+    {
+      name: "Gateacre",
+      country: "England",
+      origin: "England · district, Liverpool",
+      phonetic: "GATT-a-ker",
+      ipa: null
+    },
+    {
+      name: "Leicester",
+      country: "England",
+      origin: "England · city, Leicestershire",
+      phonetic: "LESS-ter",
+      ipa: null
+    },
+    {
+      name: "Gloucestershire",
+      country: "England",
+      origin: "England · county",
+      phonetic: "GLOS-ter-sher",
+      ipa: null
+    },
+    {
+      name: "Edinburgh",
+      country: "Scotland",
+      origin: "Scotland · capital city",
+      phonetic: "ED-in-burr-a",
+      ipa: null
+    },
+    {
+      name: "Holborn",
+      country: "England",
+      origin: "England · district, London",
+      phonetic: "HO-burn",
+      ipa: null
+    },
+    {
+      name: "Mousehole",
+      country: "England",
+      origin: "England · village, Cornwall",
+      phonetic: "MOW-zel",
+      ipa: null
+    },
+    {
+      name: "Bournemouth",
+      country: "England",
+      origin: "England · town, Dorset",
+      phonetic: "BORN-muth",
+      ipa: null
+    },
+    {
+      name: "Plymouth",
+      country: "England",
+      origin: "England · city, Devon",
+      phonetic: "PLI-muth",
+      ipa: null
+    },
+    {
+      name: "Alnwick",
+      country: "England",
+      origin: "England · town, Northumberland",
+      phonetic: "ANN-ick",
+      ipa: null
+    },
+    {
+      name: "Blackley",
+      country: "England",
+      origin: "England · district, Manchester",
+      phonetic: "BLAY-kli",
+      ipa: null
+    },
+    {
+      name: "Cleobury",
+      country: "England",
+      origin: "England · town, Shropshire (Cleobury Mortimer)",
+      phonetic: "KLI-beri",
+      ipa: null
+    },
+    {
+      name: "Elham",
+      country: "England",
+      origin: "England · village, Kent",
+      phonetic: "I-lem",
+      ipa: null
+    },
+    {
+      name: "Leominster",
+      country: "England",
+      origin: "England · town, Herefordshire",
+      phonetic: "LEMS-ter",
+      ipa: null
+    },
+    {
+      name: "Tenochtitlan",
+      country: "Mexico",
+      origin: "Mexico · historic Aztec capital, site of modern Mexico City",
+      phonetic: "teh-noch-TEET-lan",
+      ipa: null
+    },
+    {
+      name: "Popocatépetl",
+      country: "Mexico",
+      origin: "Mexico · active volcano",
+      phonetic: "poh-poh-kah-TEH-peh-tul",
+      ipa: null
+    },
+    {
+      name: "Antananarivo",
+      country: "Madagascar",
+      origin: "Madagascar · capital city",
+      phonetic: "an-tuh-nan-uh-REE-voh",
+      ipa: null
+    }
+  ];
+
+  // Alphabetical by name — applied to whichever dataset ends up loaded.
+  FALLBACK_PLACES.sort((a, b) => a.name.localeCompare(b.name));
+
+  // PLACES is filled at load time — either from place-pronunciation.csv
+  // (preferred) or FALLBACK_PLACES if the fetch fails. It stays a `const`
+  // array that gets mutated in place (push/length reset), never reassigned,
+  // so the rest of the app can hold a stable reference to it.
+  const PLACES = [];
+
+  const DATA_URL = 'place-pronunciation.csv';
+
+  function rowsFromParsedCsv(data){
+    return data
+      .filter(r => r.name && r.phonetic)
+      .map(r => ({
+        name: r.name.trim(),
+        country: (r.country || 'Other').trim(),
+        origin: (r.origin || '').trim(),
+        phonetic: r.phonetic.trim(),
+        ipa: r.ipa ? r.ipa.trim() : null
+      }));
+  }
+
+  function loadInitialData(){
+    Papa.parse(DATA_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: (parsed) => {
+        const rows = rowsFromParsedCsv(parsed.data);
+        PLACES.push(...(rows.length ? rows : FALLBACK_PLACES));
+        PLACES.sort((a, b) => a.name.localeCompare(b.name));
+        startApp();
+      },
+      error: () => {
+        PLACES.push(...FALLBACK_PLACES);
+        startApp();
+      }
+    });
+  }
+
+  // ---- State --------------------------------------------------------------
+  let current = PLACES[0];
+  let rate = 0.55;
+  let voices = [];
+  let isCustom = false;
+  let countryFilter = "All";
+
+  const wordDisplay = document.getElementById('wordDisplay');
+  const originDisplay = document.getElementById('originDisplay');
+  const primaryPhonetic = document.getElementById('primaryPhonetic');
+  const countrySelect = document.getElementById('countrySelect');
+  const presetSelect = document.getElementById('presetSelect');
+  const customInput = document.getElementById('customInput');
+  const langSelect = document.getElementById('langSelect');
+  const voiceWarning = document.getElementById('voiceWarning');
+  const needle = document.getElementById('needle');
+  const toggleIpaBtn = document.getElementById('toggleIpa');
+
+  // Voice/accent options. English variants suit reading the phonetic
+  // respelling for preset placenames; the other languages are here so a
+  // custom typed entry (raw spelling, no phonetic guide) can be read by a
+  // voice that actually follows that language's pronunciation rules —
+  // forcing an unfamiliar spelling through an English voice is what causes
+  // some engines to fall back to spelling it out letter by letter.
+  const LANG_OPTIONS = [
+    ["en-GB", "English (UK)"],
+    ["en-US", "English (US)"],
+    ["en-IE", "English (Ireland)"],
+    ["en-AU", "English (Australia)"],
+    ["is-IS", "Icelandic"],
+    ["cy-GB", "Welsh"],
+    ["ga-IE", "Irish"],
+    ["fr-FR", "French"],
+    ["es-ES", "Spanish (Spain)"],
+    ["es-MX", "Spanish (Mexico)"],
+    ["de-DE", "German"],
+    ["it-IT", "Italian"],
+    ["pt-PT", "Portuguese"]
+  ];
+  let accent = "en-GB";
+
+  function populateSelectors(){
+    const countries = ["All", ...new Set(PLACES.map(p => p.country))].sort((a, b) => {
+      if (a === "All") return -1;
+      if (b === "All") return 1;
+      return a.localeCompare(b);
+    });
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c === "All" ? "All countries" : c;
+      countrySelect.appendChild(opt);
+    });
+
+    populatePresetOptions();
+
+    if (!langSelect.options.length){
+      LANG_OPTIONS.forEach(([code, label]) => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = label;
+        langSelect.appendChild(opt);
+      });
+      langSelect.value = accent;
+    }
+  }
+
+  // Rebuilds the placename dropdown from PLACES, filtered by countryFilter.
+  // PLACES is already sorted alphabetically, so filtering preserves order.
+  function populatePresetOptions(){
+    presetSelect.innerHTML = '';
+    PLACES.forEach((p, i) => {
+      if (countryFilter !== "All" && p.country !== countryFilter) return;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.name;
+      presetSelect.appendChild(opt);
+    });
+  }
+
+  countrySelect.addEventListener('change', () => {
+    countryFilter = countrySelect.value;
+    populatePresetOptions();
+    if (presetSelect.options.length){
+      isCustom = false;
+      current = PLACES[presetSelect.value];
+      customInput.value = '';
+      renderWord();
+    }
+  });
+
+  // ---- Phonetic parsing ---------------------------------------------------
+  // Splits a hyphen-separated phonetic respelling into syllables and flags
+  // whichever syllable is written in ALL CAPS as the stressed one.
+  function parsePhonetic(phonetic){
+    return phonetic.split('-').map(raw => {
+      const text = raw.trim();
+      const stressed = text.length > 1 && text === text.toUpperCase() && /[A-Z]/.test(text);
+      return { text, stressed };
+    });
+  }
+
+  function renderWord(){
+    wordDisplay.textContent = current.name;
+    originDisplay.textContent = current.origin.toUpperCase();
+
+    if (isCustom){
+      primaryPhonetic.textContent = "";
+      renderGuessedSyllables();
+      document.getElementById('ipaLine').textContent = "— not available for custom entries —";
+      toggleIpaBtn.disabled = true;
+    } else {
+      const syls = parsePhonetic(current.phonetic);
+      primaryPhonetic.innerHTML = syls
+        .map(s => s.stressed ? `<span class="cap">${s.text}</span>` : s.text)
+        .join('-');
+      renderSyllables(syls);
+      if (current.ipa){
+        document.getElementById('ipaLine').textContent = current.ipa;
+        toggleIpaBtn.disabled = false;
+      } else {
+        document.getElementById('ipaLine').textContent = "— not available for this entry —";
+        toggleIpaBtn.disabled = true;
+      }
+    }
+    checkVoiceAvailable();
+  }
+
+  function renderSyllables(syls){
+    const list = document.getElementById('syllableList');
+    list.innerHTML = '';
+    syls.forEach(s => {
+      const span = document.createElement('span');
+      span.className = 'syl' + (s.stressed ? ' stressed' : '');
+      span.textContent = s.text;
+      span.title = 'Play this syllable';
+      span.addEventListener('click', () => speakSingle(s.text, rate));
+      list.appendChild(span);
+    });
+  }
+
+  function renderGuessedSyllables(){
+    const list = document.getElementById('syllableList');
+    list.innerHTML = '';
+    current.guessedSyllables.forEach(text => {
+      const span = document.createElement('span');
+      span.className = 'syl';
+      span.textContent = text;
+      span.title = 'Play this syllable (approximate)';
+      span.addEventListener('click', () => speakSingle(text, rate));
+      list.appendChild(span);
+    });
+  }
+
+  function checkVoiceAvailable(){
+    if (!voices.length) { voiceWarning.classList.remove('show'); return; }
+    const match = voices.some(v => v.lang && v.lang.toLowerCase().startsWith(accent.slice(0,2)));
+    voiceWarning.classList.toggle('show', !match);
+  }
+
+  // ---- Speech ---------------------------------------------------------
+  function loadVoices(){
+    voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    checkVoiceAvailable();
+  }
+  if ('speechSynthesis' in window){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(){
+    return voices.find(v => v.lang && v.lang.toLowerCase() === accent.toLowerCase())
+      || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(accent.slice(0,2)))
+      || null;
+  }
+
+  // Speaks a single piece of text (one syllable, or a whole custom word) as
+  // one utterance — no chaining, so no inter-utterance gap.
+  function speakSingle(text, speed){
+    if (!('speechSynthesis' in window)){
+      alert("This browser doesn't support speech playback. Try Chrome or Edge.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text.toLowerCase());
+    utter.lang = accent;
+    utter.rate = speed;
+    const v = pickVoice();
+    if (v) utter.voice = v;
+    window.speechSynthesis.speak(utter);
+  }
+
+  // Speaks the full phonetic respelling as ONE continuous utterance (hyphens
+  // become spaces) so there's no artificial gap between syllables. Per-word
+  // pitch/volume boosting was dropped because Web Speech API utterances
+  // each carry their own start/stop silence — chaining them is what caused
+  // the choppy sound. Stress is still shown visually (capitals + colour).
+  function speakPhoneticFull(phonetic, speed){
+    if (!('speechSynthesis' in window)){
+      alert("This browser doesn't support speech playback. Try Chrome or Edge.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const flowing = phonetic.split('-').map(s => s.trim().toLowerCase()).join(' ');
+    const utter = new SpeechSynthesisUtterance(flowing);
+    utter.lang = accent;
+    utter.rate = speed;
+    const v = pickVoice();
+    if (v) utter.voice = v;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function speakCurrent(speed){
+    if (isCustom){
+      speakSingle(current.name, speed);
+    } else {
+      speakPhoneticFull(current.phonetic, speed);
+    }
+  }
+
+  // ---- Controls ---------------------------------------------------------
+  presetSelect.addEventListener('change', () => {
+    isCustom = false;
+    current = PLACES[presetSelect.value];
+    customInput.value = '';
+    renderWord();
+  });
+
+  document.getElementById('loadCustom').addEventListener('click', loadCustomWord);
+  customInput.addEventListener('keydown', e => { if (e.key === 'Enter') loadCustomWord(); });
+
+  function loadCustomWord(){
+    const val = customInput.value.trim();
+    if (!val) return;
+    isCustom = true;
+    current = {
+      name: val,
+      origin: "custom entry — syllables guessed automatically, spoken as typed",
+      guessedSyllables: guessSyllables(val)
+    };
+    renderWord();
+  }
+
+  // Rough heuristic syllabifier: splits on vowel-consonant boundaries.
+  // This is a best-effort guide only, not linguistically precise, and is
+  // only used for custom entries that have no supplied phonetic guide.
+  function guessSyllables(word){
+    const vowels = "aeiouyAEIOUY";
+    const clean = word.replace(/\s+/g, '');
+    let chunks = [];
+    let buffer = "";
+    let seenVowel = false;
+    for (let i = 0; i < clean.length; i++){
+      const ch = clean[i];
+      buffer += ch;
+      const isVowel = vowels.includes(ch);
+      if (isVowel) seenVowel = true;
+      const next = clean[i+1];
+      const nextIsVowel = next && vowels.includes(next);
+      if (seenVowel && !isVowel && nextIsVowel && buffer.length > 1){
+        chunks.push(buffer);
+        buffer = "";
+        seenVowel = false;
+      }
+    }
+    if (buffer) chunks.push(buffer);
+    return chunks.length ? chunks : [clean];
+  }
+
+  langSelect.addEventListener('change', () => {
+    accent = langSelect.value;
+    checkVoiceAvailable();
+  });
+
+  document.getElementById('playDial').addEventListener('click', () => speakCurrent(rate));
+  document.getElementById('playDial').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); speakCurrent(rate); }
+  });
+
+  function setRate(newRate, btn){
+    rate = newRate;
+    document.querySelectorAll('.speed-btns button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    needle.style.setProperty('--needle-angle', newRate < 1 ? '-35deg' : '20deg');
+  }
+  document.getElementById('slowBtn').addEventListener('click', e => setRate(0.55, e.target));
+  document.getElementById('normalBtn').addEventListener('click', e => setRate(1, e.target));
+
+  function wireToggle(btnId, panelId){
+    const btn = document.getElementById(btnId);
+    const panel = document.getElementById(panelId);
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      const show = !panel.classList.contains('show');
+      panel.classList.toggle('show', show);
+      btn.classList.toggle('on', show);
+      btn.textContent = (show ? 'Hide ' : 'Show ') + btn.textContent.replace(/^(Hide|Show) /, '');
+    });
+  }
+  wireToggle('toggleSyllables', 'syllableDetail');
+  wireToggle('toggleIpa', 'ipaDetail');
+
+  // ---- CSV export / import ------------------------------------------------
+  document.getElementById('downloadCsv').addEventListener('click', () => {
+    const rows = PLACES.map(p => ({
+      name: p.name,
+      country: p.country,
+      origin: p.origin,
+      phonetic: p.phonetic,
+      ipa: p.ipa || ''
+    }));
+    const csv = Papa.unparse(rows);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "place-pronunciation.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  const uploadCsvBtn = document.getElementById('uploadCsvBtn');
+  const uploadCsvInput = document.getElementById('uploadCsvInput');
+  uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
+
+  uploadCsvInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const parsed = Papa.parse(ev.target.result, { header: true, skipEmptyLines: true });
+      const rows = rowsFromParsedCsv(parsed.data);
+      if (!rows.length){
+        alert("Couldn't find any usable rows — check the CSV has name, country, origin, and phonetic columns filled in.");
+        return;
+      }
+      PLACES.length = 0;
+      PLACES.push(...rows);
+      PLACES.sort((a, b) => a.name.localeCompare(b.name));
+      countryFilter = "All";
+      countrySelect.innerHTML = '';
+      populateSelectors();
+      isCustom = false;
+      current = PLACES[0];
+      customInput.value = '';
+      renderWord();
+    };
+    reader.readAsText(file);
+    uploadCsvInput.value = '';
+  });
+
+  // ---- View-only mode -----------------------------------------------------
+  // Appending ?view=1 to the URL hides the CSV controls, for sharing a
+  // clean read-only link alongside the full editor link (same file, no
+  // separate copy to keep in sync).
+  const isViewOnly = new URLSearchParams(window.location.search).has('view');
+  if (isViewOnly){
+    document.getElementById('dataSection').style.display = 'none';
+    document.getElementById('dataNote').style.display = 'none';
+  }
+
+  // ---- Init ---------------------------------------------------------
+  function startApp(){
+    populateSelectors();
+    renderWord();
+    needle.style.setProperty('--needle-angle', '-35deg');
+  }
+  loadInitialData();
+</script>
+
+</body>
+</html>
