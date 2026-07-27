@@ -1,0 +1,151 @@
+﻿section,minute,value,team,label,photo,key,keyvalue,role,number,club,age,
+meta,,,,,,home_name,Red Lion,,,,,
+meta,,,,,,home_color,#FF0000,,,,,
+meta,,,,,,away_name,White Lion,,,,,
+meta,,,,,,away_color,#FFFFFF,,,,,
+meta,,,,,,competition,St Stephen's Trophy,,,,,
+meta,,,,,,date,26th December 2025,,,,,
+meta,,,,,,venue,Coram's Fields,,,,,
+meta,,,,,,venue_lat,51.5247,,,,,
+meta,,,,,,venue_long,-0.1197,,,,,
+meta,,,,,,home_formation,4-2-3-1,,,,,
+meta,,,,,,away_formation,4-1-4-1,,,,,
+timeline,0,0,,,,,,,,,,
+timeline,1,-0.09,,,,,,,,,,
+timeline,2,-0.26,,,,,,,,,,
+timeline,3,-0.69,,,,,,,,,,
+timeline,4,0,,,,,,,,,,
+timeline,5,0.43,,,,,,,,,,
+timeline,6,0.33,,,,,,,,,,
+timeline,7,-0.19,,,,,,,,,,
+timeline,8,-0.81,,,,,,,,,,
+timeline,9,-0.85,,,,,,,,,,
+timeline,10,-0.3,,,,,,,,,,
+timeline,11,0.43,,,,,,,,,,
+timeline,12,0.98,,,,,,,,,,
+timeline,13,1,,,,,,,,,,
+timeline,14,0.87,,,,,,,,,,
+timeline,15,0.43,,,,,,,,,,
+timeline,16,0.27,,,,,,,,,,
+timeline,17,-0.4,,,,,,,,,,
+timeline,18,-0.7,,,,,,,,,,
+timeline,19,-0.6,,,,,,,,,,
+timeline,20,-0.45,,,,,,,,,,
+timeline,21,0.05,,,,,,,,,,
+timeline,22,0.24,,,,,,,,,,
+timeline,23,0.24,,,,,,,,,,
+timeline,24,0.19,,,,,,,,,,
+timeline,25,0,,,,,,,,,,
+timeline,26,-0.11,,,,,,,,,,
+timeline,27,-0.16,,,,,,,,,,
+timeline,28,-0.16,,,,,,,,,,
+timeline,29,0.6,,,,,,,,,,
+timeline,30,0.81,,,,,,,,,,
+timeline,31,0.5,,,,,,,,,,
+timeline,32,0.16,,,,,,,,,,
+timeline,33,-0.11,,,,,,,,,,
+timeline,34,-0.22,,,,,,,,,,
+timeline,35,0.14,,,,,,,,,,
+timeline,36,0.41,,,,,,,,,,
+timeline,37,0.35,,,,,,,,,,
+timeline,38,0.16,,,,,,,,,,
+timeline,39,-0.27,,,,,,,,,,
+timeline,40,-0.27,,,,,,,,,,
+timeline,41,-0.54,,,,,,,,,,
+timeline,42,-0.33,,,,,,,,,,
+timeline,43,-0.41,,,,,,,,,,
+timeline,44,-0.03,,,,,,,,,,
+timeline,45,-0.03,,,,,,,,,,
+timeline,46,-0.22,,,,,,,,,,
+timeline,47,-0.22,,,,,,,,,,
+timeline,48,0.27,,,,,,,,,,
+timeline,49,0.44,,,,,,,,,,
+timeline,50,0.89,,,,,,,,,,
+timeline,51,0.39,,,,,,,,,,
+timeline,52,-0.03,,,,,,,,,,
+timeline,53,-0.11,,,,,,,,,,
+timeline,54,0.33,,,,,,,,,,
+timeline,55,0.43,,,,,,,,,,
+timeline,56,0.43,,,,,,,,,,
+timeline,57,0,,,,,,,,,,
+timeline,58,0.05,,,,,,,,,,
+timeline,59,-0.54,,,,,,,,,,
+timeline,60,-0.54,,,,,,,,,,
+timeline,61,-0.33,,,,,,,,,,
+timeline,62,0,,,,,,,,,,
+timeline,63,-0.8,,,,,,,,,,
+timeline,64,-0.9,,,,,,,,,,
+timeline,65,-1,,,,,,,,,,
+timeline,66,0.7,,,,,,,,,,
+timeline,67,0.62,,,,,,,,,,
+timeline,68,0.98,,,,,,,,,,
+timeline,69,0.46,,,,,,,,,,
+timeline,70,0.46,,,,,,,,,,
+timeline,71,1,,,,,,,,,,
+timeline,72,0.6,,,,,,,,,,
+timeline,73,-0.16,,,,,,,,,,
+timeline,74,-0.22,,,,,,,,,,
+timeline,75,0.46,,,,,,,,,,
+timeline,76,0.84,,,,,,,,,,
+timeline,77,1,,,,,,,,,,
+timeline,78,0.76,,,,,,,,,,
+timeline,79,0.65,,,,,,,,,,
+timeline,80,-1,,,,,,,,,,
+timeline,81,0.33,,,,,,,,,,
+timeline,82,0.22,,,,,,,,,,
+timeline,83,1,,,,,,,,,,
+timeline,84,0.22,,,,,,,,,,
+timeline,85,0.03,,,,,,,,,,
+timeline,86,0.4,,,,,,,,,,
+timeline,87,0.9,,,,,,,,,,
+timeline,88,-0.2,,,,,,,,,,
+timeline,89,-0.05,,,,,,,,,,
+timeline,90,-0.05,,,,,,,,,,
+timeline,91,0.9,,,,,,,,,,
+timeline,92,0.85,,,,,,,,,,
+timeline,93,-0.35,,,,,,,,,,
+timeline,94,-0.5,,,,,,,,,,
+timeline,95,0,,,,,,,,,,
+,,,,,,,,,,,,
+event,3,,away,Owen Ellis · 3',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,,,,,
+event,9,,away,Dean Mitchell  · 9',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,,,,,
+event,13,,home,"Andy ""Erling"" Price ·13'",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,,,,,
+event,18,,away,"Harry ""Kylian"" Walsh ·18'",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,,,,,
+event,30,,home,Jack Doyle · 29',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,,,,,
+event,50,,home,Gary Wilkes · 53',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,,,,,
+event,65,,away,Luke Bailey · 59',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,,,,,
+event,71,,home,Mick Turner · 71',https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,,,,,
+event,80,,away,"Harry ""Kylian"" Walsh ·18'",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,,,,,
+event,87,,home,"Andy ""Erling"" Price ·13'",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,,,,,
+lineup,,,home,"Dave ""Safe Hands"" Carter (GK)",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,1,,49,Norwich City
+lineup,,,home,Liam Briggs (RB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,2,,33,Arsenal
+lineup,,,home,Ben Foster (LB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,3,,27,Milan
+lineup,,,home,Mick Turner (CB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,4,,52,Chelsea
+lineup,,,home,Steve Collins (CB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,5,,25,Brentford
+lineup,,,home,Gary Wilkes (DM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,6,,20,Manchester United
+lineup,,,home,Tom Henson (RM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,7,,24,Manchester City
+lineup,,,home,Jack Doyle (CM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,8,,22,Real Madrid
+lineup,,,home,Ryan Cooper (LM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,9,,21,Atletico Madrid
+lineup,,,home,Chris Mason (ST),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,10,,39,Brighton & Hove Albion
+lineup,,,home,"Andy ""Erling"" Price (ST)",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,starter,11,,27,Bayern München
+lineup,,,home,Joe Parker (GK),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,sub,12,,32,Aston Villa
+lineup,,,home,Matt Harris,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,sub,13,,23,Rennes
+lineup,,,home,Lewis Grant,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,sub,14,,29,West Ham United
+lineup,,,home,Dan Collins,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,sub,15,,27,Lens
+lineup,,,home,Sam Evans,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/c280da709f9b46fea94d4798b5aba89e/data,,,sub,16,,35,Leicester City
+lineup,,,away,"Pete ""The Cat"" Morgan (GK)",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,1,,46,Crystal Palace
+lineup,,,away,Nathan Reed (RB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,2,,30,Paris Saint-Germain
+lineup,,,away,Alex Brooks (LB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,3,,23,Barcelona
+lineup,,,away,Rob Bennett (CB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,4,,23,Everton
+lineup,,,away,Jamie Scott (CB),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,5,,26,Liverpool
+lineup,,,away,Carl Hughes (CM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,6,,27,Sunderland
+lineup,,,away,Luke Bailey (RW),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,7,,23,Newcastle
+lineup,,,away,Connor Shaw (CM),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,8,,32,Leeds
+lineup,,,away,Owen Ellis (LW),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,9,,34,Tottenham Hotspur
+lineup,,,away,Dean Mitchell (ST),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,10,,36,Dortmund
+lineup,,,away,"Harry ""Kylian"" Walsh ·18'",https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,starter,11,,25,Real Madrid
+lineup,,,away,Callum White (GK),https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,sub,12,,39,Roma
+lineup,,,away,Josh King,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,sub,13,,4,Benfica
+lineup,,,away,Ethan Moore,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,sub,14,,45,Marseille
+lineup,,,away,Ben Sutton,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,sub,15,,42,Fenerbahçe
+lineup,,,away,Kyle Robinson,https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/9d1c5f3de452442aa435ee131b73735a/data,,,sub,16,,53,Brondby
