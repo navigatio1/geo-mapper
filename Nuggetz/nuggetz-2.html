@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuggetz - Your Visual Bookmark Organizer</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIk51Z2dldHoiLCAic2hvcnRfbmFtZSI6ICJOdWdnZXR6IiwgImRlc2NyaXB0aW9uIjogIlZpc3VhbCBib29rbWFyayBvcmdhbml6ZXIgd2l0aCBoaWVyYXJjaGljYWwgZm9sZGVycyIsICJzdGFydF91cmwiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMGYwZiIsICJ0aGVtZV9jb2xvciI6ICIjZmY2YjM1IiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0Nzdmcgd2lkdGg9JzE5MicgaGVpZ2h0PScxOTInIHZpZXdCb3g9JzAgMCAxOTIgMTkyJyBmaWxsPSdub25lJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnJTNFJTNDcmVjdCB3aWR0aD0nMTkyJyBoZWlnaHQ9JzE5MicgZmlsbD0nJTIzMGYwZjBmJy8lM0UlM0NwYXRoIGQ9J005NiA0MEM2NS4wNzIgNDAgNDAgNjUuMDcyIDQwIDk2QzQwIDEyNi45MjggNjUuMDcyIDE1MiA5NiAxNTJDMTI2LjkyOCAxNTIgMTUyIDEyNi45MjggMTUyIDk2QzE1MiA2NS4wNzIgMTI2LjkyOCA0MCA5NiA0MFpNOTYgNjRDMTExLjQ2NCA2NCAxMjQgNzYuNTM2IDEyNCA5MkMxMjQgMTA3LjQ2NCAxMTEuNDY0IDEyMCA5NiAxMjBDODAuNTM2IDEyMCA2OCAxMDcuNDY0IDY4IDkyQzY4IDc2LjUzNiA4MC41MzYgNjQgOTYgNjRaJyBmaWxsPSclMjNmZjZiMzUnLyUzRSUzQy9zdmclM0UiLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwifV0sICJzaGFyZV90YXJnZXQiOiB7ImFjdGlvbiI6ICIuLyIsICJtZXRob2QiOiAiR0VUIiwgInBhcmFtcyI6IHsidGl0bGUiOiAidGl0bGUiLCAidGV4dCI6ICJ0ZXh0IiwgInVybCI6ICJ1cmwifX19">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --accent-primary: #ff6b35;
+            --accent-secondary: #ffa500;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #333333;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --gradient-accent: linear-gradient(135deg, #ff6b35 0%, #ffa500 100%);
+        }
+        
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        #root {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-primary);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .sync-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            flex-shrink: 0;
+        }
+
+        .sync-btn.sync-synced .sync-dot {
+            background: #3ecf6c;
+        }
+
+        .sync-btn.sync-syncing .sync-dot,
+        .sync-btn.sync-connecting .sync-dot {
+            background: var(--accent-secondary);
+            animation: pulse 1s infinite;
+        }
+
+        .sync-btn.sync-error .sync-dot,
+        .sync-btn.sync-signed-out .sync-dot {
+            background: #e05252;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sync-label {
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 900px) {
+            .sync-label { display: none; }
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-primary);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 0;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+            height: calc(100vh - 85px);
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
+        }
+        
+        .sidebar-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+        
+        .folder-tree {
+            list-style: none;
+        }
+        
+        .folder-item {
+            margin-bottom: 0.25rem;
+        }
+        
+        .folder-header {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 0.5rem;
+            user-select: none;
+        }
+        
+        .folder-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .folder-header.active {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        .folder-header.dragging {
+            opacity: 0.5;
+        }
+        
+        .folder-header.drag-over {
+            background: rgba(255, 107, 53, 0.2);
+            border: 2px dashed var(--accent-primary);
+        }
+        
+        .folder-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent-primary);
+        }
+        
+        .folder-expand {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+        
+        .folder-expand.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .folder-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .folder-count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .folder-children {
+            margin-left: 1.5rem;
+            margin-top: 0.25rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .folder-children.expanded {
+            max-height: 2000px;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            height: calc(100vh - 85px);
+        }
+        
+        .content-header {
+            margin-bottom: 2rem;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .breadcrumb-item {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .breadcrumb-item:hover {
+            color: var(--accent-primary);
+        }
+        
+        .breadcrumb-item.active {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .view-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 18px;
+            height: 18px;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.25rem;
+            border-radius: 8px;
+        }
+        
+        .view-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .view-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+
+        .content-area-tree {
+            overflow: hidden;
+            padding-bottom: 0;
+        }
+
+        .tree-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            min-height: 420px;
+            overflow: hidden;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            touch-action: none;
+            cursor: grab;
+        }
+
+        .tree-canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .tree-canvas-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+        }
+
+        .tree-canvas-controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 5;
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .tree-canvas-controls button {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .tree-canvas-controls button:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .tree-canvas-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.55);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        .tree-node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--border-color);
+            cursor: grab;
+            width: 160px;
+            user-select: none;
+            touch-action: none;
+            transition: box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
+            z-index: 2;
+        }
+
+        .tree-node span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.82rem;
+        }
+
+        .tree-node-folder {
+            border-color: var(--accent-primary);
+            color: var(--accent-secondary);
+            font-weight: 600;
+        }
+
+        .tree-node-folder.is-root {
+            background: var(--gradient-accent);
+            color: #1a1a1a;
+            border-color: transparent;
+        }
+
+        .tree-node-nugget img {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .tree-node-nugget-fallback {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .tree-node.dragging {
+            z-index: 10;
+            box-shadow: var(--shadow-lg);
+            cursor: grabbing;
+            opacity: 0.92;
+        }
+
+        .tree-node.drag-target {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.35);
+        }
+
+        .tree-node.dimmed {
+            opacity: 0.25;
+        }
+
+        .nuggets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .nugget-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: move;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .nugget-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+        
+        .nugget-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+        
+        .nugget-thumbnail {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 3rem;
+        }
+        
+        .nugget-content {
+            padding: 1rem;
+        }
+        
+        .nugget-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .nugget-url {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0.75rem;
+        }
+        
+        .nugget-url:hover {
+            color: var(--accent-primary);
+        }
+        
+        .nugget-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .nugget-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .nugget-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.2s;
+        }
+        
+        .nugget-action-btn:hover {
+            color: var(--accent-primary);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: modalSlideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .empty-state-text {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -300px;
+                top: 85px;
+                height: calc(100vh - 85px);
+                z-index: 999;
+                transition: left 0.3s ease-out;
+            }
+            
+            .sidebar.mobile-open {
+                left: 0;
+            }
+            
+            .nuggets-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                gap: 1rem;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        
+        // Utility functions for data persistence
+        const Storage = {
+            save: (key, data) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.error('Storage save error:', e);
+                }
+            },
+            load: (key, defaultValue = null) => {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch (e) {
+                    console.error('Storage load error:', e);
+                    return defaultValue;
+                }
+            }
+        };
+        
+        // ============================================================
+        // GOOGLE DRIVE SYNC CONFIGURATION
+        // Replace this with your own OAuth Client ID from Google Cloud
+        // Console (APIs & Services > Credentials > OAuth client ID >
+        // Web application). Add your deployed URL — e.g.
+        // https://nuggetz.navigatio.earth — to "Authorized JavaScript
+        // origins" on that client. See GOOGLE_DRIVE_SETUP_GUIDE.md.
+        // ============================================================
+        const GOOGLE_CLIENT_ID = 'REPLACE_WITH_YOUR_CLIENT_ID.apps.googleusercontent.com';
+        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+        const DRIVE_FILE_NAME = 'nuggetz-data.json';
+
+        // Talks to the user's own Google Drive appDataFolder — a hidden,
+        // per-app storage space. Nobody but this app (signed in as this
+        // user) can see or read it; it doesn't show up in the user's
+        // normal Drive file list. No server of ours is involved at all.
+        const DriveSync = {
+            tokenClient: null,
+            accessToken: null,
+            fileId: null,
+
+            init(onToken) {
+                if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+                    return false;
+                }
+                this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: DRIVE_SCOPE,
+                    callback: (resp) => {
+                        if (resp && resp.access_token) {
+                            this.accessToken = resp.access_token;
+                            onToken();
+                        }
+                    },
+                    error_callback: () => {
+                        // Silent reconnect attempts fail quietly (e.g. no
+                        // active Google session); the user can click the
+                        // sync button to reconnect explicitly.
+                    }
+                });
+                return true;
+            },
+
+            signIn(silent) {
+                if (!this.tokenClient) return;
+                this.tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
+            },
+
+            signOut() {
+                if (this.accessToken && window.google?.accounts?.oauth2?.revoke) {
+                    window.google.accounts.oauth2.revoke(this.accessToken, () => {});
+                }
+                this.accessToken = null;
+                this.fileId = null;
+            },
+
+            async findFile() {
+                const res = await fetch(
+                    `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27${DRIVE_FILE_NAME}%27&fields=files(id,modifiedTime)`,
+                    { headers: { Authorization: `Bearer ${this.accessToken}` } }
+                );
+                if (!res.ok) throw new Error('Drive lookup failed: ' + res.status);
+                const data = await res.json();
+                return (data.files && data.files[0]) || null;
+            },
+
+            async downloadFile(fileId) {
+                const res = await fetch(
+                    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+                    { headers: { Authorization: `Bearer ${this.accessToken}` } }
+                );
+                if (!res.ok) throw new Error('Drive download failed: ' + res.status);
+                return res.json();
+            },
+
+            async createFile(data) {
+                const metadata = { name: DRIVE_FILE_NAME, parents: ['appDataFolder'] };
+                const boundary = 'nuggetz-boundary-' + Date.now();
+                const body =
+                    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+                    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(data)}\r\n` +
+                    `--${boundary}--`;
+                const res = await fetch(
+                    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+                    {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${this.accessToken}`,
+                            'Content-Type': `multipart/related; boundary=${boundary}`
+                        },
+                        body
+                    }
+                );
+                if (!res.ok) throw new Error('Drive create failed: ' + res.status);
+                const json = await res.json();
+                this.fileId = json.id;
+                return json.id;
+            },
+
+            async updateFile(fileId, data) {
+                const res = await fetch(
+                    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            Authorization: `Bearer ${this.accessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    }
+                );
+                if (!res.ok) throw new Error('Drive update failed: ' + res.status);
+                return res.json();
+            },
+
+            async save(data) {
+                if (!this.accessToken) return;
+                if (!this.fileId) {
+                    const existing = await this.findFile();
+                    if (existing) {
+                        this.fileId = existing.id;
+                    } else {
+                        await this.createFile(data);
+                        return;
+                    }
+                }
+                await this.updateFile(this.fileId, data);
+            },
+
+            async load() {
+                if (!this.accessToken) return null;
+                const existing = await this.findFile();
+                if (!existing) return null;
+                this.fileId = existing.id;
+                return this.downloadFile(existing.id);
+            }
+        };
+
+        // RDF Export/Import utilities
+        const RDFUtil = {
+            exportToRDF: (folders, nuggets) => {
+                let rdf = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+         xmlns:bookmark="http://www.w3.org/2002/01/bookmark#">
+`;
+                
+                const processFolders = (folderList, parentId = null) => {
+                    folderList.forEach(folder => {
+                        if (folder.parentId === parentId) {
+                            rdf += `  <bookmark:Folder rdf:about="#folder-${folder.id}">
+    <dc:title>${escapeXml(folder.name)}</dc:title>
+    <dc:identifier>${folder.id}</dc:identifier>
+`;
+                            if (parentId) {
+                                rdf += `    <bookmark:parentFolder rdf:resource="#folder-${parentId}"/>\n`;
+                            }
+                            
+                            const folderNuggets = nuggets.filter(n => n.folderId === folder.id);
+                            folderNuggets.forEach(nugget => {
+                                rdf += `    <bookmark:hasBookmark rdf:resource="#bookmark-${nugget.id}"/>\n`;
+                            });
+                            
+                            rdf += `  </bookmark:Folder>\n`;
+                            
+                            processFolders(folderList, folder.id);
+                        }
+                    });
+                };
+                
+                processFolders(folders);
+                
+                nuggets.forEach(nugget => {
+                    rdf += `  <bookmark:Bookmark rdf:about="#bookmark-${nugget.id}">
+    <dc:title>${escapeXml(nugget.title)}</dc:title>
+    <bookmark:recalls>${escapeXml(nugget.url)}</bookmark:recalls>
+    <dc:description>${escapeXml(nugget.description || '')}</dc:description>
+    <dc:identifier>${nugget.id}</dc:identifier>
+    <dc:date>${nugget.created}</dc:date>
+`;
+                    if (nugget.thumbnail) {
+                        rdf += `    <bookmark:thumbnail>${escapeXml(nugget.thumbnail)}</bookmark:thumbnail>\n`;
+                    }
+                    rdf += `  </bookmark:Bookmark>\n`;
+                });
+                
+                rdf += `</rdf:RDF>`;
+                return rdf;
+            },
+            
+            importFromRDF: (rdfContent) => {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(rdfContent, 'text/xml');
+                
+                const folders = [];
+                const nuggets = [];
+                
+                const folderElements = xmlDoc.getElementsByTagName('bookmark:Folder');
+                Array.from(folderElements).forEach(folderEl => {
+                    const id = folderEl.querySelector('dc\\:identifier, identifier')?.textContent;
+                    const name = folderEl.querySelector('dc\\:title, title')?.textContent;
+                    const parentEl = folderEl.querySelector('bookmark\\:parentFolder, parentFolder');
+                    const parentId = parentEl ? parentEl.getAttribute('rdf:resource')?.replace('#folder-', '') : null;
+                    
+                    if (id && name) {
+                        folders.push({ id, name, parentId, children: [] });
+                    }
+                });
+                
+                const bookmarkElements = xmlDoc.getElementsByTagName('bookmark:Bookmark');
+                Array.from(bookmarkElements).forEach(bookmarkEl => {
+                    const id = bookmarkEl.querySelector('dc\\:identifier, identifier')?.textContent;
+                    const title = bookmarkEl.querySelector('dc\\:title, title')?.textContent;
+                    const url = bookmarkEl.querySelector('bookmark\\:recalls, recalls')?.textContent;
+                    const description = bookmarkEl.querySelector('dc\\:description, description')?.textContent || '';
+                    const thumbnail = bookmarkEl.querySelector('bookmark\\:thumbnail, thumbnail')?.textContent || null;
+                    const created = bookmarkEl.querySelector('dc\\:date, date')?.textContent || new Date().toISOString();
+                    
+                    if (id && title && url) {
+                        nuggets.push({ id, title, url, description, thumbnail, created, folderId: null });
+                    }
+                });
+                
+                const aboutToId = (about) => about?.replace('#folder-', '').replace('#bookmark-', '');
+                
+                Array.from(folderElements).forEach((folderEl, idx) => {
+                    const hasBookmarks = folderEl.querySelectorAll('bookmark\\:hasBookmark, hasBookmark');
+                    Array.from(hasBookmarks).forEach(bookmark => {
+                        const bookmarkId = aboutToId(bookmark.getAttribute('rdf:resource'));
+                        const nugget = nuggets.find(n => n.id === bookmarkId);
+                        if (nugget) {
+                            nugget.folderId = folders[idx].id;
+                        }
+                    });
+                });
+                
+                return { folders, nuggets };
+            }
+        };
+        
+        // Prevents nesting a folder inside its own descendant
+        const isDescendantFolder = (folders, folderId, potentialDescendantId) => {
+            let current = folders.find(f => f.id === potentialDescendantId);
+            while (current) {
+                if (current.parentId === folderId) return true;
+                current = folders.find(f => f.id === current.parentId);
+            }
+            return false;
+        };
+
+        // Auto-layout for the Tree (canvas) view: positions every folder/nugget
+        // beneath rootId as a horizontal tree, spacing leaves vertically.
+        const computeTreeLayout = (rootId, folders, nuggets) => {
+            const positions = {};
+            const NODE_H = 64;
+            const LEVEL_W = 200;
+            let cursorY = 0;
+
+            const walk = (id, depth) => {
+                const childFolders = folders.filter(f => f.parentId === id);
+                const childNuggets = nuggets.filter(n => n.folderId === id);
+                const kids = [
+                    ...childFolders.map(f => ({ id: f.id, isFolder: true })),
+                    ...childNuggets.map(n => ({ id: n.id, isFolder: false }))
+                ];
+
+                if (kids.length === 0) {
+                    const y = cursorY;
+                    cursorY += NODE_H;
+                    positions[id] = { x: depth * LEVEL_W, y };
+                    return y;
+                }
+
+                const childYs = kids.map(k => walk(k.id, depth + 1));
+                const y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+                positions[id] = { x: depth * LEVEL_W, y };
+                return y;
+            };
+
+            walk(rootId, 0);
+            return positions;
+        };
+
+        const escapeXml = (str) => {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        };
+
+        // Pulls the first http(s) URL out of shared text (used by the
+        // Web Share Target handler, since apps like X/LinkedIn often
+        // share a "text" blob with the link embedded rather than a
+        // separate "url" param).
+        const extractUrlFromText = (text) => {
+            if (!text) return '';
+            const match = text.match(/https?:\/\/\S+/);
+            return match ? match[0] : '';
+        };
+        
+        // SVG Icons
+        const Icons = {
+            Folder: () => (
+                <svg className="folder-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+            ),
+            ChevronRight: ({ className }) => (
+                <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+            ),
+            Plus: () => (
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+            ),
+            Search: () => (
+                <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            ),
+            Edit: () => (
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+            ),
+            Trash: () => (
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            ),
+            Download: () => (
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+            ),
+            Upload: () => (
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+            ),
+            Cloud: () => (
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h10a3 3 0 000-6 5 5 0 00-9.6-1.5A4 4 0 003 15z" />
+                </svg>
+            ),
+            Globe: () => (
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            )
+        };
+        
+        // Main App Component
+        function NuggetzApp() {
+            const [folders, setFolders] = useState(() => 
+                Storage.load('nuggetz_folders', [{ id: 'root', name: 'All Nuggetz', parentId: null, children: [] }])
+            );
+            const [nuggets, setNuggets] = useState(() => Storage.load('nuggetz_nuggets', []));
+            const [currentFolder, setCurrentFolder] = useState('root');
+            const [expandedFolders, setExpandedFolders] = useState(['root']);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [viewMode, setViewMode] = useState('grid');
+            const [showAddNugget, setShowAddNugget] = useState(false);
+            const [showAddFolder, setShowAddFolder] = useState(false);
+            const [editingNugget, setEditingNugget] = useState(null);
+            const [draggedNugget, setDraggedNugget] = useState(null);
+            const [draggedFolder, setDraggedFolder] = useState(null);
+            const [dragOverFolder, setDragOverFolder] = useState(null);
+            const [nodePositions, setNodePositions] = useState(() => Storage.load('nuggetz_positions', {}));
+            const [shareDraft, setShareDraft] = useState(null);
+            
+            // Handles an incoming Web Share Target request: when another
+            // app (browser, X, LinkedIn, Facebook...) shares a URL to
+            // Nuggetz, Chrome/Edge reload this page with ?title=&text=&url=
+            // attached. Pick that up once, prefill the Add Nugget modal,
+            // then strip the query string so a refresh doesn't repeat it.
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('url') || params.has('text') || params.has('title')) {
+                    const sharedUrl = params.get('url') || extractUrlFromText(params.get('text')) || '';
+                    const sharedTitle = params.get('title') || '';
+                    const sharedText = params.get('text') || '';
+                    setShareDraft({
+                        url: sharedUrl,
+                        title: sharedTitle,
+                        description: sharedUrl && sharedText !== sharedUrl ? sharedText : ''
+                    });
+                    setShowAddNugget(true);
+                    window.history.replaceState(null, '', window.location.pathname);
+                }
+            }, []);
+            
+            useEffect(() => {
+                Storage.save('nuggetz_folders', folders);
+            }, [folders]);
+            
+            useEffect(() => {
+                Storage.save('nuggetz_nuggets', nuggets);
+            }, [nuggets]);
+            
+            useEffect(() => {
+                Storage.save('nuggetz_positions', nodePositions);
+            }, [nodePositions]);
+            
+            // --- Google Drive sync ---
+            const [syncEnabled, setSyncEnabled] = useState(() => Storage.load('nuggetz_sync_enabled', false));
+            const [syncStatus, setSyncStatus] = useState('idle'); // idle | signed-out | connecting | syncing | synced | error
+            const foldersRef = useRef(folders);
+            const nuggetsRef = useRef(nuggets);
+            const positionsRef = useRef(nodePositions);
+            const syncTimeoutRef = useRef(null);
+            
+            useEffect(() => { foldersRef.current = folders; }, [folders]);
+            useEffect(() => { nuggetsRef.current = nuggets; }, [nuggets]);
+            useEffect(() => { positionsRef.current = nodePositions; }, [nodePositions]);
+            
+            // Runs once a Drive access token is granted: compares what's
+            // already in the user's Drive against what's on this device
+            // and lets them choose which copy wins, then turns sync on.
+            const handleTokenReceived = async () => {
+                setSyncStatus('syncing');
+                try {
+                    const remote = await DriveSync.load();
+                    const remoteHasData = remote && (
+                        (remote.nuggets && remote.nuggets.length) ||
+                        (remote.folders && remote.folders.length > 1)
+                    );
+                    if (remoteHasData) {
+                        const useRemote = window.confirm(
+                            "Found existing Nuggetz data in Google Drive.\n\n" +
+                            "OK = Load it (replaces what's on this device)\n" +
+                            "Cancel = Keep this device's data (uploads it, replacing the cloud copy)"
+                        );
+                        if (useRemote) {
+                            setFolders(remote.folders || [{ id: 'root', name: 'All Nuggetz', parentId: null, children: [] }]);
+                            setNuggets(remote.nuggets || []);
+                            setNodePositions(remote.nodePositions || {});
+                        } else {
+                            await DriveSync.save({
+                                folders: foldersRef.current,
+                                nuggets: nuggetsRef.current,
+                                nodePositions: positionsRef.current
+                            });
+                        }
+                    } else {
+                        await DriveSync.save({
+                            folders: foldersRef.current,
+                            nuggets: nuggetsRef.current,
+                            nodePositions: positionsRef.current
+                        });
+                    }
+                    setSyncEnabled(true);
+                    Storage.save('nuggetz_sync_enabled', true);
+                    setSyncStatus('synced');
+                } catch (e) {
+                    console.error('Drive sync error:', e);
+                    setSyncStatus('error');
+                }
+            };
+            
+            // Waits for the Google Identity Services script to finish
+            // loading (it's async/defer), then wires up the token client.
+            // If sync was previously enabled on this device, tries a
+            // silent reconnect so the user isn't re-prompted every visit.
+            useEffect(() => {
+                let attempts = 0;
+                let cancelled = false;
+                const tryInit = () => {
+                    if (cancelled) return;
+                    attempts++;
+                    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+                        DriveSync.init(handleTokenReceived);
+                        if (syncEnabled) {
+                            setSyncStatus('signed-out');
+                            DriveSync.signIn(true);
+                        }
+                    } else if (attempts < 25) {
+                        setTimeout(tryInit, 300);
+                    }
+                };
+                tryInit();
+                return () => { cancelled = true; };
+            }, []);
+            
+            // Debounced auto-push: whenever data changes while sync is on
+            // and we still hold a valid token, push the latest snapshot.
+            useEffect(() => {
+                if (!syncEnabled || !DriveSync.accessToken) return;
+                if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+                syncTimeoutRef.current = setTimeout(async () => {
+                    setSyncStatus('syncing');
+                    try {
+                        await DriveSync.save({ folders, nuggets, nodePositions });
+                        setSyncStatus('synced');
+                    } catch (e) {
+                        console.error('Drive sync error:', e);
+                        setSyncStatus('error');
+                    }
+                }, 1500);
+                return () => clearTimeout(syncTimeoutRef.current);
+            }, [folders, nuggets, nodePositions, syncEnabled]);
+            
+            const handleSyncButtonClick = () => {
+                if (GOOGLE_CLIENT_ID.startsWith('REPLACE_WITH')) {
+                    alert('Google Drive sync needs a one-time setup step first — see GOOGLE_DRIVE_SETUP_GUIDE.md for how to get a free Client ID from Google Cloud Console.');
+                    return;
+                }
+                if (!syncEnabled) {
+                    setSyncStatus('connecting');
+                    DriveSync.signIn(false);
+                } else if (syncStatus === 'signed-out' || syncStatus === 'error') {
+                    setSyncStatus('connecting');
+                    DriveSync.signIn(false);
+                } else {
+                    const disconnect = window.confirm(
+                        'Google Drive sync is connected.\n\nOK = Disconnect\nCancel = Sync now'
+                    );
+                    if (disconnect) {
+                        DriveSync.signOut();
+                        setSyncEnabled(false);
+                        Storage.save('nuggetz_sync_enabled', false);
+                        setSyncStatus('idle');
+                    } else {
+                        (async () => {
+                            setSyncStatus('syncing');
+                            try {
+                                await DriveSync.save({ folders, nuggets, nodePositions });
+                                setSyncStatus('synced');
+                            } catch (e) {
+                                console.error('Drive sync error:', e);
+                                setSyncStatus('error');
+                            }
+                        })();
+                    }
+                }
+            };
+            
+            const syncButtonLabel = () => {
+                if (!syncEnabled) return 'Connect Drive';
+                switch (syncStatus) {
+                    case 'syncing': return 'Syncing…';
+                    case 'signed-out': return 'Reconnect';
+                    case 'error': return 'Sync error';
+                    default: return 'Synced';
+                }
+            };
+            
+            const addFolder = (name, parentId = 'root') => {
+                const newFolder = {
+                    id: Date.now().toString(),
+                    name,
+                    parentId,
+                    children: []
+                };
+                setFolders([...folders, newFolder]);
+                setExpandedFolders([...expandedFolders, parentId]);
+            };
+            
+            const addNugget = (nuggetData) => {
+                const newNugget = {
+                    id: Date.now().toString(),
+                    ...nuggetData,
+                    folderId: currentFolder,
+                    created: new Date().toISOString()
+                };
+                setNuggets([...nuggets, newNugget]);
+            };
+            
+            const updateNugget = (id, updates) => {
+                setNuggets(nuggets.map(n => n.id === id ? { ...n, ...updates } : n));
+            };
+            
+            const deleteNugget = (id) => {
+                setNuggets(nuggets.filter(n => n.id !== id));
+            };
+            
+            const deleteFolder = (id) => {
+                const deleteRecursive = (folderId) => {
+                    const childFolders = folders.filter(f => f.parentId === folderId);
+                    childFolders.forEach(cf => deleteRecursive(cf.id));
+                    setNuggets(nuggets.filter(n => n.folderId !== folderId));
+                };
+                
+                deleteRecursive(id);
+                setFolders(folders.filter(f => f.id !== id));
+                if (currentFolder === id) {
+                    setCurrentFolder('root');
+                }
+            };
+            
+            const toggleFolder = (id) => {
+                setExpandedFolders(
+                    expandedFolders.includes(id)
+                        ? expandedFolders.filter(fid => fid !== id)
+                        : [...expandedFolders, id]
+                );
+            };
+            
+            const getFolderNuggets = (folderId) => {
+                if (folderId === 'root') {
+                    return nuggets;
+                }
+                return nuggets.filter(n => n.folderId === folderId);
+            };
+            
+            const getFilteredNuggets = () => {
+                const folderNuggets = getFolderNuggets(currentFolder);
+                if (!searchQuery) return folderNuggets;
+                
+                return folderNuggets.filter(n =>
+                    n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    n.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    n.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            };
+            
+            const handleNuggetDragStart = (nugget) => {
+                setDraggedNugget(nugget);
+            };
+            
+            const handleNuggetDragEnd = () => {
+                setDraggedNugget(null);
+                setDragOverFolder(null);
+            };
+            
+            const handleFolderDragOver = (e, folderId) => {
+                e.preventDefault();
+                setDragOverFolder(folderId);
+            };
+            
+            const handleFolderDrop = (e, folderId) => {
+                e.preventDefault();
+                if (draggedNugget) {
+                    updateNugget(draggedNugget.id, { folderId });
+                } else if (draggedFolder && draggedFolder.id !== folderId) {
+                    setFolders(folders.map(f =>
+                        f.id === draggedFolder.id ? { ...f, parentId: folderId } : f
+                    ));
+                }
+                setDraggedNugget(null);
+                setDraggedFolder(null);
+                setDragOverFolder(null);
+            };
+            
+            // --- Tree (canvas) view handlers ---
+            
+            const moveNodePosition = (id, x, y) => {
+                setNodePositions(prev => ({ ...prev, [id]: { x, y } }));
+            };
+            
+            const clearNodePosition = (id) => {
+                setNodePositions(prev => {
+                    if (!(id in prev)) return prev;
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+                });
+            };
+            
+            const renameFolder = (id, name) => {
+                setFolders(folders.map(f => f.id === id ? { ...f, name } : f));
+            };
+            
+            // Dragging one nugget onto another creates a brand-new tree
+            // (folder) containing both, mirroring Pearltrees-style nesting.
+            const nestNuggets = (draggedId, targetId) => {
+                if (draggedId === targetId) return;
+                const targetNugget = nuggets.find(n => n.id === targetId);
+                if (!targetNugget) return;
+                const parentId = targetNugget.folderId || 'root';
+                const newFolder = { id: 'f' + Date.now().toString(), name: 'New Tree', parentId, children: [] };
+                setFolders(prev => [...prev, newFolder]);
+                setNuggets(prev => prev.map(n =>
+                    (n.id === draggedId || n.id === targetId) ? { ...n, folderId: newFolder.id } : n
+                ));
+                setExpandedFolders(prev => [...new Set([...prev, parentId, newFolder.id])]);
+                clearNodePosition(draggedId);
+                clearNodePosition(targetId);
+            };
+            
+            const moveNuggetIntoFolder = (nuggetId, folderId) => {
+                updateNugget(nuggetId, { folderId });
+                clearNodePosition(nuggetId);
+            };
+            
+            const nestFolderInFolder = (folderId, targetFolderId) => {
+                if (folderId === targetFolderId) return;
+                if (isDescendantFolder(folders, folderId, targetFolderId)) return;
+                setFolders(folders.map(f => f.id === folderId ? { ...f, parentId: targetFolderId } : f));
+                clearNodePosition(folderId);
+            };
+            
+            const exportData = () => {
+                const rdfContent = RDFUtil.exportToRDF(folders, nuggets);
+                const blob = new Blob([rdfContent], { type: 'application/rdf+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `nuggetz-export-${new Date().toISOString().split('T')[0]}.rdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+            
+            const importData = () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.rdf,.xml';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const { folders: importedFolders, nuggets: importedNuggets } = 
+                                    RDFUtil.importFromRDF(event.target.result);
+                                setFolders([...folders, ...importedFolders]);
+                                setNuggets([...nuggets, ...importedNuggets]);
+                                alert('Import successful!');
+                            } catch (error) {
+                                alert('Import failed: ' + error.message);
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+            };
+            
+            const getBreadcrumb = () => {
+                const path = [];
+                let current = folders.find(f => f.id === currentFolder);
+                
+                while (current) {
+                    path.unshift(current);
+                    current = folders.find(f => f.id === current.parentId);
+                }
+                
+                return path;
+            };
+            
+            return (
+                <>
+                    <header className="app-header">
+                        <div className="header-content">
+                            <div className="logo">Nuggetz</div>
+                            <div className="header-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowAddFolder(true)}>
+                                    <Icons.Plus /> New Folder
+                                </button>
+                                <button className="btn btn-primary" onClick={() => setShowAddNugget(true)}>
+                                    <Icons.Plus /> Add Nugget
+                                </button>
+                                <button className="btn btn-secondary" onClick={exportData}>
+                                    <Icons.Download />
+                                </button>
+                                <button className="btn btn-secondary" onClick={importData}>
+                                    <Icons.Upload />
+                                </button>
+                                <button
+                                    className={`btn btn-secondary sync-btn sync-${syncEnabled ? syncStatus : 'idle'}`}
+                                    onClick={handleSyncButtonClick}
+                                    title={syncEnabled ? 'Google Drive sync — click for options' : 'Connect Google Drive to sync across devices'}
+                                >
+                                    <Icons.Cloud />
+                                    <span className="sync-dot" />
+                                    <span className="sync-label">{syncButtonLabel()}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <div className="main-container">
+                        <aside className="sidebar">
+                            <div className="sidebar-header">
+                                <div className="sidebar-title">Folders</div>
+                            </div>
+                            <FolderTree
+                                folders={folders}
+                                expandedFolders={expandedFolders}
+                                currentFolder={currentFolder}
+                                nuggets={nuggets}
+                                onToggle={toggleFolder}
+                                onSelect={setCurrentFolder}
+                                onDelete={deleteFolder}
+                                dragOverFolder={dragOverFolder}
+                                onDragOver={handleFolderDragOver}
+                                onDrop={handleFolderDrop}
+                                onFolderDragStart={setDraggedFolder}
+                                onFolderDragEnd={() => setDraggedFolder(null)}
+                            />
+                        </aside>
+                        
+                        <main className={`content-area ${viewMode === 'tree' ? 'content-area-tree' : ''}`}>
+                            <div className="content-header">
+                                <div className="breadcrumb">
+                                    {getBreadcrumb().map((folder, idx, arr) => (
+                                        <React.Fragment key={folder.id}>
+                                            <span
+                                                className={`breadcrumb-item ${idx === arr.length - 1 ? 'active' : ''}`}
+                                                onClick={() => setCurrentFolder(folder.id)}
+                                            >
+                                                {folder.name}
+                                            </span>
+                                            {idx < arr.length - 1 && <span className="breadcrumb-item">/</span>}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="view-controls">
+                                <div className="search-box">
+                                    <Icons.Search />
+                                    <input
+                                        type="text"
+                                        className="search-input"
+                                        placeholder="Search nuggetz..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                                <div className="view-toggle">
+                                    <button
+                                        className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('grid')}
+                                    >
+                                        Grid
+                                    </button>
+                                    <button
+                                        className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('list')}
+                                    >
+                                        List
+                                    </button>
+                                    <button
+                                        className={`view-btn ${viewMode === 'tree' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('tree')}
+                                    >
+                                        Tree
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {viewMode === 'tree' ? (
+                                <TreeCanvas
+                                    rootFolderId={currentFolder}
+                                    folders={folders}
+                                    nuggets={nuggets}
+                                    nodePositions={nodePositions}
+                                    searchQuery={searchQuery}
+                                    onNavigateFolder={setCurrentFolder}
+                                    onRenameFolder={renameFolder}
+                                    onEditNugget={setEditingNugget}
+                                    onMoveNode={moveNodePosition}
+                                    onNestNuggets={nestNuggets}
+                                    onMoveNuggetToFolder={moveNuggetIntoFolder}
+                                    onNestFolder={nestFolderInFolder}
+                                />
+                            ) : (
+                                <NuggetGrid
+                                    nuggets={getFilteredNuggets()}
+                                    onEdit={setEditingNugget}
+                                    onDelete={deleteNugget}
+                                    onDragStart={handleNuggetDragStart}
+                                    onDragEnd={handleNuggetDragEnd}
+                                />
+                            )}
+                        </main>
+                    </div>
+                    
+                    {showAddNugget && (
+                        <NuggetModal
+                            initialData={shareDraft}
+                            onClose={() => { setShowAddNugget(false); setShareDraft(null); }}
+                            onSave={(data) => {
+                                addNugget(data);
+                                setShowAddNugget(false);
+                                setShareDraft(null);
+                            }}
+                        />
+                    )}
+                    
+                    {showAddFolder && (
+                        <FolderModal
+                            onClose={() => setShowAddFolder(false)}
+                            onSave={(name) => {
+                                addFolder(name, currentFolder);
+                                setShowAddFolder(false);
+                            }}
+                        />
+                    )}
+                    
+                    {editingNugget && (
+                        <NuggetModal
+                            nugget={editingNugget}
+                            onClose={() => setEditingNugget(null)}
+                            onSave={(data) => {
+                                updateNugget(editingNugget.id, data);
+                                setEditingNugget(null);
+                            }}
+                        />
+                    )}
+                </>
+            );
+        }
+        
+        function FolderTree({ folders, expandedFolders, currentFolder, nuggets, onToggle, onSelect, onDelete, dragOverFolder, onDragOver, onDrop, onFolderDragStart, onFolderDragEnd }) {
+            const renderFolder = (folder, level = 0) => {
+                const children = folders.filter(f => f.parentId === folder.id);
+                const isExpanded = expandedFolders.includes(folder.id);
+                const folderNuggets = nuggets.filter(n => n.folderId === folder.id);
+                const isDragOver = dragOverFolder === folder.id;
+                
+                return (
+                    <li key={folder.id} className="folder-item">
+                        <div
+                            className={`folder-header ${currentFolder === folder.id ? 'active' : ''} ${isDragOver ? 'drag-over' : ''}`}
+                            onClick={() => onSelect(folder.id)}
+                            draggable={folder.id !== 'root'}
+                            onDragStart={() => folder.id !== 'root' && onFolderDragStart(folder)}
+                            onDragEnd={onFolderDragEnd}
+                            onDragOver={(e) => onDragOver(e, folder.id)}
+                            onDrop={(e) => onDrop(e, folder.id)}
+                        >
+                            {children.length > 0 && (
+                                <Icons.ChevronRight
+                                    className={`folder-expand ${isExpanded ? 'expanded' : ''}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onToggle(folder.id);
+                                    }}
+                                />
+                            )}
+                            <Icons.Folder />
+                            <span className="folder-name">{folder.name}</span>
+                            <span className="folder-count">{folderNuggets.length}</span>
+                            {folder.id !== 'root' && (
+                                <button
+                                    className="icon-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm(`Delete "${folder.name}" and all its contents?`)) {
+                                            onDelete(folder.id);
+                                        }
+                                    }}
+                                >
+                                    <Icons.Trash />
+                                </button>
+                            )}
+                        </div>
+                        {children.length > 0 && (
+                            <ul className={`folder-children ${isExpanded ? 'expanded' : ''}`}>
+                                {children.map(child => renderFolder(child, level + 1))}
+                            </ul>
+                        )}
+                    </li>
+                );
+            };
+            
+            return (
+                <ul className="folder-tree">
+                    {folders.filter(f => f.parentId === null).map(folder => renderFolder(folder))}
+                </ul>
+            );
+        }
+        
+        function NuggetGrid({ nuggets, onEdit, onDelete, onDragStart, onDragEnd }) {
+            if (nuggets.length === 0) {
+                return (
+                    <div className="empty-state">
+                        <div className="empty-state-icon"><Icons.Globe /></div>
+                        <div className="empty-state-title">No Nuggetz Yet</div>
+                        <div className="empty-state-text">
+                            Start collecting your favorite URLs and organize them into folders
+                        </div>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="nuggets-grid">
+                    {nuggets.map(nugget => (
+                        <NuggetCard
+                            key={nugget.id}
+                            nugget={nugget}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onDragStart={onDragStart}
+                            onDragEnd={onDragEnd}
+                        />
+                    ))}
+                </div>
+            );
+        }
+        
+        function NuggetCard({ nugget, onEdit, onDelete, onDragStart, onDragEnd }) {
+            const [isDragging, setIsDragging] = useState(false);
+            
+            const handleDragStart = (e) => {
+                setIsDragging(true);
+                onDragStart(nugget);
+            };
+            
+            const handleDragEnd = (e) => {
+                setIsDragging(false);
+                onDragEnd();
+            };
+            
+            return (
+                <div
+                    className={`nugget-card ${isDragging ? 'dragging' : ''}`}
+                    draggable
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                >
+                    <div className="nugget-thumbnail">
+                        {nugget.thumbnail ? (
+                            <img src={nugget.thumbnail} alt={nugget.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <Icons.Globe />
+                        )}
+                    </div>
+                    <div className="nugget-content">
+                        <div className="nugget-title">{nugget.title}</div>
+                        <a href={nugget.url} target="_blank" rel="noopener noreferrer" className="nugget-url">
+                            {new URL(nugget.url).hostname}
+                        </a>
+                        <div className="nugget-meta">
+                            <span>{new Date(nugget.created).toLocaleDateString()}</span>
+                            <div className="nugget-actions">
+                                <button className="nugget-action-btn" onClick={() => onEdit(nugget)}>
+                                    <Icons.Edit />
+                                </button>
+                                <button
+                                    className="nugget-action-btn"
+                                    onClick={() => {
+                                        if (confirm('Delete this nugget?')) {
+                                            onDelete(nugget.id);
+                                        }
+                                    }}
+                                >
+                                    <Icons.Trash />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        function TreeCanvas({
+            rootFolderId, folders, nuggets, nodePositions, searchQuery,
+            onNavigateFolder, onRenameFolder, onEditNugget,
+            onMoveNode, onNestNuggets, onMoveNuggetToFolder, onNestFolder
+        }) {
+            const containerRef = useRef(null);
+            const dragMovedRef = useRef(false);
+            const [pan, setPan] = useState({ x: 90, y: 70 });
+            const [zoom, setZoom] = useState(1);
+            const [dragState, setDragState] = useState(null); // { id, type, x, y, overTarget }
+
+            const layout = useMemo(
+                () => computeTreeLayout(rootFolderId, folders, nuggets),
+                [rootFolderId, folders, nuggets]
+            );
+
+            const nodesList = useMemo(() => {
+                const list = [];
+                const addSubtree = (id, depth) => {
+                    const folder = folders.find(f => f.id === id);
+                    if (!folder) return;
+                    list.push({ id, type: 'folder', parentId: depth === 0 ? null : folder.parentId });
+                    folders.filter(f => f.parentId === id).forEach(f => addSubtree(f.id, depth + 1));
+                    nuggets.filter(n => n.folderId === id).forEach(n =>
+                        list.push({ id: n.id, type: 'nugget', parentId: id })
+                    );
+                };
+                addSubtree(rootFolderId, 0);
+                return list;
+            }, [rootFolderId, folders, nuggets]);
+
+            const getPos = (id) => nodePositions[id] || layout[id] || { x: 0, y: 0 };
+            const NODE_W = 160, NODE_H_BOX = 46;
+
+            const toWorld = (clientX, clientY) => {
+                const rect = containerRef.current.getBoundingClientRect();
+                return {
+                    x: (clientX - rect.left - pan.x) / zoom,
+                    y: (clientY - rect.top - pan.y) / zoom
+                };
+            };
+
+            const hitTest = (worldX, worldY, excludeId) => {
+                for (const n of nodesList) {
+                    if (n.id === excludeId) continue;
+                    const p = (dragState && dragState.id === n.id) ? dragState : getPos(n.id);
+                    if (
+                        worldX >= p.x - NODE_W / 2 && worldX <= p.x + NODE_W / 2 &&
+                        worldY >= p.y - NODE_H_BOX / 2 && worldY <= p.y + NODE_H_BOX / 2
+                    ) {
+                        return n;
+                    }
+                }
+                return null;
+            };
+
+            const startNodeDrag = (e, node) => {
+                if (node.id === rootFolderId) return; // root stays anchored
+                e.stopPropagation();
+                e.preventDefault();
+                dragMovedRef.current = false;
+                const startPos = getPos(node.id);
+                const startClient = { x: e.clientX, y: e.clientY };
+                const startWorld = toWorld(e.clientX, e.clientY);
+                setDragState({ id: node.id, type: node.type, x: startPos.x, y: startPos.y, overTarget: null });
+
+                const onMove = (ev) => {
+                    if (Math.abs(ev.clientX - startClient.x) > 4 || Math.abs(ev.clientY - startClient.y) > 4) {
+                        dragMovedRef.current = true;
+                    }
+                    const w = toWorld(ev.clientX, ev.clientY);
+                    const nx = startPos.x + (w.x - startWorld.x);
+                    const ny = startPos.y + (w.y - startWorld.y);
+                    const target = hitTest(nx, ny, node.id);
+                    setDragState({ id: node.id, type: node.type, x: nx, y: ny, overTarget: target ? target.id : null });
+                };
+
+                const onUp = (ev) => {
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerup', onUp);
+                    if (!dragMovedRef.current) {
+                        setDragState(null);
+                        return;
+                    }
+                    const w = toWorld(ev.clientX, ev.clientY);
+                    const nx = startPos.x + (w.x - startWorld.x);
+                    const ny = startPos.y + (w.y - startWorld.y);
+                    const target = hitTest(nx, ny, node.id);
+
+                    if (target) {
+                        if (node.type === 'nugget' && target.type === 'nugget') {
+                            onNestNuggets(node.id, target.id);
+                        } else if (node.type === 'nugget' && target.type === 'folder') {
+                            onMoveNuggetToFolder(node.id, target.id);
+                        } else if (node.type === 'folder' && target.type === 'folder') {
+                            onNestFolder(node.id, target.id);
+                        } else {
+                            onMoveNode(node.id, nx, ny);
+                        }
+                    } else {
+                        onMoveNode(node.id, nx, ny);
+                    }
+                    setDragState(null);
+                };
+
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+            };
+
+            const startPan = (e) => {
+                if (e.target.closest('.tree-node')) return;
+                const start = { x: e.clientX, y: e.clientY };
+                const startPanPos = { ...pan };
+                const onMove = (ev) => {
+                    setPan({ x: startPanPos.x + (ev.clientX - start.x), y: startPanPos.y + (ev.clientY - start.y) });
+                };
+                const onUp = () => {
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerup', onUp);
+                };
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+            };
+
+            const handleWheel = (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.08 : 0.08;
+                setZoom(z => Math.min(2, Math.max(0.4, +(z + delta).toFixed(2))));
+            };
+
+            const matchesSearch = (id, type) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                if (type === 'folder') {
+                    const f = folders.find(x => x.id === id);
+                    return !!f && f.name.toLowerCase().includes(q);
+                }
+                const n = nuggets.find(x => x.id === id);
+                return !!n && (n.title.toLowerCase().includes(q) || n.url.toLowerCase().includes(q));
+            };
+
+            return (
+                <div
+                    className="tree-canvas-container"
+                    ref={containerRef}
+                    onPointerDown={startPan}
+                    onWheel={handleWheel}
+                >
+                    <div className="tree-canvas-controls">
+                        <button onClick={() => setZoom(z => Math.min(2, +(z + 0.15).toFixed(2)))} title="Zoom in">+</button>
+                        <button onClick={() => setZoom(z => Math.max(0.4, +(z - 0.15).toFixed(2)))} title="Zoom out">−</button>
+                        <button onClick={() => { setZoom(1); setPan({ x: 90, y: 70 }); }} title="Reset view">⟲</button>
+                    </div>
+
+                    <div
+                        className="tree-canvas-world"
+                        style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+                    >
+                        <svg style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 1, overflow: 'visible' }}>
+                            {nodesList.filter(n => n.parentId).map(n => {
+                                const p1 = getPos(n.parentId);
+                                const p2 = (dragState && dragState.id === n.id) ? dragState : getPos(n.id);
+                                return (
+                                    <path
+                                        key={`line-${n.id}`}
+                                        d={`M ${p1.x} ${p1.y} C ${(p1.x + p2.x) / 2} ${p1.y}, ${(p1.x + p2.x) / 2} ${p2.y}, ${p2.x} ${p2.y}`}
+                                        fill="none"
+                                        stroke="var(--border-color)"
+                                        strokeWidth="2"
+                                    />
+                                );
+                            })}
+                        </svg>
+
+                        {nodesList.map(n => {
+                            const pos = (dragState && dragState.id === n.id) ? dragState : getPos(n.id);
+                            const isDragging = !!(dragState && dragState.id === n.id);
+                            const isTarget = !!(dragState && dragState.overTarget === n.id);
+                            const dimmed = !!searchQuery && !matchesSearch(n.id, n.type);
+
+                            if (n.type === 'folder') {
+                                const folder = folders.find(f => f.id === n.id);
+                                if (!folder) return null;
+                                return (
+                                    <div
+                                        key={n.id}
+                                        className={`tree-node tree-node-folder ${isDragging ? 'dragging' : ''} ${isTarget ? 'drag-target' : ''} ${dimmed ? 'dimmed' : ''} ${n.id === rootFolderId ? 'is-root' : ''}`}
+                                        style={{ left: pos.x, top: pos.y }}
+                                        onPointerDown={(e) => startNodeDrag(e, n)}
+                                        onDoubleClick={() => {
+                                            const name = window.prompt('Rename tree', folder.name);
+                                            if (name && name.trim()) onRenameFolder(folder.id, name.trim());
+                                        }}
+                                        onClick={() => { if (!dragMovedRef.current && n.id !== rootFolderId) onNavigateFolder(folder.id); }}
+                                    >
+                                        <Icons.Folder />
+                                        <span>{folder.name}</span>
+                                    </div>
+                                );
+                            }
+
+                            const nugget = nuggets.find(x => x.id === n.id);
+                            if (!nugget) return null;
+                            return (
+                                <div
+                                    key={n.id}
+                                    className={`tree-node tree-node-nugget ${isDragging ? 'dragging' : ''} ${isTarget ? 'drag-target' : ''} ${dimmed ? 'dimmed' : ''}`}
+                                    style={{ left: pos.x, top: pos.y }}
+                                    onPointerDown={(e) => startNodeDrag(e, n)}
+                                    onClick={() => { if (!dragMovedRef.current) onEditNugget(nugget); }}
+                                >
+                                    {nugget.thumbnail
+                                        ? <img src={nugget.thumbnail} alt="" />
+                                        : <div className="tree-node-nugget-fallback">🔗</div>}
+                                    <span>{nugget.title}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="tree-canvas-hint">
+                        Drag a nugget onto another to start a new tree · drop onto a tree to file it there · scroll to zoom · drag background to pan
+                    </div>
+                </div>
+            );
+        }
+
+        function NuggetModal({ nugget, initialData, onClose, onSave }) {
+            const [formData, setFormData] = useState({
+                title: nugget?.title || initialData?.title || '',
+                url: nugget?.url || initialData?.url || '',
+                description: nugget?.description || initialData?.description || '',
+                thumbnail: nugget?.thumbnail || ''
+            });
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.title && formData.url) {
+                    onSave(formData);
+                }
+            };
+            
+            const fetchMetadata = async () => {
+                if (!formData.url) return;
+                
+                try {
+                    const url = new URL(formData.url);
+                    if (!formData.title) {
+                        setFormData(prev => ({ ...prev, title: url.hostname }));
+                    }
+                } catch (e) {
+                    console.error('Invalid URL');
+                }
+            };
+            
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="modal-title">{nugget ? 'Edit Nugget' : 'Add New Nugget'}</div>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">URL *</label>
+                                <input
+                                    type="url"
+                                    className="form-input"
+                                    value={formData.url}
+                                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                                    onBlur={fetchMetadata}
+                                    required
+                                    placeholder="https://example.com"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Title *</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    required
+                                    placeholder="Enter a title"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Description</label>
+                                <textarea
+                                    className="form-input form-textarea"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Optional description"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Thumbnail URL</label>
+                                <input
+                                    type="url"
+                                    className="form-input"
+                                    value={formData.thumbnail}
+                                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    {nugget ? 'Update' : 'Add'} Nugget
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+        
+        function FolderModal({ onClose, onSave }) {
+            const [folderName, setFolderName] = useState('');
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (folderName.trim()) {
+                    onSave(folderName);
+                }
+            };
+            
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <div className="modal-title">Create New Folder</div>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Folder Name *</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={folderName}
+                                    onChange={(e) => setFolderName(e.target.value)}
+                                    required
+                                    placeholder="Enter folder name"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    Create Folder
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<NuggetzApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
