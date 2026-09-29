@@ -510,7 +510,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper Plus v0.4.121</title>
+    <title>Geo Mapper Plus v0.4.122</title>
     <!-- Geo Mapper Plus 13 — BUGFIX (BC: a shared "View only" link's
          preview thumbnail/card showed raw internal changelog text —
          "tag, JS READY message, and HTML comment now all updated
@@ -545,6 +545,47 @@
     <!-- ============================================================
          GEO MAPPER PLUS — beta, forked from Geo Mapper 2D v2.10.431
          Standalone project — see geo-mapper-plus-initiation-brief.md
+         v0.4.122 - BUGFIX (Session 15, urgent — BC needed this working same
+         day for a presentation). BC reported GM+ still laggy after fixing a
+         separate CSV blank-row-bloat data issue, specifically while setting
+         Icon Size for categories under "Color by Field (categorical data)"
+         with custom per-category images, with some values "bouncing back to
+         4 rather than 40" while typing. Diagnostic log showed
+         "Auto-save failed: QuotaExceededError" repeated on nearly every
+         edit. Traced two compounding root causes in the actual code (no
+         reproduction environment available, so both are conservative,
+         well-scoped fixes rather than guesses — BC to confirm on real
+         hardware before relying on this for the presentation):
+         (1) autoSaveToLocalStorage() JSON.stringifies the full config —
+         including every category's base64 customIconData — on every single
+         Symbol Configuration edit (via _liveApplyAndSave()). Once that
+         payload exceeds the browser's localStorage quota (easy with several
+         custom per-category icons loaded, as in BC's retailer dataset),
+         EVERY subsequent edit redid that full expensive stringify + a
+         write that was always going to fail, for zero benefit. Added a 60s
+         cooldown after a QuotaExceededError so it stops retrying until
+         there's a real chance the payload has shrunk.
+         (2) Every control inside the per-category style editor
+         (#categoryList — symbol, colour, Icon Size, halo, etc.) already has
+         its own explicit onchange="updateCategoryStyle(...)" wiring, which
+         itself calls plotPoints(false). That same 'change' event was ALSO
+         bubbling up to the section-level delegated listener added in
+         _setupSymbolConfigAutosave() (Session 9), firing a SECOND,
+         redundant plotPoints() call (plus the now-guarded autosave) for the
+         exact same edit — the same "double-wiring" failure class this
+         project has hit and fixed before elsewhere. Two overlapping
+         plotPoints() calls per edit is exactly the kind of race that can
+         let a slower call's internal DOM rebuild (detectAndBuildCategoryLegend())
+         land after a faster one and clobber a field the user is still
+         typing into. #categoryList controls are now excluded from the
+         delegated listener entirely, removing the redundant call at its
+         source rather than papering over its effects.
+         Separately (data issue, not a code bug, but worth a guard): BC's
+         own CSV had ~12,700 blank rows left over from a spreadsheet "Clear
+         Contents" instead of "Delete Rows" edit, inflating parsed-row count
+         far beyond valid-coordinate count — fixed on BC's end by rebuilding
+         the CSV, logged for a future session as a candidate for an on-load
+         warning (see architecture-learnings doc).
          v0.4.121 - FOLLOW-UP (Session 14, same day as v0.4.120). BC pasted
          the real geo-mapper-gist-proxy Cloudflare Worker source while
          wiring up v0.4.120's earthquakes proxy — it turned out to be a much
@@ -4571,7 +4612,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper Plus <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v0.4.121 beta</span></h1>
+        <h1>📍 Geo Mapper Plus <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v0.4.122 beta</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -12037,7 +12078,29 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             const _basemapChanged = (document.getElementById('basemapSelect')?.value || 'osm') !== 'osm';
             const _hasOverlays = Object.keys(activeOverlays || {}).some(key => activeOverlays[key] !== null);
             if (!_anyLayerHasData && !_hasDrawings && !_basemapChanged && !_hasOverlays) return; // Don't save truly empty state
-            
+
+            // Geo Mapper Plus 13 — BUGFIX (BC: GM+ laggy while adjusting
+            // Symbol Configuration for categorical data with custom
+            // per-category icons; diagnostic log showed "Auto-save failed:
+            // QuotaExceededError" repeated on nearly every single edit).
+            // Root cause: every Symbol Configuration edit calls this
+            // function (via _liveApplyAndSave()), which does a full
+            // createConfigObject(true) + JSON.stringify(config) — including
+            // every category's base64 customIconData — then attempts
+            // localStorage.setItem(). Once that payload is over the
+            // browser's quota (easy with several custom per-category icons
+            // loaded, as in BC's retailer dataset), EVERY subsequent edit
+            // redid that full stringify + failing write, for no benefit —
+            // real, repeated CPU/memory cost on every keystroke/slider-tick
+            // with nothing to show for it. This cooldown skips the attempt
+            // entirely for 60s after a quota failure (the banner below
+            // already tells the user to use "Save Map Configuration"
+            // instead), then allows one retry in case the payload has
+            // since shrunk (e.g. a custom icon was removed).
+            if (window._autoSaveQuotaExceededAt && (Date.now() - window._autoSaveQuotaExceededAt) < 60000) {
+                return;
+            }
+
             try {
                 // Geo Mapper Plus 7: strip GeoJSON boundary data from the
                 // localStorage copy — see createConfigObject()'s
@@ -12076,6 +12139,7 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 console.error('Auto-save failed:', e);
                 // If storage is full, try to clear old saves
                 if (e.name === 'QuotaExceededError') {
+                    window._autoSaveQuotaExceededAt = Date.now(); // see cooldown check above
                     localStorage.removeItem('geoMapper_autoSave');
                     // BC feedback: large datasets (e.g. multi-MB NI GeoJSON
                     // boundary layers) can exceed the browser's localStorage
@@ -12544,6 +12608,32 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
         }
         const _debouncedLiveApplyAndSave = debounce(_liveApplyAndSave, 300);
 
+        // Geo Mapper Plus 13 — BUGFIX (BC: GM+ still laggy adjusting Symbol
+        // Configuration for categorical data with custom per-category
+        // icons, and Icon Size sometimes "bounces back to 4 rather than
+        // 40" while typing). Root cause, traced: every control inside the
+        // per-category style editor (#categoryList — symbol, colour, Icon
+        // Size, halo settings, etc.) already has its own explicit
+        // onchange="updateCategoryStyle(...)" wiring, which itself calls
+        // plotPoints(false) + buildLegend() directly. That same 'change'
+        // event ALSO bubbles up to this section-level delegated listener,
+        // which fires a SECOND, redundant plotPoints() call plus a full
+        // autoSaveToLocalStorage() attempt (expensive here specifically,
+        // since it has to JSON.stringify every category's base64
+        // customIconData) for the exact same single edit. Two overlapping
+        // plotPoints() calls for one edit is exactly the kind of race that
+        // can let a slower-finishing call's DOM rebuild (inside
+        // detectAndBuildCategoryLegend()) land after a faster one and
+        // clobber an input the user is still interacting with. Category
+        // list controls don't need this delegated listener at all — they
+        // already apply and (via the periodic 15s autosave) get saved on
+        // their own — so this excludes #categoryList from it entirely,
+        // removing the redundant call rather than papering over its
+        // effects.
+        function _isInCategoryList(target) {
+            return !!(target && typeof target.closest === 'function' && target.closest('#categoryList'));
+        }
+
         function _setupSymbolConfigAutosave() {
             const section = document.getElementById('symbolConfigSection');
             if (!section) return;
@@ -12562,11 +12652,11 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
             // 'input' fires continuously while dragging a slider or typing
             // — debounced, so a drag doesn't hammer plotPoints()/localStorage
             // on every pixel of movement.
-            section.addEventListener('input', () => { if (!window._isRestoringConfig) _debouncedLiveApplyAndSave(); });
+            section.addEventListener('input', (e) => { if (!window._isRestoringConfig && !_isInCategoryList(e.target)) _debouncedLiveApplyAndSave(); });
             // 'change' fires once per discrete choice (checkbox, select, or
             // a colour picker's final commit) — applied immediately, same
             // as the existing per-control wiring already does for these.
-            section.addEventListener('change', () => _liveApplyAndSave()); // _liveApplyAndSave() has its own restore guard
+            section.addEventListener('change', (e) => { if (!_isInCategoryList(e.target)) _liveApplyAndSave(); }); // _liveApplyAndSave() has its own restore guard
         }
         
         function setupLivePreview() {
@@ -41225,7 +41315,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER PLUS v0.4.121 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER PLUS v0.4.122 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
