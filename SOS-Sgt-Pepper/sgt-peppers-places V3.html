@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sgt. Pepper's Places</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #0a5c8a;
+    --paper: #fdfdfb;
+    --media-bg: #f0efe9;
+    --body-font: Georgia, 'Iowan Old Style', serif;
+    --heading-font: -apple-system, 'Segoe UI', sans-serif;
+    --heading-weight: 600;
+    --nav-h: 76px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--body-font);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.65;
+  }
+  .banner {
+    background: #fff3cd;
+    color: #664d03;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 13px;
+    text-align: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #ffe69c;
+  }
+  .storynav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #111214;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    font-family: -apple-system, Segoe UI, sans-serif;
+  }
+  .storynav .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px 10px 0;
+    color: #fff;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .storynav .brand img { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
+  .storynav .tabs {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .storynav a.tab {
+    display: inline-block;
+    color: #cfcfcf;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 16px 12px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .storynav a.tab:hover { color: #fff; }
+  .storynav a.tab.active { color: #fff; border-bottom-color: #6fb7e8; }
+  .storynav .credit {
+    color: #9a9a9a;
+    font-size: 13px;
+    padding-left: 16px;
+    flex-shrink: 0;
+  }
+
+  .cover {
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    padding: 48px 8vw 56px;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%);
+  }
+  .cover.cover-text-dark { color: var(--ink); }
+  .cover.cover-text-dark::before {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.6) 100%);
+  }
+  .cover-text { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .cover h1 {
+    font-family: var(--heading-font);
+    font-size: clamp(28px, 5vw, 48px);
+    margin: 0 0 8px;
+    font-weight: var(--heading-weight);
+  }
+  .cover .subtitle { font-style: italic; font-size: 18px; opacity: 0.9; }
+  .cover:not(.cover-text-dark) h1, .cover:not(.cover-text-dark) .subtitle { text-shadow: 0 2px 6px rgba(0,0,0,0.35); }
+  .cover.cover-box-light .cover-text, .cover.cover-box-dark .cover-text {
+    padding: 22px 30px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .cover.cover-box-light .cover-text { background: rgba(255,255,255,0.78); }
+  .cover.cover-box-dark .cover-text { background: rgba(0,0,0,0.55); }
+  .cover.cover-box-light:not(.cover-text-dark) h1, .cover.cover-box-light:not(.cover-text-dark) .subtitle,
+  .cover.cover-box-dark:not(.cover-text-dark) h1, .cover.cover-box-dark:not(.cover-text-dark) .subtitle {
+    text-shadow: none; /* a box behind the text makes the drop-shadow redundant and muddy */
+  }
+
+  main { max-width: 720px; margin: 0 auto; padding: 40px 24px 100px; }
+
+  .section-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--media-bg);
+    color: #fff;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: 56px;
+    margin-bottom: 32px;
+    padding: 32px 8vw;
+    overflow: hidden;
+  }
+  .section-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
+  }
+  .section-banner-text { position: relative; z-index: 1; }
+  .section-banner h2, .section-banner h3 {
+    font-family: var(--heading-font);
+    color: #fff;
+    border-bottom: none;
+    margin: 0;
+    font-size: clamp(22px, 4vw, 36px);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  }
+  h2, h3 { scroll-margin-top: var(--nav-h); }
+  h2 {
+    font-family: var(--heading-font);
+    color: var(--accent);
+    font-size: 24px;
+    margin-top: 56px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e3e0d5;
+  }
+  p { font-size: 18px; margin: 0 0 18px; text-align: left; }
+  a { color: var(--accent); }
+  b { font-weight: 700; }
+
+  .media {
+    margin: 24px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--media-bg);
+  }
+  .media img { width: 100%; height: auto; display: block; }
+  .media iframe { width: 100%; border: 0; display: block; }
+  .media.size-small { max-width: 420px; margin-left: auto; margin-right: auto; }
+  .media.size-medium { max-width: 640px; margin-left: auto; margin-right: auto; }
+  .media.size-large { max-width: 100%; }
+  .media.size-full {
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0;
+  }
+  .media-caption {
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 8px 12px;
+  }
+  .map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: repeating-linear-gradient(135deg, #e2ebe6, #e2ebe6 12px, #d6e1da 12px, #d6e1da 24px);
+  }
+  .map-load-btn {
+    padding: 13px 26px;
+    border: none;
+    border-radius: 26px;
+    background: var(--accent);
+    color: #fff;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  }
+  .map-load-btn:hover { filter: brightness(1.08); }
+  .map-toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .map-toggle-btn:hover { background: rgba(0,0,0,0.8); }
+  .map-lock-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.05);
+  }
+  .map-lock-overlay.is-hidden { display: none; }
+  .map-explore-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 26px;
+    background: rgba(0,0,0,0.72);
+    color: #fff;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+  .map-explore-btn:hover { background: rgba(0,0,0,0.85); }
+  .media.map-maximized {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .media.map-maximized iframe { width: 100% !important; height: 100% !important; }
+  .media.map-maximized .media-caption { display: none; }
+  html.map-lock-scroll, html.map-lock-scroll body { overflow: hidden; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px; padding: 4px; }
+  .gallery img { width: 100%; height: 160px; object-fit: cover; border-radius: 3px; }
+
+  .placeholder {
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    padding: 16px;
+    border: 1px dashed var(--muted);
+    border-radius: 6px;
+    background: var(--media-bg);
+  }
+  .placeholder a { display: inline-block; margin-top: 6px; }
+
+  .credits { font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; color: var(--muted); }
+  .credits .entry { margin-bottom: 10px; }
+  .credits b { color: var(--ink); }
+
+  /* ---------- side-panel layout (Journal-style scroll sync) ---------- */
+  /* Media stays fixed in a left column while the reader scrolls a right-hand text column past
+     it; the media swaps to match whichever panel is currently in view. This is a genuinely
+     different reading pattern from the rest of this template (which is single-column, top to
+     bottom) — eye-tracking research on this exact layout (visual left, text right) is why it's
+     offered as an option rather than a replacement for the default. */
+  /* Breaks the whole two-column layout out of <main>'s own max-width:720px box (sized for
+     comfortable single-column reading, and otherwise applying regardless of what's inside it) so
+     it sizes against the real viewport instead — same full-bleed technique already used by
+     .section-banner elsewhere in this template. Two elements are needed: the outer one does the
+     breakout itself, uncapped; the inner one then re-applies a sane 1400px cap so it doesn't
+     stretch edge-to-edge on an ultra-wide monitor. Combining both jobs into a single element
+     doesn't work: width:100vw and max-width together would leave the negative breakout margins
+     computed against the wrong (uncapped) width once the cap actually kicks in, pulling the
+     whole thing off-centre exactly on the wide screens the cap exists for. */
+  .sidepanel-breakout { width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
+  .sidepanel-layout { display: flex; align-items: flex-start; gap: 0; max-width: 1400px; margin: 0 auto; }
+  .sidepanel-media {
+    position: sticky; top: var(--nav-h);
+    width: 62%; flex-shrink: 0;
+    height: calc(100vh - var(--nav-h));
+    background: var(--media-bg);
+    overflow: hidden;
+    transition: opacity 0.22s ease;
+  }
+  .sidepanel-media > * { height: 100%; margin: 0 !important; border-radius: 0 !important; }
+  .sidepanel-media .media { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  /* contain, not cover: a landscape photo in this tall, narrow column would otherwise have its
+     left/right edges cropped away to fill the full height. Showing the whole image letterboxed
+     (against --media-bg, the same fill colour already used elsewhere for "image doesn't perfectly
+     fill its frame") loses some vertical fill but never crops content out of view. */
+  .sidepanel-media .media img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; flex: 0 0 auto; }
+  .sidepanel-media .media iframe {
+    width: 100%; max-height: 100%; border: 0;
+    /* No stretching -- unlike an <img>, an iframe has no intrinsic aspect ratio and no
+       object-fit equivalent, so forcing it to fill the column's full height (as an earlier
+       version of this rule did) just squashes a normally landscape-shaped map or video into a
+       tall, narrow box with no aspect protection at all. Leaving its own height alone (already
+       set sensibly elsewhere, e.g. via the map height presets) and centring it, the same way an
+       image already centres via object-fit, keeps it at a natural, comfortable shape instead. */
+  }
+  .sidepanel-media .media .map-placeholder { max-height: 100%; }
+  .sidepanel-media.is-swapping { opacity: 0; }
+  .sidepanel-text { flex: 1; min-width: 0; padding: 40px clamp(24px, 4vw, 64px); }
+  .sidepanel-panel { padding-bottom: 64px; }
+  .sidepanel-panel:last-child { padding-bottom: 100px; }
+  .sidepanel-panel h2, .sidepanel-panel h3 { margin-top: 0; }
+  .sidepanel-panel .media { max-width: none; } /* extra (non-primary) media in a panel's own text column */
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidepanel-media { transition: none; }
+  }
+
+  /* Below this width there isn't room for a genuine side-by-side split, so the panel media
+     collapses to a single strip that sits above the (now full-width) scrolling text, rather
+     than trying to force two narrow columns. It still updates as you scroll past each panel —
+     just above the text instead of beside it, since sticky-beside-narrow-text doesn't work. */
+  @media (max-width: 880px) {
+    .sidepanel-layout { flex-direction: column; }
+    .sidepanel-media { position: static; width: 100%; height: 45vh; }
+    .sidepanel-text { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">Prototype reconstruction — text and media positions pulled from the original Story Map JSON. Not affiliated with or endorsed by Esri. <b>Video/map embeds need this file served over http(s), not opened directly as a local file.</b></div>
+<div id="app"></div>
+
+<script id="story-data" type="application/json">[{"level":1,"text":"Sgt. Pepper's Places"},{"para":[["A geographical perspective on The Beatles in 1967",false,true,null]]},{"media":{"kind":"Background image (cover)","title":"cover","caption":"","url":"https://notredamecobham.maps.arcgis.com/sharing/rest/content/items/dc597961bc1c4b41a027c0e3fa0e1aaf/data"}},{"para":[["!",false,false,null],["Sgt Pepper cover (ultimateclassicrock)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper cover (ultimateclassicrock"],["__1494074357578.jpg)",false,false,null]]},{"para":[["By 1967, The Beatles were at the peak of their creative powers. Their songwriting skills reached new heights, most clearly on possibly their greatest and certainly their most influential album, ",false,false,null],["Sgt. Pepper's Lonely Hearts Club Band",true,false,null],[".",false,false,null]]},{"para":[["The inspiration of ",false,false,null],["places",true,false,null],[" had become an integral part of their music.  The geographical locations linked to Sgt. Pepper and their other work in 1967 provide the focus for this Story Map.",false,false,null]]},{"para":[["NB: The story map includes links to music tracks via YouTube (mostly audio only).  If tracks are not available via YouTube, Spotify links are provided: On some devices, it may be necessary to click 'Explore' to activate 'Play' button.",false,false,null]]},{"level":2,"text":"\"There are places I remember...\"","anchor":"section-0"},{"media":{"kind":"Image","title":"Beatles in 1967 - George pointing (6a00e008dca1f08834017744b0a848970d-800wi)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles%20in%201967%20-%20George%20pointing%20(6a00e008dca1f08834017744b0a848970d-800wi)__1494023036714.jpg","size":"large"}},{"para":[["In the years leading up to 1967, The Beatles' songwriting had been evolving rapidly.",false,false,null]]},{"para":[["There had been a distinct shift away from simple love songs to a more autobiographical, reflective style of songwriting.",false,false,null]]},{"para":[["Lennon and McCartney had considered writing a musical about their home town, but decided to rethink their plans when Alun Owen and Lionel Bart's Liverpool-based ",false,false,null],["Maggie May",false,true,"http://"],[" was produced in 1964.",false,false,null]]},{"para":[["Source: Paul McCartney interview with Brian Matthew in ",false,false,null],["The Beatles - Alone: At the BBC Part 3 (BBC Radio 2)",false,true,null]]},{"media":{"kind":"Image","title":"Lionel Bart and John Lennon (article-0-007F59EA00000258-346_634x500)","caption":"Lionel Bart and John Lennon at the Dorchester Hotel, London in 1964","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Lionel%20Bart%20and%20John%20Lennon%20(article-0-007F59EA00000258-346_634x500)__1494023482097.jpg","size":"large"}},{"para":[["The influence of Bob Dylan, The Beach Boys, Simon and Garfunkel and comments by critics such as ",false,false,null],["Kenneth Allsop",false,false,"https://www.beatlesbible.com/songs/im-a-loser/"],[" catalysed the changes.",false,false,null]]},{"para":[["Bob Dylan's 1965 song ",false,false,null],["Positively 4th Street",false,true,null],[" about an area of New York (or possibly Minneapolis), was one of ",false,false,null],["John Lennon's favourites",false,false,"https://en.wikipedia.org/wiki/John_Lennon%2527s_jukebox"],[".",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-4.7798,58.563,-4.7227,58.5764],"extent_key":"-4.7798,58.5630,-4.7227,58.5764"}},{"para":[["For example, in 1965 John Lennon wrote his highly regarded song ",false,false,null],["In My Life",false,true,null],[" which starts with the line:",false,false,null]]},{"para":[["\"There are places I remember...\"",false,true,null]]},{"para":[["In My Life",false,true,null],[" recalled Lennon's childhood holidays in ",false,false,null],["Durness, northern Scotland",false,false,"https://www.theguardian.com/music/2008/oct/12/johnlennon-scotland"],[".",false,false,null]]},{"media":{"kind":"Video","title":"In My Life (Remastered 2009)","caption":"","url":"https://www.youtube.com/embed/YBcdt6DsLQA?si=IQ1o3b0w_bDc-yeQ"}},{"media":{"kind":"Image","title":"Original lyrics for In My Life","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Original%20lyrics%20for%20In%20My%20Life__1499506869097.jpg","size":"large"}},{"para":[["An ",false,false,null],["earlier version",false,false,"https://en.wikipedia.org/wiki/In_My_Life#cite_note-Spitz-7"],[" of ",false,false,null],["In My Life",false,true,null],[" was based on a Liverpool bus route John Lennon used to take, including places passed along the way, including Penny Lane.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-121.47,-1.0848,81.3815,66.5712],"extent_key":"-121.4700,-1.0848,81.3815,66.5712"}},{"para":[["Consequently, and unwittingly, The Beatles became champions of a fusion between pop music and geographical places, helping to pioneer a new psychogeographical approach to songwriting.",false,false,null]]},{"para":[["The influence of The Beatles' new psychogeographical approach on other songwriters was immediate and enduring.",false,false,null]]},{"para":[["In 1967 alone, several hits of the year demonstrated that other artists were choosing geographical or psychogeographical themes to good effect including The Kinks' Waterloo Sunset; Small Faces' Itchycoo Park; The Monkees' Pleasant Valley Sunday; Scott McKenzie's San Francisco.",false,false,null]]},{"media":{"kind":"Image gallery","caption":"","gallery":[]}},{"para":[["]",false,false,null]]},{"para":[["- hoesje-kinks-waterloo-sunset cd: https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/hoesje-kinks-waterloo-sunset%20cd__1494023823509.jpg   - R-1283586-1206281195.jpeg: https://img.discogs.com/2exq3eKXjdTazqX3q015d0Dl63s=/fit-in/500x505/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-1283586-1206281195.jpeg.jpg   - The_Monkees_single_04_Pleasant_Valley_Sunday: https://upload.wikimedia.org/wikipedia/en/8/83/The_Monkees_single_04_Pleasant_Valley_Sunday.jpg   - R-540561-1387112591-3893.jpeg: https://img.discogs.com/4et9sXMHAjPGUbBXvo432BCHHlY=/fit-in/600x600/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-540561-1387112591-3893.jpeg.jpg ]",false,false,null]]},{"level":2,"text":"\"I'm taking the time for a number of things...\"","anchor":"section-1"},{"media":{"kind":"Image","title":"Beatles and George Martin at Abbey Road","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles%20and%20George%20Martin%20at%20Abbey%20Road__1498325496244.jpg","size":"large"}},{"para":[["In Paul McCartney's song ",false,false,null],["Fixing A Hole",false,true,null],[", recorded early in 1967 and featured on ",false,false,null],["Sgt. Pepper",false,true,null],[", he sang:",false,false,null]]},{"para":[["\"I'm taking the time for a number of things, that weren't important yesterday.\"",false,true,null]]},{"media":{"kind":"Image","title":"Beatles and George Martin at Abbey Road","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles%20and%20George%20Martin%20at%20Abbey%20Road__1498325742376.jpg","size":"large"}},{"para":[["When The Beatles had decided to stop touring in 1966, they gained time and 'thinkspace' to write even more creative songs.",false,false,null]]},{"media":{"kind":"Image","title":"1457505909_886524_1457514104_noticia_fotograma","caption":"","url":"https://elpais.com/cultura/imagenes/2016/03/09/actualidad/1457505909_886524_1457514104_noticia_fotograma.jpg","size":"large"}},{"para":[["They also had more opportunities to develop innovative recording techniques in partnership with their legendary producer George Martin and his team.",false,false,null]]},{"level":2,"text":"\"It's wonderful to be here...\"","anchor":"section-2"},{"media":{"kind":"Image","title":"1024px-1969_EMI_Recording_Studios","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/1024px-1969_EMI_Recording_Studios__1494670556321.JPG","size":"large"}},{"level":2,"text":"\"It's wonderful to be here...\"","anchor":"section-3"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-1.6051,51.1601,0.654,51.8601],"extent_key":"-1.6051,51.1601,0.6540,51.8601"}},{"para":[["The Beatles recorded almost all of their music at the EMI studios in Abbey Road, St John's Wood,  London.",false,false,null]]},{"para":[["This is where the magic happened.",false,false,null]]},{"media":{"kind":"Image","title":"Abbey_road_studios","caption":"Abbey Road studios, St John's Wood, London","url":"https://upload.wikimedia.org/wikipedia/commons/e/e9/Abbey_road_studios.jpg","size":"large"}},{"media":{"kind":"Image","title":"https://blogs-images.forbes.com/markbeech/files/2017/05/GettyImages-74253772_master-1200x789","caption":"","url":"https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fmarkbeech%2Ffiles%2F2017%2F05%2FGettyImages-74253772_master-1200x789.jpg","size":"large"}},{"para":[["A pedestrian crossing outside the studios would become iconic after the release of their last album, ",false,false,null],["Abbey Road",false,true,null],[" in 1969.",false,false,null]]},{"media":{"kind":"Image","title":"0f06744a3b77672509c5694374831d74","caption":"","url":"https://i.pinimg.com/originals/0f/06/74/0f06744a3b77672509c5694374831d74.jpg","size":"large"}},{"level":2,"text":"Penny Lane / Strawberry Fields Forever","anchor":"section-4"},{"media":{"kind":"Image","title":"Penny Lane Strawberry Fields map cover 1 (the-beatles-penny-lane-parlophone-4)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Penny%20Lane%20Strawberry%20Fields%20map%20cover%201%20(the-beatles-penny-lane-parlophone-4)__1494074166714.jpg","size":"large"}},{"para":[["The Beatles hit the ground running in 1967, releasing one of the greatest single records ever - a 'double-A side' of ",false,false,null],["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever.",false,true,null]]},{"para":[["Both were psychogeographical songs - suburban vignettes - evoking memories of places associated with their upbringing in Liverpool.",false,false,null]]},{"para":[["Such songs achieve a capacity to take listeners to a place:",false,false,null]]},{"para":[["\"it feels like it just rained, the sun just came out, you're walking down the street in Liverpool...you could just close your eyes and go there.  The rich detail and colour - you can see it and smell it and feel it\"",false,false,null]]},{"para":[["Nancy Wilson - BBC Radio 2 documentary ",false,false,null],["'Here, There and Everywhere' (2009)",false,false,"http://www.bbc.co.uk/programmes/b00k141s"]]},{"para":[["For more details look at this ",false,false,null],["story map:",false,false,"http://arcg.is/2iXoyLi"],[" ",false,false,null],["Penny Lane / Strawberry Fields Forever",false,true,"http://arcg.is/2iXoyLi"],[".",false,false,null]]},{"para":[["!",false,false,null],["Penny Lane - Beatles on location in Knole Park (Story Map title section)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Penny Lane - Beatles on location in Knole Park (Story Map title section"],["__1494364555037.jpg)",false,false,null]]},{"para":[["The potent combination of Penny Lane and Strawberry Fields Forever signalled a major change of direction for the Beatles and a statement of intent for 1967.  The message was clear.  The Beatles were moving on.",false,false,null]]},{"para":[["Both songs were created during the early phase of recording material for their next album and were released as an overture for what would become a masterpiece:",false,false,null]]},{"para":[["Sgt. Pepper's Lonely Hearts Club Band",true,true,null]]},{"level":2,"text":"\"The act you've known for all these years...","anchor":"section-5"},{"media":{"kind":"Image","title":"Beatles Sgt Pepper Inner photo (historythings.com)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles%20Sgt%20Pepper%20Inner%20photo%20(historythings.com)__1494671161780.jpg","size":"large"}},{"para":[["\"The act you've known for all these years...\"",false,true,null]]},{"para":[["In June 1967, The Beatles released their pioneering concept album ",false,false,null],["Sgt. Pepper's Lonely Hearts Club Band",false,true,null],[".",false,false,null]]},{"para":[["In 2012, Rolling Stone Magazine placed ",false,false,null],["Sgt. Pepper",false,true,"http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531?page=46&amp;count=10"],[" ",false,false,null],["at number one in their all time top 500",false,false,"http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531?page=46&amp;count=10"],[" declaring it to be \"the most important rock & roll album ever made, an unsurpassed adventure in concept, sound, songwriting, cover art and studio technology by the greatest rock & roll group of all time.\"",false,false,null]]},{"para":[["Where did the idea of ",false,false,null],["Sgt. Pepper",false,true,null],[" start?",false,false,null]]},{"level":2,"text":"\"So may I introduce to you...\"","anchor":"section-6"},{"media":{"kind":"Image","title":"Sgt Pepper header GIF (w1ArR1GC0smpW)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt%20Pepper%20header%20GIF%20(w1ArR1GC0smpW)__1494073564826.gif","size":"large"}},{"para":[["It was Paul McCartney's idea to create an 'alterego' band for the Beatles as a vehicle for their new work.  The initial spark of an idea seems to have been a musical combo led by his father James “Jim” McCartney called 'Jim Mac's Band', which played ragtime and jazz in the Liverpool area in the 1920s.",false,false,null]]},{"media":{"kind":"Image","title":"jim-macs-band","caption":"Jim Mac's Band, which was led by Paul McCartney's father, James 'Jim' McCartney.","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/jim-macs-band__1496263120529.jpg","size":"large"}},{"para":[["However, the actual birth place for ",false,false,null],["Sgt. Pepper",false,true,null],[" is a little surprising.",false,false,null]]},{"media":{"kind":"Image","title":"b661d5ea5b164a726fd40787891d396a","caption":"","url":"https://s-media-cache-ak0.pinimg.com/236x/b6/61/d5/b661d5ea5b164a726fd40787891d396a.jpg","size":"large"}},{"level":2,"text":"\"So may I introduce to you...\"","anchor":"section-7"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-28.1751,-26.5687,88.6315,29.2482],"extent_key":"-28.1751,-26.5687,88.6315,29.2482"}},{"para":[["The concept for ",false,false,null],["Sgt. Pepper",false,true,null],[" was born several miles above East Africa. On 18th November 1966, Paul McCartney was on a return flight from a Kenya safari holiday with his then girlfriend Jane Asher and Beatles tour manager Mal Evans.",false,false,null]]},{"para":[["Early on in the flight, McCartney shared an an idea for a song involving an Edwardian-era military band.",false,false,null]]},{"media":{"kind":"Image","title":"d646db05b66ffd9c4943c6f1e20b1330","caption":"The Beatles often used BOAC for long haul flights","url":"https://s-media-cache-ak0.pinimg.com/originals/d6/46/db/d646db05b66ffd9c4943c6f1e20b1330.jpg","size":"large"}},{"para":[["During the conversation, a ",false,false,null],["trivial exchange between Evans and McCartney about the salt and pepper in their in-flight meal morphed into '",false,false,"https://www.paulmccartney.com/news-blogs/news/you-gave-me-the-answer-sgt-pepper-special"],["Sgt. Pepper'",false,true,"https://www.paulmccartney.com/news-blogs/news/you-gave-me-the-answer-sgt-pepper-special"],[".",false,false,null]]},{"media":{"kind":"Image","title":"VC10 VCtenderness_small","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/VC10%20VCtenderness_small__1529244150053.jpg","size":"large"}},{"para":[["A Pre-Pepper Paul McCartney on safari in Amboseli National Park, Kenya, November 1966.",false,false,null]]},{"para":[["Link: ",false,false,null],["Mal Evans' article about the Kenya visit.",false,false,"http://beaconfilms2011.blogspot.co.uk/2013/08/mals-page-kenyan-odyssey.html"]]},{"media":{"kind":"Image","title":"McCartney in Kenya tumblr_nonl16AmN11tga28so1_500","caption":"A Pre-Pepper Paul McCartney in Kenya, November 1966","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/McCartney%20in%20Kenya%20tumblr_nonl16AmN11tga28so1_500__1529244355398.jpg","size":"large"}},{"level":2,"text":"Sgt. Pepper: The Album Cover","anchor":"section-8"},{"para":[["!",false,false,null],["Sgt Pepper header GIF (w1ArR1GC0smpW)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper header GIF (w1ArR1GC0smpW"],["__1494073564826.gif)",false,false,null]]},{"para":[["The image created for the cover of ",false,false,null],["Sgt. Pepper",false,true,null],[" stands alone as one of the great works of pop art.  It has been called '",false,false,null],["the Mona Lisa of album covers",false,false,"http://teamrock.com/feature/2017-04-18/11-things-you-might-not-know-about-the-sgt-pepper-cover"],["'.",false,false,null]]},{"para":[["!",false,false,null],["Sgt Pepper cover (ultimateclassicrock)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper cover (ultimateclassicrock"],["__1494074357578.jpg \"The album cover for Sgt. Pepper's Lonely Hearts Club Band\")",false,false,null]]},{"para":[["Who masterminded the cover and where was it created?",false,false,null]]},{"level":2,"text":"Sgt. Pepper: The Album Cover","anchor":"section-9"},{"media":{"kind":"Image","title":"Cover-shoot-for-Sgt-Pepper-17","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Cover-shoot-for-Sgt-Pepper-17__1540913120512.jpg","size":"large"}},{"para":[["The concept for the cover began with an ink drawing by Paul McCartney.",false,false,null]]},{"para":[["The Beatles then commissioned pop artists Peter Blake and Jann Haworth to work up a design for what would become the iconic ",false,false,null],["Sgt. Pepper",false,true,null],[" cover.",false,false,null]]},{"para":[["They created a montage of 20th century historical and cultural characters including suggestions by The Beatles.",false,false,null]]},{"media":{"kind":"Image","title":"Peter Blake preparing images for cover of Sgt Pepper 1967","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Peter%20Blake%20preparing%20images%20for%20cover%20of%20Sgt%20Pepper%201967__1540912724204.jpg","size":"large"}},{"para":[["The photo shoot took place on 30 March 1967 at Chelsea Manor Studios, Flood Street,  London.",false,false,null]]},{"media":{"kind":"Image","title":"Chelsea Manor Studios, London Sgt Pepper album cover photo shoot","caption":"Chelsea Manor Studios, London","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Chelsea%20Manor%20Studios%2C%20London%20Sgt%20Pepper%20album%20cover%20photo%20shoot__1529244622966.jpg","size":"large"}},{"para":[["The ",false,false,null],["Sgt. Pepper",false,true,null],[" album cover has been described \"as a guidebook to the cultural topography of the decade\" in which \"traditional barriers between 'high' and 'low' culture were being eroded\" ",false,false,null],["(Ian Inglis 'Cover story: magic, myth, and music' (2008))",false,true,null]]},{"para":[["An excellent profile of each of the characters portrayed on the cover has been written by Chris Shaw on the blog ",false,false,null],["Sgt. Pepper's Photos",false,true,"https://sgtpepperphotos.wordpress.com/"],[".",false,true,null]]},{"level":2,"text":"Sgt. Pepper Side 1","anchor":"section-10"},{"media":{"kind":"Image","title":"Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt%20Pepper%20Side%201%20label%201967%20first%20pressing%20(Sgt.-1967A)__1494452314623.jpg","size":"large"}},{"level":2,"text":"1.1 Sgt. Pepper's Lonely Hearts Club Band","anchor":"section-11"},{"media":{"kind":"Image","title":"Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt%20Pepper%20Side%201%20label%201967%20first%20pressing%20(Sgt.-1967A)__1494452314623.jpg","size":"large"}},{"para":[["The opening track of the album, ",false,false,null],["Sgt. Pepper's Lonely Hearts Club Band",false,true,"https://en.wikipedia.org/wiki/Sgt._Pepper%2527s_Lonely_Hearts_Club_Band#Side_one"],[" dramatically introduces The Beatles' alterego band with an orchestral warm up, blasting guitar solo, sung rhetoric by Paul McCartney and fanfares.  It provides a fitting overture for what follows.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Sgt. Pepper's Lonely Hearts Club Band (Sgt. Pepper Side 1, Track 1)","caption":"","url":"https://www.youtube.com/embed/VtXl8xAPAtA"}},{"level":2,"text":"1.2 With A Little Help From My Friends","anchor":"section-12"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"level":2,"text":"With A Little Help From My Friends","anchor":"section-13"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-184.363,10.8321,-67.5564,53.5396],"extent_key":"-184.3630,10.8321,-67.5564,53.5396"}},{"para":[["It was rare for The Beatles' drummer Ringo Starr to take the vocal lead on their songs, but when he did it was often very popular (e.g. ",false,false,null],["Yellow Submarine",false,true,"http://spotify:track:727YRTVI7pKH1uCnXnyZul"],[").",false,false,null]]},{"para":[["John Lennon and Paul McCartney wrote ",false,false,null],["With A Little Help From My Friends",false,true,null],[" using a limited range to suit Ringo's voice.",false,false,null]]},{"para":[["On 29th August 1966, The Beatles had performed their last public concert at Candlestick Park, San Francisco.",false,false,null]]},{"para":[["Perhaps ",false,false,null],["With A Little Help From My Friends",false,true,null],[" closes the page on this phase of their career?",false,false,null]]},{"para":[["Various other meanings have been attached to the song: It may be linked to the collection of characters on the Sgt. Pepper album cover, many of whom the Beatles saw as fellow travellers on the highway of cultural change.",false,false,null]]},{"para":[["It may also be interpreted as a tribute to fans and friends who had contributed to their success.",false,false,null]]},{"para":[["One lyric in the album's opening track ran \"",false,false,null],["you're such a lovely audience, we'd like to take you home with us\"",false,true,null],[".",false,false,null]]},{"para":[["So it seems appropriate that the introduction to ",false,false,null],["With A Little Help From My Friends",false,true,null],[" includes a sample of the crowd cheering that George Martin had recorded during an earlier Beatles concert at the Hollywood Bowl in Los Angeles, California.",false,false,null]]},{"media":{"kind":"Spotify embed","title":"With A Little Help From My Friends (Sgt. Pepper Side 1, Track 2)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A0TKiASulg0H5ZKkkqZNTdm"}},{"level":2,"text":"1.3 Lucy In The Sky With Diamonds","anchor":"section-14"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Lucy in the Sky with Diamonds (Sgt. Pepper Side 1, Track 3)","caption":"","url":"https://www.youtube.com/embed/naoknj1ebqI"}},{"level":2,"text":"Lucy In The Sky With Diamonds","anchor":"section-15"},{"media":{"kind":"Image","title":"Lucy-in-the-sky-with-diamonds-julian-lennon","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Lucy-in-the-sky-with-diamonds-julian-lennon__1529245045308.jpg","size":"large"}},{"para":[["The original image of ",false,false,null],["Lucy In The Sky With Diamonds",false,true,null],[" is a child's picture...",false,false,null]]},{"para":[["Various stories exist about the profoundly psychedelic ",false,false,null],["Lucy In The Sky With Diamonds",false,true,null],[", but John Lennon insisted that the main inspiration was a drawing by his four year old son Julian.",false,false,null]]},{"media":{"kind":"Image","title":"JohnLennoneraunpadrecattivo","caption":"John Lennon with his son Julian at home in Weybridge.","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/JohnLennoneraunpadrecattivo__1529245161508.jpg","size":"large"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-0.4507,51.3546,-0.4445,51.3564],"extent_key":"-0.4507,51.3546,-0.4445,51.3564"}},{"para":[["John Lennon wrote the song at Kenwood,  his home in St George's Hill, Weybridge, Surrey.  He bought the house for £20,000 in 1964.  ",false,false,null],["He never really felt settled there",false,false,"http://www.rollingstone.com/music/features/beatles-sgt-pepper-inside-good-morning-good-morning-w483678"],[", but nonetheless found inspiration for some of his greatest songs.",false,false,null]]},{"para":[["At Kenwood: Patti Boyd, John Lennon, Cynthia Lennon, Julian Lennon. Photo by Henry Grossman",false,false,null]]},{"media":{"kind":"Image","title":"At Kenwood Patti Boyd, John Lennon, Cynthia Lennon, Julian Lennon. Photo by Henry Grossman","caption":"At Kenwood: Patti Boyd, John Lennon, Cynthia Lennon, Julian Lennon. (Photo by Henry Grossman).","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/At%20Kenwood%20Patti%20Boyd%2C%20John%20Lennon%2C%20Cynthia%20Lennon%2C%20Julian%20Lennon.%20Photo%20by%20Henry%20Grossman__1529245360083.jpg","size":"large"}},{"para":[["John Lennon's son Julian went to Heath House nursery school in nearby Weybridge.  He had drawn a picture of one of his friends, Lucy O'Donnell.",false,false,null]]},{"media":{"kind":"Image","title":"Lucy ODonnell the original Lucy In The Sky","caption":"Lucy O'Donnell; later Lucy Vodden","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Lucy%20ODonnell%20the%20original%20Lucy%20In%20The%20Sky__1529245761226.jpg","size":"large"}},{"para":[["In adulthood, Lucy married to become Lucy Vodden.  She suffered from the condition ",false,false,null],["lupus and sadly died in 2009",false,false,"http://www.lupus.org.uk/patients-stories/99-lucy-s-story"],[".",false,false,null]]},{"level":2,"text":"1.4 Getting Better","anchor":"section-16"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"level":2,"text":"Getting Better","anchor":"section-17"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-4.1893,53.1518,-2.3642,53.6431],"extent_key":"-4.1893,53.1518,-2.3642,53.6431"}},{"para":[["Getting Better",false,true,null],[" is a song about growing up, maturing and regretting.  It was written ",false,false,null],["mainly by Paul McCartney",false,false,"https://en.wikipedia.org/wiki/Getting_Better#Composition"],[", with some lyrics contributed by John Lennon.",false,false,null]]},{"media":{"kind":"Spotify embed","title":"The Beatles - Getting Better (Sgt. Pepper Side 1, Track 4)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A5e8uc7f0v5jpY5SF1emxHl"}},{"para":[["In the song, Paul McCartney refers to his schooldays: ",false,false,null],["\"The teachers that taught me weren't cool\"",false,true,null],[".",false,false,null]]},{"para":[["His secondary education was at the Liverpool Institute High School for Boys.",false,false,null]]},{"media":{"kind":"Image","title":"Paul McCartney at Liverpool Institute (tumblr_n2710kE0Rc1qczzlio1_540)","caption":"Paul McCartney at Liverpool Institute High School.","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Paul%20McCartney%20at%20Liverpool%20Institute%20(tumblr_n2710kE0Rc1qczzlio1_540)__1494098160020.jpg","size":"large"}},{"level":2,"text":"1.5 Fixing A Hole","anchor":"section-18"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"para":[["Fixing A Hole",false,true,null],[" was written by Paul McCartney.  Although the lyrics have ",false,false,null],["metaphorical significance",false,false,"https://en.wikipedia.org/wiki/Fixing_a_Hole"],[", they also reflected a recent DIY experience.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Fixing a Hole (Sgt. Pepper Side 1, Track 5)","caption":"","url":"https://www.youtube.com/embed/UPBd8eHQqIw"}},{"level":2,"text":"Fixing A Hole","anchor":"section-19"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-10.7213,54.4693,-3.4209,56.3402],"extent_key":"-10.7213,54.4693,-3.4209,56.3402"}},{"para":[["In 1966, Paul McCartney purchased High Park Farm near Campbelltown on the Mull of Kintyre, Scotland for £35,000 with 183 acres of land.",false,false,null]]},{"para":[["A decade later, his 1977 song ",false,false,null],["Mull of Kintyre",false,true,null],[" become the first single to sell over two million copies in the UK.",false,false,null]]},{"para":[["Fixing A Hole",false,true,null],[" was linked to McCartney's attempts to repair a leaky roof at the Mull of Kintyre farm, where many of the buildings were in a dilapidated state.",false,false,null]]},{"media":{"kind":"Image","title":"High Park Farm - McCartneys farm in Mull of Kintyre article-2449244-1894BF4E00000578-377_634x340","caption":"High Park Farm, Mull of Kintyre, Scotland","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/High%20Park%20Farm%20-%20McCartneys%20farm%20in%20Mull%20of%20Kintyre%20article-2449244-1894BF4E00000578-377_634x340__1529246056131.jpg","size":"large"}},{"para":[["The Mull of Kintyre is one of the rainiest places in the UK, with significant precipitation falling on every other day.",false,false,null]]},{"para":[["Climate of Mull of Kintyre",false,false,"https://www.yr.no/en/forecast/graph/2-2645351/Great%20Britain/Scotland/Argyll%20and%20Bute/Mull%20of%20Cantyre"]]},{"level":2,"text":"1.6 She's Leaving Home","anchor":"section-20"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"para":[["For many, ",false,false,null],["She's Leaving Home",false,true,null],[" is one of the most emotional ",false,false,null],["Sgt. Pepper",false,true,null],[" songs, poignantly capturing tensions of the so-called 'generation gap' between the post-war baby-boomers and their parents.",false,false,null]]},{"para":[["She's Leaving Home",false,true,null],[" is a ballad accompanied entirely by traditional string section including a harp - none of The Beatles played on it at all.  However, it paradoxically captures and expresses a key element of rock 'n' roll as an essentially suburban phenomenon, providing expression for the real or imagined escape from blandness by a burgeoning population of youth.",false,false,null]]},{"para":[["The lyrics were prompted by a contemporary news story about a young suburbanite escapee and became linked to a remarkable coincidence.",false,false,null]]},{"media":{"kind":"Video","title":"She's Leaving Home (Remastered 2009)","caption":"","url":"https://www.youtube.com/embed/VaBPY78D88g"}},{"level":2,"text":"She's Leaving Home","anchor":"section-21"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-0.9986,51.317,0.8265,51.8291],"extent_key":"-0.9986,51.3170,0.8265,51.8291"}},{"para":[["Paul McCartney wrote ",false,false,null],["She's Leaving Home",false,true,null],[" after spotting a UK newspaper headline on 27th February 1967 which read '",false,false,null],["A-Level Girl Dumps Car and Vanishes.",false,true,null],["'",false,false,null]]},{"media":{"kind":"Image","title":"70b545c4c6ccdbf6d0087f671b1109c7.556x960x1","caption":"Daily Mirror on 27th February 1967","url":"https://images.rapgenius.com/70b545c4c6ccdbf6d0087f671b1109c7.556x960x1.jpg","size":"large"}},{"para":[["The story was about Melanie Coe, a 17-year-old student who had disappeared from her home at Stamford Lodge, Amhurst Park, Stamford Hill, north London. It later transpired that she had gone to stay with her boyfriend in Bayswater, 8 miles away.",false,false,null]]},{"para":[["It transpired that ",false,false,null],["She's Leaving Home",false,true,null],[" held a further intriguing provenance.  Paul McCartney had actually met Melanie Coe  on the TV show ",false,false,null],["Ready Steady Go!",false,true,null],[" in 1963.",false,false,null]]},{"para":[["During the 4 October 1963 episode of ",false,false,null],["Ready Steady Go!",false,true,null],[" when The Beatles first appeared on the show, Paul McCartney was invited to judge a competition in which four girls had to mime to Brenda Lee's song ",false,false,null],["Let's Jump the Broomstick",false,true,null],[" (a song which, by coincidence, also refers to the emerging 'generation gap').",false,false,null]]},{"para":[["Here is a recording of the episode of ",false,false,null],["Ready Steady Go!",false,true,null],[" when Paul McCartney met Melanie Coe over three years before writing the song inspired by her story.",false,false,null]]},{"media":{"kind":"Video","title":"Paul McCartney Judges Miming Contest (Ready Steady Go! 4th October 1963).","caption":"","url":"https://www.youtube.com/embed/IgQ1qNPciic?wmode=opaque&rel=0"}},{"para":[["When Paul McCartney wrote ",false,false,null],["She's Leaving Home",false,true,null],[", he made no connection with their meeting on ",false,false,null],["Ready Steady Go!",false,true,null],[" and Melanie Coe was also completely unaware of the coincidence until a few years later, as she explains in this interview...",false,false,null]]},{"media":{"kind":"Video","title":"Melanie Coe explains her story on The One Show (BBC One)","caption":"","url":"https://www.youtube.com/embed/Jt-IUwUE924?wmode=opaque&rel=0"}},{"level":2,"text":"1.7 Being For The Benefit Of Mr Kite","anchor":"section-22"},{"para":[["!",false,false,null],["Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 1 label 1967 first pressing (Sgt.-1967A"],["__1494452314623.jpg)",false,false,null]]},{"para":[["Being For The Benefit Of Mr Kite!",false,true,null],[" is one of Sgt Pepper's more lyrically and sonically adventurous songs, capturing a mid-1960s fashion for collecting and celebrating Victoriana.",false,false,null]]},{"level":2,"text":"Being For The Benefit Of Mr Kite!","anchor":"section-23"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-0.1455,51.2063,0.3108,51.3352],"extent_key":"-0.1455,51.2063,0.3108,51.3352"}},{"para":[["On 31 January 1967, The Beatles were in Sevenoaks, Kent, making the promotional films for ",false,false,null],["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever",false,true,null],[".",false,false,null]]},{"para":[["During a break in filming, John Lennon had wandered into an antique shop close to their hotel and bought a framed Victorian circus poster from 1843.",false,false,null]]},{"para":[["The poster proudly announced that the circus would be for the benefit of Mr Kite, and would include \"Mr J Henderson the celebrated Somerset thrower\" and Zanthus the horse.",false,false,null]]},{"media":{"kind":"Image","title":"John Lennon with Mr Kite poster (tumblr_o1u0vlEjoz1r5yidfo1_500)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/John%20Lennon%20with%20Mr%20Kite%20poster%20(tumblr_o1u0vlEjoz1r5yidfo1_500)__1494076916060.jpg","size":"large"}},{"para":[["John Lennon with the Victorian poster which inspired him to write the song ",false,false,null],["Being For The Benefit Of Mr Kite!",false,true,null]]},{"media":{"kind":"Image","title":"Mr Kite poster 2","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Mr%20Kite%20poster%202__1496177182228.jpg","size":"large"}},{"para":[["Mr Kite was a well-known all-round circus performer who, like a professional footballer of today changing clubs, had recently transferred from Wells Circus.",false,false,null]]},{"media":{"kind":"Image","title":"Mr Kite poster 2","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Mr%20Kite%20poster%202__1496177229227.jpg","size":"large"}},{"para":[["His new employer was Pablo Fanque's Circus Royal.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-7.2043,50.8479,5.4739,54.3105],"extent_key":"-7.2043,50.8479,5.4739,54.3105"}},{"para":[["John Lennon borrowed heavily from words on the poster for his lyrics:",false,false,null]]},{"para":[["'The Hendersons will all be there",false,true,null]]},{"para":[["Late of Pablo Fanque's Fair - what a scene'",false,true,null]]},{"para":[["Pablo Fanque's real name was William Darby, from Norwich, a city in the county of Norfolk, England.",false,false,null]]},{"para":[["He is noted for being the first person of African descent to be the proprietor of a circus in Britain.",false,false,null]]},{"para":[["!",false,false,null],["William Darby aka Pablo Fanque (1bfa96d8977a7fad26e6cb371af253aa6d245c78)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/William Darby aka Pablo Fanque (1bfa96d8977a7fad26e6cb371af253aa6d245c78"],["__1495547019567.jpg \"Pablo Fanque, whose real name was William Darby, was raised in Norwich.\")",false,false,null]]},{"para":[["At an early age, William began training with a circus troupe where he became a highly proficient horseman, rope man and acrobat.",false,false,null]]},{"para":[["William Darby was the son of John Darby and Mary Stamp who are thought to have lived in Ber Street, Norwich.",false,false,null]]},{"para":[["Source:",false,true,null],[" ",false,false,null],["Broadland Memories Blog",false,true,"http://archive.is/nVDXw#selection-149.196-149.309"]]},{"media":{"kind":"Image","title":"William Darby aka Pablo Fanque Blue Plaque, Ber Street, Norwich (4399366528_006b8da048_b)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/William%20Darby%20aka%20Pablo%20Fanque%20Blue%20Plaque%2C%20Ber%20Street%2C%20Norwich%20(4399366528_006b8da048_b)__1495548451313.jpg","size":"large"}},{"para":[["A blue plaque in Norwich now commemorates Pablo Fanque, who was really William Darby, and the link to The Beatles' song on the ",false,false,null],["Sgt. Pepper",false,true,null],[" album.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-7.2702,50.2124,5.408,53.7231],"extent_key":"-7.2702,50.2124,5.4080,53.7231"}},{"para":[["Another reference to the circus in the song suggests that John Lennon had done his homework on the Hendersons:",false,false,null]]},{"para":[["And of course Henry The Horse",false,true,null]]},{"para":[["dances the waltz!",false,true,null]]},{"para":[["John Henderson had left Pablo Fanque's circus to start his own.",false,false,null]]},{"para":[["As stated in the poster, John Lennon refers to Henderson's ability to throw ",false,false,null],["'somersets'.",false,true,null],["  This was a term used for somersaults, not the English county of Somerset.",false,false,null]]},{"para":[["In Ipswich, in the county of Suffolk, the Old Cemetery contains a grave for John Henderson and Henry the Horse.",false,false,null]]},{"para":[["Source:",false,true,null],[" ",false,false,null],["Simon K",false,true,"https://www.flickr.com/photos/norfolkodyssey/5677193433"]]},{"media":{"kind":"Image","title":"John Henderson and Henry the Horse - Old Cemetery, Ipswich (5677193433_df144159e6_b)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/John%20Henderson%20and%20Henry%20the%20Horse%20-%20Old%20Cemetery%2C%20Ipswich%20(5677193433_df144159e6_b)__1495553687473.jpg","size":"large"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-3.4755,53.3435,-1.6504,53.8828],"extent_key":"-3.4755,53.3435,-1.6504,53.8828"}},{"para":[["Pablo Fanque's Circus Royal would be visiting the Town Meadows at the heart of Rochdale, Lancashire on Tuesday 14th February, 1843 (St Valentine's Day).",false,false,null]]},{"para":[["Being For The Benefit Of Mr Kite",false,true,null]]},{"media":{"kind":"Spotify embed","title":"Being For The Benefit Of Mr Kite (Sgt. Pepper Side 1, Track 7)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A59pHZGDsoullvuO7LUQmpA"}},{"level":2,"text":"Sgt. Pepper Side 2","anchor":"section-24"},{"para":[["!",false,false,null],["Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B"],["__1494454070515.jpg)",false,false,null]]},{"para":[["Side 2 of Sgt. Pepper opened with the only song on the album written and performed by George Harrison called ",false,false,null],["Within You Without You.",false,true,null]]},{"level":2,"text":"2.1 Within You Without You","anchor":"section-25"},{"media":{"kind":"Image","title":"Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt%20Pepper%20Side%202%20label%201967%20first%20pressing%20(Sgt.-1967B)__1494454070515.jpg","size":"large"}},{"para":[["George Harrison had been dabbling with music from India since 1965, when he became fascinated with a sitar left on the set during a break in the filming of The Beatles' second movie, ",false,false,null],["Help!",false,true,null]]},{"para":[["A small number of other 'western' artists had experimented with the sitar such as the British group ",false,false,null],["the Yardbirds",false,false,"https://www.youtube.com/watch?v=n1h7rCwbsuY"],[", but the huge exposure received by Sgt. Pepper all around the world provided an opportunity for many people to hear such sounds for the first time.  Consequently, George Harrison's ",false,false,null],["Within You Without You",false,true,null],[" was ",false,false,null],["major catalyst of interest in 'World Music'",false,false,"http://www.nytimes.com/2001/12/09/arts/george-harrison-world-music-catalyst-great-souled-man-open-influence-unfamiliar.html"],[".",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Within You Without You (Sgt. Pepper Side 2, Track 1)","caption":"","url":"https://www.youtube.com/embed/HsffxGyY4ck"}},{"level":2,"text":"Within You Without You","anchor":"section-26"},{"media":{"kind":"Image","title":"George Harrison’s fisheye self-portraits in India, 1966 7","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/George%20Harrison%E2%80%99s%20fisheye%20self-portraits%20in%20India%2C%201966%207__1529246213531.png","size":"large"}},{"para":[["Within You Without You",false,true,null],[", written and sung by George Harrison, was inspired by a six-week stay in India with his mentor and sitar teacher, Ravi Shankar, in the autumn of 1966.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[6.8766,1.0122,123.6832,47.2504],"extent_key":"6.8766,1.0122,123.6832,47.2504"}},{"para":[["Within You Without You",false,true,null],[" features Indian instruments such as a sitar, dilruba and tabla.  Harrison recorded the song with members of the Asian Music Circle.",false,false,null]]},{"para":[["George Harrison and Ravi Shankar playing sitar in India",false,false,null]]},{"media":{"kind":"Image","title":"tumblr_n5bzgwzRs61s9nul2o1_500","caption":"Sept/Oct 1966 © The Harrison Family.","url":"https://66.media.tumblr.com/0e1737163ebfa44988358fb4f2508c70/tumblr_n5bzgwzRs61s9nul2o1_500.jpg","size":"large"}},{"para":[["There has been renewed interest in Harrison's visit to India in recent years due to the photographs he took, several of which are regarded as early 'selfies' often using a fish-eye lens.  This is an excellent example at the Taj Mahal in Agra.",false,false,null]]},{"media":{"kind":"Image","title":"George Harrison’s fisheye self-portraits in India, 1966 1 1","caption":"An early 'selfie' by George Harrison at the Taj Mahal, Agra, India","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/George%20Harrison%E2%80%99s%20fisheye%20self-portraits%20in%20India%2C%201966%201%201__1529246425297.png","size":"large"}},{"para":[["More George Harrison 'selfies' here.",false,false,"http://www.shootingfilm.net/2013/09/george-harrisons-fisheye-self-portraits.html"]]},{"para":[["Ravi Shankar, Harrison's sitar teacher, said that the song was inspired by part of the 'pure essence of India' experienced at Dal Lake, Srinagar, Kashmir, India.",false,false,null]]},{"media":{"kind":"Image","title":"1024px-Char_Chinar","caption":"","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Char_Chinar.jpg/1024px-Char_Chinar.jpg","size":"large"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-11.27,49.6264,3.3309,54.1122],"extent_key":"-11.2700,49.6264,3.3309,54.1122"}},{"para":[["Although influenced largely by his visit to India, George Harrison actually wrote ",false,false,null],["Within You Without You",false,true,null],[" in the UK in early 1967 while visiting musician and artist Klaus Voormann at 29 Parliament Hill, Hampstead, London.",false,false,null]]},{"para":[["The Beatles had befriended Voorman during their pre-fame visits to Hamburg, Germany.  He designed the Grammy Award winning cover for their 1966 album Revolver.",false,false,null]]},{"media":{"kind":"Image","title":"beatles~~~~_revolver~_101b","caption":"","url":"https://cdn2.dustygroove.com/images/products/b/beatles~~~~_revolver~_101b.jpg","size":"large"}},{"level":2,"text":"2.2 When I'm Sixty-Four","anchor":"section-27"},{"para":[["!",false,false,null],["Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B"],["__1494454070515.jpg)",false,false,null]]},{"para":[["Although the song is about ageing, ",false,false,null],["When I'm Sixty-Four",false,true,null],[" was one of the first songs Paul McCartney wrote when he was sixteen.  It is sung by a young man to his wife about growing old together.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - When I'm Sixty-Four Sgt. Pepper Side 2, Track 2)","caption":"","url":"https://www.youtube.com/embed/HCTunqv1Xt4"}},{"level":2,"text":"When I'm Sixty-Four","anchor":"section-28"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-3.5212,53.2487,-2.6086,53.5198],"extent_key":"-3.5212,53.2487,-2.6086,53.5198"}},{"para":[["Paul McCartney wrote ",false,false,null],["When I'm Sixty-Four",false,true,null],[" while he was still living at his childhood home at 20 Forthlin Road, Liverpool.",false,false,null]]},{"para":[["The house is now a National Trust museum.",false,false,null]]},{"media":{"kind":"Image","title":"20 Forthlin Road (Paul McCartney's childhood home)","caption":"National Trust Museum at 20 Forthlin Road, Liverpool (the house with a green hedge)","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/20%20Forthlin%20Road%20(Paul%20McCartney's%20childhood%20home)__1494094048412.png","size":"large"}},{"level":2,"text":"2.3 Lovely Rita","anchor":"section-29"},{"para":[["!",false,false,null],["Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B"],["__1494454070515.jpg)",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Lovely Rita (Sgt. Pepper Side 2, Track 3)","caption":"","url":"https://www.youtube.com/embed/ysDwR5SIR1Q"}},{"level":2,"text":"Lovely Rita","anchor":"section-30"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-0.6718,51.3936,0.3135,51.6704],"extent_key":"-0.6718,51.3936,0.3135,51.6704"}},{"para":[["Traffic wardens were introduced to Britain in the 1960, as increasing car ownership led to more congestion on the streets.",false,false,null]]},{"para":[["The nickname 'meter maids' was used to refer to women traffic wardens.",false,false,null]]},{"media":{"kind":"Image","title":"Ethel Hall one of first female traffic wardens 1965(_49233511_3382137)","caption":"Ethel Hall of Dalston, one of the first 'Lady Traffic Wardens' in Dalston, north London 1965","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Ethel%20Hall%20one%20of%20first%20female%20traffic%20wardens%201965(_49233511_3382137)__1494094233318.jpg","size":"large"}},{"para":[["According to some sources, ",false,false,null],["Lovely Rita",false,true,null],[" originates from an occasion when a female traffic warden, coincidentally named Meta Davies, issued a parking citation to McCartney outside Abbey Road Studios. Instead of becoming angry, he accepted it with good grace and expressed his feelings in song. When asked why he had called her 'Rita', McCartney replied, \"Well, she looked like a Rita to me\".",false,false,null]]},{"para":[["Paul McCartney wrote the words for ",false,false,null],["Lovely Rita",false,true,null],[" while walking near his brother Michael's house in Gayton in the Wirral near Liverpool.",false,false,null]]},{"level":2,"text":"2.4 Good Morning Good Morning","anchor":"section-31"},{"para":[["!",false,false,null],["Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B"],["__1494454070515.jpg)",false,false,null]]},{"level":2,"text":"Good Morning Good Morning","anchor":"section-32"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-159.2736,6.7073,43.5779,72.62],"extent_key":"-159.2736,6.7073,43.5779,72.6200"}},{"para":[["The idea for the song ",false,false,null],["Good Morning Good Morning",false,true,null],[" came to John Lennon from an advertising song, originally broadcast in the USA.",false,false,null]]},{"para":[["Commercial TV had only started in the UK in 1955 with one station, ITV.  It often bought in ready-made advertising from the USA where commercial TV was the norm.",false,false,null]]},{"para":[["This included a series of commercials for Kellogg's Corn Flakes used from the late 1950s into the 1960s featuring a catchy little song starting with the lines: ",false,false,null],["'Good Morning, Good Morning.  The best to you each morning.'",false,true,null]]},{"media":{"kind":"Image","title":"Kellogs 'good morning'","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Kellogs%20'good%20morning'__1494106820043.PNG","size":"large"}},{"para":[["Kellog's Cornflakes ",false,false,null],["'Good morning'",false,true,null],[" commercial:",false,false,null]]},{"media":{"kind":"Video","title":"Kellogg's 'Good Morning' commercial, used in the late 1950s and through to the 1960s","caption":"","url":"https://www.youtube.com/embed/yt5GQmNYt04?wmode=opaque&rel=0"}},{"para":[["Influenced by this advertising earworm",false,false,"https://en.wikipedia.org/wiki/Good_Morning_Good_Morning"],[", John Lennon wrote ",false,false,null],["Good Morning Good Morning",false,true,null],[", having heard the commercial while watching TV at his home 'Kenwood', Wood Lane, St George's Hill, Surrey.",false,false,null]]},{"media":{"kind":"Spotify embed","title":"The Beatles - Good Morning Good morning (Sgt. Pepper Side 2, Track 4)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A1oZi9oP0zXAfSzIjYRXsES"}},{"level":2,"text":"2.6 A Day In The Life","anchor":"section-33"},{"para":[["!",false,false,null],["Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper Side 2 label 1967 first pressing (Sgt.-1967B"],["__1494454070515.jpg)",false,false,null]]},{"para":[["A Day In The Life",false,true,null],[" is the closing track on ",false,false,null],["Sgt. Pepper",false,true,null],[".  It is a complex and remarkable composition which has deservedly  become one of The Beatles' ",false,false,null],["most critically acclaimed songs",false,false,"https://en.wikipedia.org/wiki/A_Day_in_the_Life#Recognition_and_reception"],[".",false,false,null]]},{"para":[["A Day In The Life",false,true,null],[" is also highly evocative of place.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - A Day In The Life (Sgt. Pepper Side 2, Track 6)","caption":"","url":"https://www.youtube.com/embed/usNsCeOV4GM?wmode=opaque&rel=0"}},{"level":2,"text":"A Day In The Life","anchor":"section-34"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-19.0765,49.1744,6.2799,56.0781],"extent_key":"-19.0765,49.1744,6.2799,56.0781"}},{"para":[["Lyrically and musically ",false,false,null],["A Day In The Life",false,true,null],[" incorporates three sections set in three different places.",false,false,null]]},{"para":[["There are two sections by John Lennon, linked to London and Blackburn, which bookend a middle section by Paul McCartney set in Liverpool.",false,false,null]]},{"para":[["The first part of ",false,false,null],["A Day In The Life",false,true,null],[", written by John Lennon references the death of Tara Browne, heir to the Guinness fortune and a young London socialite well-known to the Beatles.",false,false,null]]},{"media":{"kind":"Image","title":"Tara Browne (tumblr_mgu4ccd5Qx1qjv2ibo1_r1_400)","caption":"Tara Browne (4 March 1945 – 18 December 1966)","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Tara%20Browne%20(tumblr_mgu4ccd5Qx1qjv2ibo1_r1_400)__1496270296076.png","size":"large"}},{"para":[["In December 1965, Tara Browne had been with Paul McCartney when he cut his upper lip and chipped a tooth in an accident while riding a moped in Liverpool.  To cover up his injury, McCartney grew a moustache.  The other Beatles also grew moustaches, contributing to the distinctive iconography of ",false,false,null],["Sgt. Pepper",false,true,null],[".  It would appear that Tara Browne influenced ",false,false,null],["Sgt. Pepper",false,true,null],[" in more ways than one.",false,false,null]]},{"para":[["Sources:",false,true,null],[" ",false,false,null],["McCartney.com",false,true,"http://McCartney.com"],[";",false,true,null],[" ",false,false,null],["The Beatles Bible",false,true,"https://www.beatlesbible.com/1965/12/26/paul-mccartney-moped-accident-liverpool/"]]},{"para":[["In the promo film for ",false,false,null],["Paperback Writer",false,true,null],[", filmed in May 1966, Paul McCartney's chipped front tooth was clearly visible.",false,false,null]]},{"media":{"kind":"Image","title":"Paul McCartney's chipped tooth (Paperback Writer promo, May 1966) 2c ac","caption":"Paul McCartney's chipped tooth (Paperback Writer promo; May 1966)","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Paul%20McCartney's%20chipped%20tooth%20(Paperback%20Writer%20promo%2C%20May%201966)%202c%20ac__1496270108746.png","size":"large"}},{"para":[["A year after the moped incident, in another far more serious road accident, Tara Browne was sadly killed when he crashed his car in Redcliffe Square, Kensington, London in December 1966.",false,false,null]]},{"para":[["'I read the news today, oh boy",false,true,null]]},{"para":[["About a lucky man who made the grade'",false,true,null]]},{"media":{"kind":"Image","title":"A Day In The Life (Tara Browne car accident and article)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/A%20Day%20In%20The%20Life%20(Tara%20Browne%20car%20accident%20and%20article)%20__1494107730591.jpg","size":"large"}},{"para":[["Paul McCartney's middle section of the song connects with his memories of rushing down Forthlin Road to catch a bus from Mather Avenue to his secondary school, Liverpool Institute High School for Boys.",false,false,null]]},{"para":[["'Found my coat and grabbed my hat,",false,true,null]]},{"para":[["Made the bus in seconds flat'",false,true,null]]},{"media":{"kind":"Image","title":"Mather Road bus stop (nearest to Paul McCartney's childhood home)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Mather%20Road%20bus%20stop%20(nearest%20to%20Paul%20McCartney's%20childhood%20home)__1494108271305.png","size":"large"}},{"para":[["In the third section of Day In The Life, John Lennon refers to a newspaper story about the state of roads in Blackburn, Lancashire.",false,false,null]]},{"media":{"kind":"Image","title":"4000 Holes in Blackburn, Lancashire (newspaper clipping)","caption":"4000 holes in Blackburn, Lancashire","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/4000%20Holes%20in%20Blackburn%2C%20Lancashire%20(newspaper%20clipping)__1496692246293.jpg","size":"large"}},{"para":[["On the 17th January 1967 the Daily Mail reported that ",false,false,null],["\"There are 4000 holes in the road in Blackburn Lancashire, one twenty-sixth of a hole per person, according to a council survey. If Blackburn is typical then there are over two million holes in Britain's roads and 300,000 in London.\"",false,true,null]]},{"para":[["\"Now they know how many holes",false,true,null]]},{"para":[["it takes to fill the Albert Hall\"",false,true,null]]},{"para":[["\"Now they know how many holes",false,true,null]]},{"para":[["it takes to fill the Albert Hall\"",false,true,null]]},{"para":[["There was no connection between the article about Blackburn and the Albert Hall, but Lennon used this idea to make the lyric work.",false,false,null]]},{"para":[["Given the Beatles' new preoccupation with places, by happy coincidence the Royal Albert Hall is just a short distance from the Royal Geographical Society.",false,false,null]]},{"level":2,"text":"\"Lend me your ears...\"","anchor":"section-35"},{"media":{"kind":"Image","title":"Radio London ship - Galaxy_2048a","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Radio%20London%20ship%20-%20Galaxy_2048a__1529246565060.jpg","size":"large"}},{"para":[["The song ",false,false,null],["With A Little Help From My Friends",false,true,null],[" implored: \"Lend me your ears and I'll sing you a song\".",false,false,null]]},{"para":[["As live performances were no longer part of The Beatles' plans, they needed to consider different approaches to the promotion of their new music.  In the mid 1960s, one of the most effective and revolutionary 'new media' in the UK were pirate radio stations.",false,false,null]]},{"para":[["From 1964 onwards, a number of ",false,false,null],["offshore pirate radio stations",false,false,"https://en.wikipedia.org/wiki/Pirate_radio_in_the_United_Kingdom#1960s"],[" were set up to play pop music to a youthful nation of baby-boomers.  This was in response to a very limited amount of broadcasting from the BBC and there were no local or independent radio stations.  As the 'pirates' did not have broadcasting licences, they took advantage of legal loopholes to set up their transmitters.  This usually meant broadcasting from ships moored just outside British territorial waters.",false,false,null]]},{"para":[["One of them, ",false,false,null],["Radio London",false,false,"https://en.wikipedia.org/wiki/Wonderful_Radio_London"],[" (also known as 'Big L' and 'Wonderful Radio London'), employed a Liverpool DJ, Kenny Everett.",false,false,null]]},{"media":{"kind":"Image","title":"Kenny Everett on Radio London 1","caption":"Kenny Everett, working for Radio London, one of the main pirate radio stations of the 1960s","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Kenny%20Everett%20on%20Radio%20London%201__1494109239148.jpg","size":"large"}},{"para":[["He was a friend of The Beatles and managed to arrange a few 'scoops' for the station including the first broadcast of ",false,false,null],["Penny Lane",false,true,null],[" / ",false,false,null],["Strawberry Fields Forever",false,true,null],[". Kenny Everett went on to work for the BBC in 1967 and continued to support the Beatles in various ways.",false,false,null]]},{"level":2,"text":"\"Lend Me Your Ears...\"","anchor":"section-36"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-7.1008,49.8368,5.5774,53.3757],"extent_key":"-7.1008,49.8368,5.5774,53.3757"}},{"para":[["The first public broadcast of the tracks from the Sgt. Pepper in the UK was on the pirate radio station Radio London on 12th May 1967, several weeks before its official release.",false,false,null]]},{"para":[["Details about how Radio London obtained the album first",false,false,"http://www.radiolondon.co.uk/rl/scrap60/fabforty/sgtpepper/sgtp.html"]]},{"media":{"kind":"Image","title":"Radio London gets first play (sgtpclipping)","caption":"Source: radiolondon.co.uk","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Radio%20London%20gets%20first%20play%20(sgtpclipping)__1494678481113.jpg","size":"large"}},{"para":[["The pirate radio station 'Radio London' broadcast from a ship anchored just outside territorial waters off Frinton-on-Sea, Essex.",false,false,null]]},{"media":{"kind":"Image","title":"Ex-pirates join BBC Radio One","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Ex-pirates%20join%20BBC%20Radio%20One__1529246930441.jpg","size":"large"}},{"para":[["The other DJs who played ",false,false,null],["Sgt. Pepper",false,true,null],[" 'early' on Radio London included Ed Stewart, John Peel and Pete Drummond, all of whom later joined the new BBC station Radio One when it opened in September 1967.",false,false,null]]},{"para":[["Hear extracts from Sgt Pepper's first broadcast",false,false,"http://www.offshoreradio.co.uk/audio/bigl25.mp3"]]},{"para":[["Photograph: David Kindred",false,false,"http://www.letstalk24.co.uk/articles/picturing-the-pirates/"]]},{"level":2,"text":"\"Sit back and let the evening go...\"","anchor":"section-37"},{"media":{"kind":"Image","title":"Beatles-Hendrix cartoon","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles-Hendrix%20cartoon__1496181822413.jpg","size":"large"}},{"para":[["The first cover version of a track on ",false,false,null],["Sgt. Pepper",false,true,null],[" was by Jimi Hendrix on Sunday 4 June 1967.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-4.8405,50.2703,2.4599,52.3305],"extent_key":"-4.8405,50.2703,2.4599,52.3305"}},{"para":[["The Jimi Hendrix Experience chose to sing the title track ",false,false,null],["Sgt. Pepper's Lonely Hearts Club Band",false,true,null],[" to open their concert.",false,false,null]]},{"para":[["The concert took place at the Saville Theatre in London's West End.",false,false,null]]},{"media":{"kind":"Video","title":"Jimi Hendrix Experience - Sgt. Pepper's Lonely Hearts Club Band (Saville Theatre, 4 June 1967)","caption":"","url":"https://www.youtube.com/embed/tZoIxlRC32k"}},{"para":[["Paul McCartney, John Lennon and George Harrison were at the concert.  Hendrix didn’t know at the time that they were in the audience.",false,false,null]]},{"para":[["!",false,false,null],["Beatles watch Jimi Hendrix Sunday 4 June 1967 at Saville Theatre 3981948640_186ce74e39",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles watch Jimi Hendrix Sunday 4 June 1967 at Saville Theatre 3981948640_186ce74e39__1496179095546.jpg"]]},{"para":[["Paul McCartney later described how he felt about Hendrix's tribute:",false,false,null]]},{"para":[["\"It's a pretty major compliment in anyone's book. I put that down as one of the great honours of my career.\"",false,true,"https://www.beatlesbible.com/1967/06/04/mccartney-harrison-watch-jimi-hendrix-london/"]]},{"para":[["The Beatles used the Saville Theatre to film their promo for ",false,false,null],["Hello, Goodbye",false,true,null],[", their final release of 1967.",false,false,null]]},{"level":2,"text":"1967 after Sgt. Pepper","anchor":"section-38"},{"media":{"kind":"Image","title":"the-beatles-magical-mystery-tour-in-1967-04","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/the-beatles-magical-mystery-tour-in-1967-04__1529247117336.jpg","size":"large"}},{"para":[["The convergence of various cultural trends in youth, social, fashion and political movements and pop music from 1966 to 1967 culminated in what has become known as the ",false,false,null],["Summer of Love",false,true,null],[".  It is often associated with a prevailing hippie culture of the era linked initially to the Haight-Ashbury neighbourhood of San Francisco, California.",false,false,null]]},{"para":[["Having toured the USA four times, met and made friends with key figures on the 'scene', The Beatles were very much aware of and indeed key players in this phenomenon.",false,false,null]]},{"para":[["Their activity in 1967 contributed strongly to the ",false,false,null],["Summer of Love",false,true,null],[".  The iconography and psychedelic sounds of the ",false,false,null],["Sgt. Pepper",false,true,null],[" album were a major catalyst, but so was their subsequent work, especially the song ",false,false,null],["All You Need Is Love",false,true,null],[".",false,false,null]]},{"level":2,"text":"All You Need Is Love","anchor":"section-39"},{"media":{"kind":"Image","title":"beatles-our-world_01-580x363","caption":"","url":"https://www.beatlesbible.com/wp/media/beatles-our-world_01-580x363.jpg","size":"large"}},{"level":2,"text":"All You Need Is Love","anchor":"section-40"},{"media":{"kind":"Image","title":"All-You-Need-Is-Love-the-beatles-lennon-mccartney-harrison-starr-1024x768 1","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/All-You-Need-Is-Love-the-beatles-lennon-mccartney-harrison-starr-1024x768%201__1529247473985.jpg","size":"large"}},{"media":{"kind":"Video","title":"The Beatles singing All You Need Is Love (colourised extract)","caption":"","url":"https://www.youtube.com/embed/t5ze_e4R9QY?wmode=opaque&rel=0"}},{"media":{"kind":"Image","title":"beatles-all-you-need-is-love-650-430","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/beatles-all-you-need-is-love-650-430__1529247569609.jpg","size":"large"}},{"para":[["Lennon and McCartney wrote All You Need Is Love, which was then released as a non-album single in July 1967.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-0.1805,51.5316,-0.177,51.5326],"extent_key":"-0.1805,51.5316,-0.1770,51.5326"}},{"para":[["The Beatles performed the song to a global audience from Abbey Road studios. It was seen by over 400 million in 25 countries.",false,false,null]]},{"level":2,"text":"\"How do I feel at the end of the day?\"","anchor":"section-41"},{"media":{"kind":"Image","title":"Beatles at end of 1967 ()","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Beatles%20at%20end%20of%201967%20()__1494109632435.jpg","size":"large"}},{"para":[["1967 was a year of triumphant, but not unmitigated success for The Beatles.",false,false,null]]},{"para":[["A milestone event was the tragic death of their manager Brian Epstein.  As Paul McCartney stated, ",false,false,null],["\"If anyone was the Fifth Beatle, it was Brian.\"",false,true,null],["  In retrospect, this moment initiated a slow and painful unravelling of the Beatles as a coherent entity.",false,false,null]]},{"para":[["John Lennon later explained the significance of losing Brian Epstein as the beginning of a downward spiral and eventual break up of the group: ",false,false,null],["\"I knew we were in trouble then\"",false,false,"https://en.wikipedia.org/wiki/John_Lennon"],[".",false,false,null]]},{"media":{"kind":"Image","title":"John Lennon by Linda McCartney (nee Eastman) 1968","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/John%20Lennon%20by%20Linda%20McCartney%20(nee%20Eastman)%201968__1496737807019.jpg","size":"large"}},{"para":[["A phrase from With A Little Help From My Friends gained new poignance:",false,false,null]]},{"para":[["\"Are you sad because you're on your own?\"",false,false,null]]},{"para":[["Furthermore, the year ended with what was considered be their first critical failure - a disjointed made-for-television film called ",false,false,null],["Magical Mystery Tour",false,true,null],[".",false,false,null]]},{"level":2,"text":"Magical Mystery Tour","anchor":"section-42"},{"media":{"kind":"Image","title":"Magical Mystery Tour (Beatles standing up through top of coach) p01l95gh","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical%20Mystery%20Tour%20(Beatles%20standing%20up%20through%20top%20of%20coach)%20p01l95gh__1494777525155.jpg","size":"large"}},{"media":{"kind":"Image","title":"Magical Mystery Tour album cover","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical%20Mystery%20Tour%20album%20cover__1514127136535.jpg","size":"large"}},{"para":[["The film was initially aired in the United Kingdom on BBC1. George Martin, the band's producer, explained: \"When it came out originally on British television, it was a colour film shown in black and white, because they didn’t have colour on BBC1 in those days. It looked awful and was a disaster.\"  The film was shown in colour on BBC2 a few days later, but unfortunately there were only about 200,000 colour TV receivers in the UK at the time.",false,false,null]]},{"para":[["In spite of its shortcomings, the film is now of interest as a period piece and even at the time the soundtrack maintained their musical reputation, including several iconic songs.",false,false,null]]},{"para":[["Here is a trailer for the film:",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Magical Mystery Tour (Trailer)","caption":"","url":"https://www.youtube.com/embed/K2xpbKBuTEw?wmode=opaque&rel=0"}},{"level":2,"text":"Magical Mystery Tour","anchor":"section-43"},{"para":[["!",false,false,null],["Magical Mystery Tour (Beatles standing up through top of coach) p01l95gh",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical Mystery Tour (Beatles standing up through top of coach"],[" p01l95gh__1494777525155.jpg)",false,false,null]]},{"para":[["Magical Mystery Tour",false,true,null],[" is the opening track and theme song for the album, double EP and TV film of the same name. Unlike the theme songs for their other film projects, it was not released as a single.",false,false,null]]},{"para":[["Magical Mystery Tour (Title track)",false,true,null]]},{"media":{"kind":"Spotify embed","title":"","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A7GeZEzG1QEjqRzuWVlrBFt"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[0.3436,51.2606,0.4305,51.2851],"extent_key":"0.3436,51.2606,0.4305,51.2851"}},{"para":[["Much of the film was shot in and around RAF West Malling, since decommissioned. Most of the area is now a small new town called King's Hill and a golf course.",false,false,null]]},{"media":{"kind":"Image","title":"Magical Mystery Tour West Malling RAF Base RS4_MMT_Press04-lpr","caption":"The Beatles sing 'I Am The Walrus' at RAF West Malling","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical%20Mystery%20Tour%20West%20Malling%20RAF%20Base%20RS4_MMT_Press04-lpr__1529247741608.jpg","size":"large"}},{"media":{"kind":"Image","title":"RAF West Malling film locations aerial image","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/RAF%20West%20Malling%20film%20locations%20aerial%20image__1529247882968.jpg","size":"large"}},{"para":[["This aerial photograph of RAF West Malling shows some of the main locations used for the film.",false,false,null]]},{"para":[["Kenwood Lennon",false,true,"http://kenwoodlennon.blogspot.co.uk/2010_08_01_archive.html"]]},{"level":2,"text":"The Fool On The Hill","anchor":"section-44"},{"media":{"kind":"Image","title":"Fool On The Hill (Paul McCartney - still from promo 1)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Fool%20On%20The%20Hill%20(Paul%20McCartney%20-%20still%20from%20promo%201)__1494779238711.jpg","size":"large"}},{"para":[["The Fool On The Hill",false,true,null],[" is a ballad with spiritual connotations. The notion of a 'holy fool' goes back to the Middle Ages referring to a characteristic of spiritual leaders with mystical qualities.  A titular 'fool' was a character who could stand back from society, offering wise perspectives which might not be properly appreciated by everyone, leading to isolation or discrimination.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - The Fool On The Hill (from Magical Mystery Tour)","caption":"","url":"https://www.youtube.com/embed/DGEX_7IqaC4?wmode=opaque&rel=0"}},{"level":2,"text":"The Fool On The Hill","anchor":"section-45"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-9.399,39.856,15.9575,48.8475],"extent_key":"-9.3990,39.8560,15.9575,48.8475"}},{"para":[["The Fool On The Hill",false,true,null],[" was written by Paul McCartney about anyone whose wisdom is unappreciated: ",false,false,null],["\"someone like Maharishi\". His detractors called him a fool. Because of his giggle he wasn't taken too seriously. It was this idea of a fool on the hill, a guru in a cave, I was attracted to\"",false,true,null],[".",false,false,null]]},{"para":[["Source: Paul McCartney - Many Years from Now",false,true,null]]},{"para":[["The Beatles with Maharishi Mahesh Yogi",false,false,null]]},{"media":{"kind":"Image","title":"67_beatles_maharishi-mahesh_yogi_002","caption":"Maharishi Mahesh Yogi, meeting The Beatles in 1967","url":"https://www.beatlesbible.com/wp/media/67_beatles_maharishi-mahesh_yogi_002.jpg","size":"large"}},{"para":[["The promo film for ",false,false,null],["The Fool On The Hill",false,true,null],[" featured Paul McCartney on his own.  It was filmed in the south of France.",false,false,null]]},{"para":[["Like the promos for ",false,false,null],["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever",false,true,null],[", it influenced the style of music videos in years to come.",false,false,null]]},{"para":[["The promo film was made on a hill near Nice, France (possibly Mont Macaron).",false,false,null]]},{"media":{"kind":"Image","title":"im_montmacaron3","caption":"Mont Macaron (Mercantour info)","url":"https://mercantour.info/images/im_montmacaron3.jpg","size":"large"}},{"level":2,"text":"Flying","anchor":"section-46"},{"para":[["!",false,false,null],["Magical Mystery Tour - Flying bus (flyingmmtbus)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical Mystery Tour - Flying bus (flyingmmtbus"],["__1494780504186.jpg)",false,false,null]]},{"para":[["Flying",false,true,null],[" is an psychedelic instrumental track used as background music in the 1967 ",false,false,null],["Magical Mystery Tour",false,true,null],[".",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Flying (Magical Mystery Tour)","caption":"","url":"https://www.youtube.com/embed/zLV-aIEPREw?wmode=opaque&rel=0"}},{"level":2,"text":"Flying","anchor":"section-47"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-54.107,58.3753,4.2963,70.6542],"extent_key":"-54.1070,58.3753,4.2963,70.6542"}},{"para":[["Flying",false,true,null],[" is an instrumental track used in as the ",false,false,null],["Magical Mystery Tour",false,true,null],[" bus floats over a mountainous landscape.",false,false,null]]},{"media":{"kind":"Image","title":"Magical Mystery Tour - Flying bus (flyingmmtbus)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical%20Mystery%20Tour%20-%20Flying%20bus%20(flyingmmtbus)__1494780504186.jpg","size":"large"}},{"para":[["In this typically 1967 psychedelic sequence the ",false,false,null],["Magical Mystery Tour",false,true,null],[" bus crosses colour-altered snow-capped mountains in Iceland.",false,false,null]]},{"para":[["Curiously, some of the images used were off-cuts from the 1964 Stanley Kubrick film ",false,false,null],["Dr. Strangelove",false,true,null],[".",false,false,null]]},{"media":{"kind":"Spotify embed","title":"The Beatles - Flying (Magical Mystery Tour)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A2z1p43SNSbeowzy8WdYHNk"}},{"level":2,"text":"Blue Jay Way","anchor":"section-48"},{"media":{"kind":"Image","title":"blue-jay-way1","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/blue-jay-way1__1494785150562.jpeg","size":"large"}},{"para":[["George Harrison contributed the song ",false,false,null],["Blue Jay Way",false,true,null],[" to ",false,false,null],["Magical Mystery Tour",false,true,null],[".  It was based on a real place in the USA.",false,false,null]]},{"level":2,"text":"Blue Jay Way","anchor":"section-49"},{"media":{"kind":"Image","title":"Blue Jay Way (beatlesfacts.files.wordpress.com)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Blue%20Jay%20Way%20(beatlesfacts.files.wordpress.com)__1494784968468.jpg","size":"large"}},{"para":[["Blue Jay Way",false,true,null],[" is named after a road in the Hollywood Hills of Los Angeles where Harrison stayed in August 1967, shortly before visiting the Haight-Ashbury district of San Francisco.",false,false,null]]},{"media":{"kind":"Spotify embed","title":"The Beatles - Blue Jay Way (Magical Mystery Tour)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A0ttMfoND7IQqFSMVOPkELC"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-151.3116,27.5298,-100.5987,45.6771],"extent_key":"-151.3116,27.5298,-100.5987,45.6771"}},{"para":[["The lyrics of ",false,false,null],["Blue Jay Way",false,true,null],[" document Harrison's wait for music publicist Derek Taylor to find his way to Blue Jay Way through the fog-ridden hills, while Harrison struggled to stay awake after the flight from London to Los Angeles.",false,false,null]]},{"level":2,"text":"Your Mother Should Know","anchor":"section-50"},{"para":[["!",false,false,null],["Your Mother Should Know 1 (thefaustorocksyeah.files.wordpress.com)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Your Mother Should Know 1 (thefaustorocksyeah.files.wordpress.com"],["__1494786000890.jpg)",false,false,null]]},{"level":2,"text":"Your Mother Should Know","anchor":"section-51"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-1.7656,51.0874,1.4039,51.9741],"extent_key":"-1.7656,51.0874,1.4039,51.9741"}},{"para":[["Paul McCartney wrote this 'sing-along' song at his home in Cavendish Avenue, St John's Wood, London when some older relatives were staying with him.",false,false,null]]},{"para":[["\"My Aunty Jin and Uncle Harry and a couple of relatives were staying and they were in the living room just across the hall, so I just went to the dining room and spent a few hours with the door open with them listening... It's a very music-hall kind of thing...\"",false,false,null]]},{"para":[["Paul McCartney: Many Years From Now",false,true,null]]},{"media":{"kind":"Spotify embed","title":"The Beatles - Your Mother Should Know (Magical Mystery Tour)","caption":"","url":"https://embed.spotify.com/?uri=spotify%3Atrack%3A61iJ2np62qzaMdEcGvjICc"}},{"para":[["The song was used as the basis for an elaborate sequence involving ballroom dancers and a staircase reminiscent of old Hollywood dance musicals.",false,false,null]]},{"media":{"kind":"Image","title":"Your Mother Should Know 1 (thefaustorocksyeah.files.wordpress.com)","caption":"The Beatles - Your Mother Should Know (Magical Mystery Tour)","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Your%20Mother%20Should%20Know%201%20(thefaustorocksyeah.files.wordpress.com)__1494786000890.jpg","size":"large"}},{"para":[["The filiming was carried out in a hangar at RAF West Malling in Kent, a military airport which has since been decommissioned.",false,false,null]]},{"para":[["Most of the area is now a small new town called King's Hill and a golf course.",false,false,null]]},{"level":2,"text":"I Am The Walrus","anchor":"section-52"},{"media":{"kind":"Image","title":"I Am The Walrus (classic shot with policemen on blast wall)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/I%20Am%20The%20Walrus%20(classic%20shot%20with%20policemen%20on%20blast%20wall)__1494787310790.jpg","size":"large"}},{"para":[["I Am The Walrus",false,true,null],[" is one of the best known songs from ",false,false,null],["Magical Mystery Tour",false,true,null],[" and one of the most baffling.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - I Am The Walrus (Magical Mystery Tour)","caption":"","url":"https://www.youtube.com/embed/UKIs1J_nB4A?wmode=opaque&rel=0"}},{"level":2,"text":"I Am The Walrus","anchor":"section-53"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-4.0371,53.2179,-2.4523,53.6425],"extent_key":"-4.0371,53.2179,-2.4523,53.6425"}},{"para":[["John Lennon wrote the mysterious lyrics of ",false,false,null],["I Am The Walrus",false,true,null],[" to intentionally defy interpretation, and in this respect there is a connection to his old school, Quarry Bank High School in Allerton, Liverpool.",false,false,null]]},{"para":[["John Lennon had received a letter from a student at his old school who said that his English teacher encouraged students to analyse The Beatles' lyrics.",false,false,null]]},{"para":[["Lennon, amused that a teacher was putting so much effort into understanding The Beatles' lyrics, decided to make his next song especially obscure and confusing.",false,false,null]]},{"media":{"kind":"Image","title":"Magical Mystery Tour West Malling RAF Base RS4_MMT_Press04-lpr","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Magical%20Mystery%20Tour%20West%20Malling%20RAF%20Base%20RS4_MMT_Press04-lpr__1529247741608.jpg","size":"large"}},{"para":[["The footage for ",false,false,null],["I Am The Walrus",false,true,null],[" was filmed on the airfield at RAF West Malling (since been decommissioned).",false,false,null]]},{"para":[["The austere setting featured thick concrete blast walls designed to protect military aircraft from from enemy attacks.",false,false,null]]},{"media":{"kind":"Image","title":"The Beatles sing I Am The Walrus at RAF West Malling","caption":"The Beatles sing 'I Am The Walrus' at RAF West Malling","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/The%20Beatles%20sing%20I%20Am%20The%20Walrus%20at%20RAF%20West%20Malling__1529248348456.jpg","size":"large"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","size":"large","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[0.3575,51.2617,0.4191,51.2791],"extent_key":"0.3575,51.2617,0.4191,51.2791"}},{"para":[["Most of the area is now a small new town called King's Hill and a golf course.",false,false,null]]},{"level":2,"text":"Baby You're A Rich Man","anchor":"section-54"},{"media":{"kind":"Image","title":"Baby You're A Rich Man cover (b-side of All You Need Is Love)c","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Baby%20You're%20A%20Rich%20Man%20cover%20(b-side%20of%20All%20You%20Need%20Is%20Love)c__1494968403736.jpg","size":"large"}},{"para":[["Baby You're A Rich Man",false,true,null],[" is a song which appeared first as the B-side of the single ",false,false,null],["All You Need Is Love",false,true,null],[".",false,false,null]]},{"level":2,"text":"Baby, You're A Rich Man","anchor":"section-55"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-1.999,51.1982,0.7833,51.9747],"extent_key":"-1.9990,51.1982,0.7833,51.9747"}},{"para":[["During the mid-1960s, the burgeoning youth movements associated with psychedelia found some expression via semi-spontaneous 'happenings' and venues such as the UFO Club in London, with residencies by avant-garde bands such as Pink Floyd and Soft Machine.",false,false,null]]},{"para":[["The Beatles were influenced by, and an influence on these trends.  In fact Pink Floyd were recording their first album ",false,false,null],["The Piper at the Gates of Dawn",false,true,null],[" at EMI's Abbey Road Studios at the same time as the Beatles were recording ",false,false,null],["Sgt. Pepper",false,true,null],[".",false,false,null]]},{"para":[["Baby, You're A Rich Man",false,true,null],[" may have been initially inspired by the 14-Hour ",false,false,null],["Technicolour Dream",false,true,null],[", a 'happening' which took place on 29 April 1967, shortly before the song was recorded in the Great Hall of the Alexandra Palace, London.",false,false,null]]},{"para":[["Some of the lyrics are thought to be ",false,false,null],["about Brian Epstein, the Beatles' manager",false,false,"https://en.wikipedia.org/wiki/Baby,_You%2527re_a_Rich_Man"],[".",false,false,null]]},{"media":{"kind":"Image","title":"John Lennon at the 14-Hour Technicolour Dream 1967 tech-dream-lennon-2","caption":"John Lennon at the 14-Hour Technicolour Dream 1967","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/John%20Lennon%20at%20the%2014-Hour%20Technicolour%20Dream%201967%20tech-dream-lennon-2__1529248552798.jpg","size":"large"}},{"para":[["The song hints at some of the contradictions of the London 'scene' that Lennon had observed.",false,false,null]]},{"media":{"kind":"Spotify embed","title":"","caption":"","url":"https://open.spotify.com/embed/track/7ncH66qOYWLn3Bdw4OjoFi"}},{"para":[["It was cleverly used at the end of ",false,false,null],["The Social Network",false,true,null],[" (2010), a movie profiling the phenomenal rise of Facebook, starring Jesse Eisenberg as Mark Zuckerberg.",false,false,null]]},{"media":{"kind":"Video","title":"Baby You're A Rich Man - The Beatles (The Social Network 2010)","caption":"","url":"https://www.youtube.com/embed/IRmE2AiabUY?wmode=opaque&rel=0"}},{"para":[["Baby, You're A Rich Man",false,true,null],[" was recorded at Olympic Studios, Barnes, in south-west London.",false,false,null]]},{"media":{"kind":"Image","title":"olympic-sound-studios-821w","caption":"Olympic Studios, Barnes, in south-west London.","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/olympic-sound-studios-821w__1496323806751.jpg","size":"large"}},{"para":[["It became the first Beatles song recorded entirely away from Abbey Road Studios.",false,false,null]]},{"para":[["Olympic Studios was ",false,false,null],["favoured by many recording artists",false,false,"https://en.wikipedia.org/wiki/Olympic_Studios#Artists_at_Olympic_Studios.2C_1966-2009.2C_includes"],[" including The Who, Queen, Led Zeppelin and Pink Floyd.  It was also used to record movie soundtracks.",false,false,null]]},{"para":[["The studios closed in 2009 but the building ",false,false,null],["re-opened in 2013",false,false,"http://www.bbc.co.uk/news/entertainment-arts-24639862"],[" reverting to its original function as a cinema.",false,false,null]]},{"media":{"kind":"Image","title":"Oympic Studios, Barnes (olympic-cinema)","caption":"Olympic Studios building (now the Olympic Cinema)","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Oympic%20Studios%2C%20Barnes%20(olympic-cinema)__1496324150587.jpg","size":"large"}},{"level":2,"text":"\"Are you sad because you're on your own?\"","anchor":"section-56"},{"media":{"kind":"Image","title":"Are you sad because youre on your own Yogi #4","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Are%20you%20sad%20because%20youre%20on%20your%20own%20Yogi%20%234__1529248641215.jpg","size":"large"}},{"para":[["27 August 1967 was one of the most significant days in the life of The Beatles.  Their manager, Brian Epstein, died unexpectedly at his home in London.",false,false,null]]},{"level":2,"text":"The death of Brian Epstein","anchor":"section-57"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-2.7314,50.988,0.9188,52.1185],"extent_key":"-2.7314,50.9880,0.9188,52.1185"}},{"para":[["The Beatles' manager, Brian Epstein died unexpectedly at his home in Chapel Street, Belgravia, London on 27 August 1967.",false,false,null]]},{"media":{"kind":"Image","title":"984674c633869af431f16f0185e9a23d","caption":"","url":"https://s-media-cache-ak0.pinimg.com/736x/98/46/74/984674c633869af431f16f0185e9a23d.jpg","size":"large"}},{"para":[["The Beatles heard about the death of Brian Epstein while in Bangor University in Wales.",false,false,null]]},{"para":[["They had travelled to Bangor to take part in a conference with the Indian guru, Maharishi Mahesh Yogi.",false,false,null]]},{"para":[["In 2002, Bangor University unveiled a plaque to commemorate the 35th anniversary of The Beatles' visit in the Hugh Owen Hall, which is now part of Bangor Business School's Management Centre.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles interviewed about the death of Brian Epstein","caption":"","url":"https://www.youtube.com/embed/T6wmiPIa88c"}},{"media":{"kind":"Video","title":"","caption":"","url":"https://www.youtube.com/embed/gv_0EH-mOBg?wmode=opaque&rel=0"}},{"level":2,"text":"\"It's getting very near the end\"","anchor":"section-58"},{"para":[["!",false,false,null],["Sgt Pepper cover (ultimateclassicrock)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper cover (ultimateclassicrock"],["__1494074357578.jpg)",false,false,null]]},{"level":2,"text":"The Apple Boutique","anchor":"section-59"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-0.1589,51.5199,-0.1558,51.5209],"extent_key":"-0.1589,51.5199,-0.1558,51.5209"}},{"para":[["Apple Corps",false,true,null],[" was a company created by The Beatles in 1967, after the death of their manager Brian Epstein. The Apple Boutique was one of their first business ventures.",false,false,null]]},{"para":[["It was a retail store located in a building on the corner of Baker Street and Paddington Street, Marylebone, London. It opened on 7 December 1967 but was unsuccessful and closed on 30 July 1968.",false,false,null]]},{"para":[["The Apple Boutique being painted, 1967",false,false,null]]},{"media":{"kind":"Image","title":"Apple boutique being painted","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Apple%20boutique%20being%20painted__1514127488786.jpg","size":"large"}},{"para":[["Errors of judgement such as the ",false,false,null],["Magical Mystery Tour",false,true,null],[" film and the ill-fated Apple Boutique can be looked back on as indicators that The Beatles project was unravelling.  Within two years, John, Paul, George and Ringo had gone their separate ways.",false,false,null]]},{"level":2,"text":"Hello, Goodbye","anchor":"section-60"},{"media":{"kind":"Image","title":"beatles-1967-hello-goodbye-video-web","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/beatles-1967-hello-goodbye-video-web__1494794671825.jpg","size":"large"}},{"media":{"kind":"Image","title":"Hello Goodbye - Beatles sleeve cover tumblr_m8rw3sufZE1r3cxcoo1_1280","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Hello%20Goodbye%20-%20Beatles%20sleeve%20cover%20tumblr_m8rw3sufZE1r3cxcoo1_1280__1529248772238.png","size":"large"}},{"para":[["In spite of their autumn inconsistencies, The Beatles finished 1967 with a return to form releasing ",false,false,null],["Hello, Goodbye",false,true,null],[" and one of the greatest ever B-sides ",false,false,null],["I Am The Walrus",false,true,null],[".",false,false,null]]},{"para":[["The title ",false,false,null],["Hello, Goodbye",false,true,null],[" may later have transpired to be prophetic.  The song became a major hit, topping the UK's official singles chart for seven weeks, through to 23 January 1968, giving The Beatles their longest run at number one on this chart since their best performing single ",false,false,null],["She Loves You",false,true,null],[" in 1963.",false,false,null]]},{"media":{"kind":"Image","title":"Hello Goodbye - Beatles Melody Maker advert 1967 - Copy","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Hello%20Goodbye%20-%20Beatles%20Melody%20Maker%20advert%201967%20-%20Copy__1663147353156.jpg","size":"large"}},{"para":[["While they started the year determined to shake off their past, by the end of the year their artistic confidence was sufficiently robust for them to include a self-deprecating return to their 1963 suits in one scene of the promo film for ",false,false,null],["Hello, Goodbye",false,true,null],[" as if to show how far they had travelled artistically in just four years.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Hello, Goodbye","caption":"","url":"https://www.youtube.com/embed/rblYSKz_VnI?wmode=opaque&rel=0"}},{"level":2,"text":"Hello, Goodbye","anchor":"section-61"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","size":"large","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-2.181,51.0765,0.9885,51.9634],"extent_key":"-2.1810,51.0765,0.9885,51.9634"}},{"para":[["Hello, Goodbye",false,true,null],[" was issued as a non-album single in November 1967, the group's first release since the death of their manager, Brian Epstein.",false,false,null]]},{"media":{"kind":"Image","title":"Hello Goodbye - Beatles Melody Maker advert 1967 - Copy","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Hello%20Goodbye%20-%20Beatles%20Melody%20Maker%20advert%201967%20-%20Copy__1663147353156.jpg","size":"large"}},{"para":[["The promo film for ",false,false,null],["Hello, Goodbye",false,true,null],[" was made in the Saville Theatre, Shaftesbury Avenue, London which is now a multi-screen cinema.",false,false,null]]},{"level":2,"text":"\"We hope you have enjoyed the show...\"","anchor":"section-62"},{"para":[["!",false,false,null],["Sgt Pepper cover (ultimateclassicrock)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper cover (ultimateclassicrock"],["__1494074357578.jpg)",false,false,null]]},{"para":[["Many thanks for following this Story Map!",false,false,null]]},{"level":2,"text":"\"We'd like to thank you once again.\"","anchor":"section-63"},{"para":[["!",false,false,null],["Sgt Pepper cover (ultimateclassicrock)",false,false,"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/Sgt Pepper cover (ultimateclassicrock"],["__1494074357578.jpg)",false,false,null]]},{"level":2,"text":"Sources & Credits","anchor":"section-64"},{"credits":[["Wikipedia: The Beatles","Wikipedia: The Beatles","https://en.wikipedia.org/wiki/The_Beatles"],["The Beatles - Alone: At the BBC","The Beatles - Alone: At the BBC (BBC Radio 2)","http://www.bbc.co.uk/programmes/b03m75x3"],["YouTube GB","YouTube GB","https://www.youtube.com/"],["Vimeo","Vimeo","https://vimeo.com"],["The Beatles Bible","The Beatles Bible","https://www.beatlesbible.com/"],["500 Greatest Albums Of All Time (2012)","Rolling Stone Magazine","http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531/the-beatles-sgt-peppers-lonely-hearts-club-band-20120531"],["The Guardian","The Guardian","https://www.theguardian.com"],["The Beatles Lyrics","The Beatles Lyrics","http://www.azlyrics.com/b/beatles.html"],["The Beatles Story","The Beatles Story","http://www.beatlesstory.com/"],["Kent Film Office: The Beatles in Kent (1967)","Kent Film Office","http://kentfilmoffice.co.uk/1967/09/the-beatles-in-kent-1967/"],["The Beatle Source","The Beatle Source","http://www.beatlesource.com/"],["There Are Places I Remember","Beatles Liverpool Locations","http://beatlesliverpoollocations.blogspot.co.uk"],["McCartney Times","McCartney Times","http://mccartney.com/?page_id=233"],["‘You Gave Me The Answer’ – Sgt. Pepper Special","McCartney.com","https://www.paulmccartney.com/news-blogs/news/you-gave-me-the-answer-sgt-pepper-special"],["'Cover story: magic, myth, and music' (2008)","Ian Inglis, in 'Sgt. Pepper and the Beatles: It Was Forty Years Ago Today' by Olivier Juilen. Ashgate.",""],["Sgt. Pepper's Photos","Sgt. Pepper's Photos","https://sgtpepperphotos.wordpress.com/"],["Long and Winding Roads: The Evolving Artistry of the Beatles (2007)","Kenneth Womack. Continuum.",""],["Liverpool Picture Book","Liverpool Picture Book","http://www.liverpoolpicturebook.com/p/l24-25.html"],["Lucy in the Sky with Diamonds (Lucy's Story)","St. Thomas Lupus Trust","http://www.lupus.org.uk/patients-stories/99-lucy-s-story"],["The Beatles As Musicians: Revolver through the Anthology (1999)","Walter Everett",""],["Kenwood Lennon Blogspot","Kenwood Lennon Blogspot","http://kenwoodlennon.blogspot.co.uk/"],["Songfacts","Songfacts","http://www.songfacts.com/artist-the_beatles.php"],["Virtual Globetrotting","Virtual Globetrotting","http://virtualglobetrotting.com/"],["Shooting Film","Shooting Film","http://www.shootingfilm.net/"],["Beatles Liverpool & More","Beatles Liverpool & More","http://www.beatlesliverpoolandmore.com"],["The Hendersons will all be there….","Broadland Memories Blog","http://www.broadlandmemories.co.uk/blog/2011/02/the-hendersons-will-all-be-there/"],["Howard Goodall","Howard Goodall","http://www.howardgoodall.co.uk/"],["Artificial Paradise: The Dark Side of the Beatles' Utopian Dream (2008)","Kevin Courrier",""],["Dale Chan's Beatles World","Dale Chan's Beatles World","http://www.thebeatleshk.com/"],["Offshore Radio","Offshore Radio","http://www.offshoreradio.co.uk/bigl3.htm"],["Radio London Fab Forties","Radio London Fab Forties","http://www.radiolondon.co.uk/rl/scrap60/fabforty/sgtpepper/sgtp.html"],["Let's Talk Magazine","Let's Talk Magazine","http://www.letstalk24.co.uk/articles/picturing-the-pirates/"],["My Beatles Collection","My Beatles Collection","http://www.mybeatlescollection.co.uk/"],["Paul McCartney: Many Years from Now (1998)","Paul McCartney and Barry Miles",""],["Cool Old Photos","Cool Old Photos","http://coololdphotos.com/rare-beatles-photo-1968"],["The Beatles: Multitracking and the 1960s counterculture","Teach Rock","http://teachrock.org/lesson/the-beatles-multitracking-and-the-1960s-counterculture/"],["Bob Le Roi","Bob Le Roi","http://www.bobleroi.co.uk/Home/Home.html"],["Nostalgie","Nostalgie","http://www.nostalgie.be/"],["Liverpool Confidential","Liverpool Confidential","https://www.liverpoolconfidential.co.uk"]]}]</script>
+<script id="story-nav" type="application/json">{"header_title":"A Story Map by BC","header_logo_url":"https://www.arcgis.com/sharing/rest/content/items/a4fdfbf9676d4534b62f737bc06e575d/resources/the-beatles-sgt-pepper-kicker-drum-logo-button-b2043%20button%20edit%203__1499450318410.png","bookmarks":[{"anchor":"top","label":"Intro"},{"anchor":"section-10","label":"Sgt P Side 1"},{"anchor":"section-24","label":"Sgt P Side 2"},{"anchor":"section-38","label":"1967 after Sgt P"}],"layout":"stacked"}</script>
+<script>
+const items = JSON.parse(document.getElementById('story-data').textContent);
+const navConfig = JSON.parse(document.getElementById('story-nav').textContent);
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderRuns(runs) {
+  return runs.map(([text, bold, italic, href]) => {
+    let t = esc(text);
+    if (bold) t = `<b>${t}</b>`;
+    if (italic) t = `<i>${t}</i>`;
+    if (href) t = `<a href="${esc(href)}" target="_blank" rel="noopener">${t}</a>`;
+    return t;
+  }).join('');
+}
+
+function toEmbedUrl(url) {
+  if (!url) return url;
+  if (url.startsWith('//')) return 'https:' + url;
+  return url;
+}
+
+function dimAttr(media) {
+  // Reserves layout space using the image's original AGOL dimensions (when known), so the
+  // browser doesn't reflow the page after images finish loading — which used to knock
+  // scroll position (and bookmark-tab targets) out from under the reader.
+  const w = media && media.width, h = media && media.height;
+  return (w && h) ? ` width="${w}" height="${h}"` : '';
+}
+
+function sizeClass(media) {
+  const s = (media && media.size) || 'large';
+  return 'size-' + (['small', 'medium', 'large', 'full'].includes(s) ? s : 'large');
+}
+function mapHeightFor(media) {
+  if (media && media.custom_height) return media.custom_height;
+  const size = media && media.size;
+  return ({ small: 280, medium: 400, large: 500, full: 640 })[size] || 400;
+}
+
+function renderMedia(media) {
+  const wrap = document.createElement('div');
+
+  if (media.kind && media.kind.startsWith('Background image')) {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<img src="${esc(toEmbedUrl(media.url))}"${dimAttr(media)} loading="lazy" alt="${esc(media.title||'')}">`
+      + `<div class="media-caption">Scene image — ${esc(media.title||'')}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Image') {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<img src="${esc(toEmbedUrl(media.url))}"${dimAttr(media)} loading="lazy" alt="${esc(media.title||'')}">`;
+    if (media.caption) wrap.innerHTML += `<div class="media-caption">${esc(media.caption)}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Image gallery') {
+    wrap.className = 'media ' + sizeClass(media);
+    const grid = document.createElement('div');
+    grid.className = 'gallery';
+    (media.gallery || []).forEach(g => {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = toEmbedUrl(g.url);
+      img.alt = g.title || '';
+      if (g.width && g.height) { img.width = g.width; img.height = g.height; }
+      grid.appendChild(img);
+    });
+    wrap.appendChild(grid);
+    if (media.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'media-caption';
+      cap.textContent = media.caption;
+      wrap.appendChild(cap);
+    }
+    return wrap;
+  }
+
+  if (media.kind === 'Video' || media.kind === 'Video embed') {
+    wrap.className = 'media ' + sizeClass(media);
+    const src = toEmbedUrl(media.url);
+    wrap.innerHTML = `<iframe src="${esc(src)}" height="${mapHeightFor(media)}" frameborder="0" `
+      + `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" `
+      + `allowfullscreen loading="lazy"></iframe>`;
+    let cap = media.title ? esc(media.title) : '';
+    // Extract just the video ID before swapping in watch?v= — a naive string-replace left any
+    // tracking/player query string (e.g. ?si=..., ?wmode=opaque&rel=0) stuck onto the ID, producing
+    // a broken watch?v=ID?wmode=... link with two "?" in it.
+    const embedMatch = media.url.match(/youtube\.com\/embed\/([^?&]+)/);
+    const watchUrl = embedMatch
+      ? `https://www.youtube.com/watch?v=${embedMatch[1]}`
+      : media.url;
+    cap += `${cap ? ' — ' : ''}<a href="${esc(watchUrl)}" target="_blank" rel="noopener">Open on YouTube ↗</a>`;
+    wrap.innerHTML += `<div class="media-caption">${cap}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Spotify embed') {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<iframe src="${esc(toEmbedUrl(media.url))}" height="80" frameborder="0" `
+      + `allow="encrypted-media" loading="lazy"></iframe>`;
+    let cap = media.title ? esc(media.title) : '';
+    cap += `${cap ? ' — ' : ''}<a href="${esc(media.url)}" target="_blank" rel="noopener">Open on Spotify ↗</a>`;
+    wrap.innerHTML += `<div class="media-caption">${cap}</div>`;
+    return wrap;
+  }
+
+  if (media.kind && media.kind.startsWith('Interactive map')) {
+    wrap.className = 'media ' + sizeClass(media);
+    const mh = mapHeightFor(media);
+    let embedSrc = '', label = '';
+    if (media.custom_link_url) { embedSrc = media.custom_link_url; label = 'Custom map view'; }
+    else if (media.webmap_id) {
+      embedSrc = `https://www.arcgis.com/apps/Embed/index.html?webmap=${encodeURIComponent(media.webmap_id)}&zoom=true&scale=true&theme=light&disable_scroll=true`;
+      if (media.extent_lonlat) embedSrc += `&extent=${media.extent_lonlat.join(',')}`;
+      label = 'Live ArcGIS web map';
+    }
+    if (embedSrc) {
+      // Click-to-load rather than embedding the iframe immediately: some map embeds (custom
+      // GeoMapper/Gist links in particular) show their own blocking "loaded" dialog on mount —
+      // with several such maps in one story that becomes unusable while editing. Not loading
+      // until asked also means a genuinely lighter first paint for readers who skip a given map.
+      const holder = document.createElement('div');
+      holder.className = 'map-placeholder';
+      holder.style.height = mh + 'px';
+      holder.innerHTML = `<button class="map-load-btn" type="button">▶ Load interactive map</button>`;
+      holder.querySelector('.map-load-btn').addEventListener('click', () => {
+        // Tells the editor (if this page is embedded in one) that this specific map is now
+        // loaded, by its position in the story — lets the editor silently reload it again after
+        // its own refreshes, instead of every map you've already set up going back to a blank
+        // "Load interactive map" button each time you edit something unrelated elsewhere.
+        try { window.parent.postMessage({ type: 'sos-map-loaded', docIdx: wrap.dataset.docIdx }, '*'); } catch (e0) {}
+
+        function buildIframe() {
+          const f = document.createElement('iframe');
+          f.src = embedSrc;
+          f.height = mh;
+          f.setAttribute('frameborder', '0');
+          f.loading = 'lazy';
+          return f;
+        }
+
+        // Listens for the embedded map's own "I'm ready" signal (bookmarks load asynchronously,
+        // so this can't just fire immediately on iframe load) — see gm-ready / gm-loadBookmark in
+        // Geo Mapper's own code. Always listens, not just when a bookmark name is already set:
+        // this is also how the SOS editor discovers the map's actual bookmark names to offer as
+        // a pick-list, rather than requiring anyone to type one by hand. Relayed one level up so
+        // the editor (this iframe's own parent) can see it, since postMessage doesn't bubble.
+        function wireGmReady(fr) {
+          const onGmReady = (ev) => {
+            if (ev.source !== fr.contentWindow) return;
+            if (!ev.data || ev.data.type !== 'gm-ready') return;
+            if (media.bookmark_name) {
+              fr.contentWindow.postMessage({ type: 'gm-loadBookmark', name: media.bookmark_name }, '*');
+            }
+            try {
+              window.parent.postMessage({ type: 'sos-gm-ready', docIdx: wrap.dataset.docIdx, bookmarkNames: ev.data.bookmarkNames || [] }, '*');
+            } catch (e2) {}
+            window.removeEventListener('message', onGmReady);
+          };
+          window.addEventListener('message', onGmReady);
+        }
+
+        let iframe = buildIframe();
+        holder.replaceWith(iframe);
+        wireGmReady(iframe);
+
+        // Lets anyone reading the published story — not just the person editing it — expand a
+        // map to fill the screen when a pop-up (or anything else) needs more room than whatever
+        // fixed height was set for it, then collapse it back down again.
+        wrap.style.position = 'relative';
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'map-toggle-btn';
+        toggleBtn.title = 'Maximise map';
+        toggleBtn.innerHTML = '⛶';
+        toggleBtn.addEventListener('click', () => {
+          const maximized = wrap.classList.toggle('map-maximized');
+          document.documentElement.classList.toggle('map-lock-scroll', maximized);
+          toggleBtn.innerHTML = maximized ? '✕' : '⛶';
+          toggleBtn.title = maximized ? 'Restore map size' : 'Maximise map';
+        });
+        wrap.appendChild(toggleBtn);
+
+        // Locked-view behaviour, modelled on what Classic Cascade did: the map opens fixed to
+        // the editor's chosen view, on a scroll-past page that's mostly text — without a lock,
+        // an accidental wheel-scroll or drag over a full-width map changes ITS view instead of
+        // scrolling the page, so the next reader (or the same reader scrolling back down) finds
+        // it drifted away from the framing that was actually intended. This is enforced from
+        // outside the map entirely (an overlay blocking interaction), the same way Cascade's own
+        // app controlled it rather than the map's own bookmark data — so it works identically
+        // regardless of what's embedded underneath.
+        if (media.allow_explore === false) {
+          // Editor has said this map should never be pannable/zoomable by readers at all.
+          iframe.style.pointerEvents = 'none';
+        } else {
+          const lockOverlay = document.createElement('div');
+          lockOverlay.className = 'map-lock-overlay';
+          const exploreBtn = document.createElement('button');
+          exploreBtn.type = 'button';
+          exploreBtn.className = 'map-explore-btn';
+          exploreBtn.textContent = '🔓 Explore this map';
+          lockOverlay.appendChild(exploreBtn);
+          wrap.appendChild(lockOverlay);
+          let unlocked = false;
+          // Only the button itself unlocks — the overlay still covers (and blocks) the whole
+          // map underneath, but clicking anywhere else on it just absorbs the click and does
+          // nothing, rather than treating a tap near one of the map's own icons as "unlock".
+          exploreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            unlocked = true;
+            lockOverlay.classList.add('is-hidden');
+          });
+
+          // Once scrolled mostly out of view after being explored, silently reload back to the
+          // locked, editor-chosen view — so it's never left wherever a reader happened to leave
+          // it. A fresh iframe load is what actually resets the view; it works for any embed
+          // (Geo Mapper bookmark, ArcGIS custom link, or the generic fallback) without needing to
+          // know anything about what's inside it.
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting && unlocked) {
+                unlocked = false;
+                lockOverlay.classList.remove('is-hidden');
+                const fresh = buildIframe();
+                iframe.replaceWith(fresh);
+                iframe = fresh;
+                wireGmReady(iframe);
+              }
+            });
+          }, { threshold: 0 });
+          io.observe(wrap);
+        }
+      });
+      wrap.appendChild(holder);
+      const cap = document.createElement('div');
+      cap.className = 'media-caption';
+      cap.innerHTML = `${label} — <a href="${esc(media.custom_link_url || media.url)}" target="_blank" rel="noopener">open full map ↗</a>`;
+      wrap.appendChild(cap);
+    } else {
+      wrap.className = 'placeholder';
+      wrap.innerHTML = `Interactive map — no embeddable ID found.<br><a href="${esc(media.url)}" target="_blank">${esc(media.title||media.url)}</a>`;
+    }
+    return wrap;
+  }
+
+  wrap.className = 'placeholder';
+  wrap.innerHTML = `${esc(media.kind||'Media')}: <a href="${esc(media.url)}" target="_blank">${esc(media.title||media.url||'')}</a>`;
+  return wrap;
+}
+
+const app = document.getElementById('app');
+
+function buildNav() {
+  if (!navConfig.bookmarks || !navConfig.bookmarks.length) return;
+  const nav = document.createElement('div');
+  nav.className = 'storynav';
+  let brandHtml = '';
+  if (navConfig.header_logo_url) brandHtml += `<img src="${esc(navConfig.header_logo_url)}" alt="">`;
+  brandHtml += `<span>${esc(document.title)}</span>`;
+  const tabsHtml = navConfig.bookmarks.map((b, i) =>
+    `<a class="tab${i === 0 ? ' active' : ''}" data-anchor="${esc(b.anchor)}" href="#${esc(b.anchor)}">${esc(b.label)}</a>`
+  ).join('');
+  nav.innerHTML = `<div class="brand">${brandHtml}</div><div class="tabs">${tabsHtml}</div>`
+    + (navConfig.header_title ? `<div class="credit">${esc(navConfig.header_title)}</div>` : '');
+  app.appendChild(nav);
+
+  // Measure the real, rendered nav height (varies by theme/font/logo) instead of guessing a
+  // fixed pixel offset — used both to keep clicked headings from landing hidden behind the
+  // sticky bar (via scroll-margin-top) and to keep the scroll-spy active-tab detection in sync.
+  const navH = nav.offsetHeight || 76;
+  document.documentElement.style.setProperty('--nav-h', navH + 'px');
+
+  nav.querySelectorAll('a.tab').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.anchor);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    const anchors = navConfig.bookmarks.map(b => document.getElementById(b.anchor)).filter(Boolean);
+    let current = anchors[0];
+    for (const el of anchors) {
+      if (el.getBoundingClientRect().top - navH - 4 <= 0) current = el;
+    }
+    nav.querySelectorAll('a.tab').forEach(a => {
+      a.classList.toggle('active', current && a.dataset.anchor === current.id);
+    });
+  }, { passive: true });
+}
+
+let idx = 0;
+if (items[0] && items[0].level === 1) {
+  const cover = document.createElement('div');
+  cover.className = 'cover';
+  if (navConfig.cover_text === 'dark') cover.classList.add('cover-text-dark');
+  if (navConfig.cover_box === 'light') cover.classList.add('cover-box-light');
+  else if (navConfig.cover_box === 'dark') cover.classList.add('cover-box-dark');
+  cover.id = 'top';
+  cover.dataset.docIdx = 'cover';
+  let bgUrl = '', bgMedia = null;
+  let subtitle = '';
+  for (let i = 1; i < Math.min(items.length, 4); i++) {
+    if (items[i].media && items[i].media.kind === 'Background image (cover)') { bgUrl = toEmbedUrl(items[i].media.url); bgMedia = items[i].media; }
+    if (items[i].para && !subtitle) subtitle = renderRuns(items[i].para);
+  }
+  if (bgUrl) {
+    cover.style.backgroundImage = `url('${bgUrl}')`;
+    // The author's real focal point from Cascade, when known — otherwise fall back to a plain
+    // centred crop rather than guessing.
+    if (bgMedia && typeof bgMedia.focal_x === 'number' && typeof bgMedia.focal_y === 'number') {
+      cover.style.backgroundPosition = `${(bgMedia.focal_x * 100).toFixed(1)}% ${(bgMedia.focal_y * 100).toFixed(1)}%`;
+    }
+    if (bgMedia && bgMedia.fit_color) cover.style.backgroundColor = bgMedia.fit_color;
+  }
+  cover.innerHTML = `<div class="cover-text"><h1>${esc(items[0].text)}</h1><div class="subtitle">${subtitle}</div></div>`;
+  app.appendChild(cover);
+  idx = 1;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('.media.map-maximized').forEach(el => {
+    el.classList.remove('map-maximized');
+    const btn = el.querySelector('.map-toggle-btn');
+    if (btn) { btn.innerHTML = '⛶'; btn.title = 'Maximise map'; }
+  });
+  document.documentElement.classList.remove('map-lock-scroll');
+});
+
+buildNav();
+
+const main = document.createElement('main');
+app.appendChild(main);
+
+function renderSectionBanner(headingItem, mediaItem, headingIdx) {
+  const m = mediaItem.media;
+  const div = document.createElement('div');
+  div.className = 'section-banner';
+  div.dataset.docIdx = headingIdx;
+  const bgUrl = toEmbedUrl(m.url);
+  if (bgUrl) div.style.backgroundImage = `url('${bgUrl}')`;
+  if (typeof m.focal_x === 'number' && typeof m.focal_y === 'number') {
+    div.style.backgroundPosition = `${(m.focal_x * 100).toFixed(1)}% ${(m.focal_y * 100).toFixed(1)}%`;
+  }
+  if (m.fit_color) div.style.backgroundColor = m.fit_color;
+  div.style.minHeight = (m.banner_height_px || 340) + 'px';
+  const textWrap = document.createElement('div');
+  textWrap.className = 'section-banner-text';
+  const h = document.createElement(headingItem.level === 2 ? 'h2' : 'h3');
+  h.textContent = headingItem.text;
+  if (headingItem.anchor) h.id = headingItem.anchor;
+  textWrap.appendChild(h);
+  div.appendChild(textWrap);
+  return div;
+}
+
+function renderStackedLayout(startIdx) {
+  for (let idx = startIdx; idx < items.length; idx++) {
+    const item = items[idx];
+
+    if (item.level === 1) continue;
+    if (item.media && item.media.kind === 'Background image (cover)') continue;
+    if (idx <= 2 && item.para) continue;
+
+    // "Leitmotif" section banners: a heading with its own themed background image behind it,
+    // opted into per-image (not automatic) — mirrors the cover's own treatment, just scoped to
+    // one section rather than the whole story. Only kicks in when the very next item is an image
+    // explicitly marked for this.
+    if (item.level !== undefined && items[idx + 1] && items[idx + 1].media && items[idx + 1].media.use_as_banner) {
+      main.appendChild(renderSectionBanner(item, items[idx + 1], idx));
+      idx++; // this consumed the following image item too
+      continue;
+    }
+
+    if (item.level !== undefined) {
+      const h = document.createElement(item.level === 2 ? 'h2' : 'h3');
+      h.textContent = item.text;
+      if (item.anchor) h.id = item.anchor;
+      h.dataset.docIdx = idx;
+      main.appendChild(h);
+    } else if (item.para) {
+      const p = document.createElement('p');
+      p.innerHTML = renderRuns(item.para);
+      p.dataset.docIdx = idx;
+      main.appendChild(p);
+    } else if (item.media) {
+      const m = renderMedia(item.media);
+      m.dataset.docIdx = idx;
+      main.appendChild(m);
+    } else if (item.credits) {
+      const box = document.createElement('div');
+      box.className = 'credits';
+      box.dataset.docIdx = idx;
+      item.credits.forEach(([label, source, link]) => {
+        const e = document.createElement('div');
+        e.className = 'entry';
+        e.innerHTML = `<b>${esc(label)}</b>${source ? ' — ' + esc(source) : ''}` +
+          (link ? `<br><a href="${esc(link)}" target="_blank">${esc(link)}</a>` : '');
+        box.appendChild(e);
+      });
+      main.appendChild(box);
+    }
+  }
+}
+
+/* ==================== side-panel layout (Journal-style scroll sync) ====================
+   Groups the flat items[] into panels (one per heading, plus a leading intro panel for
+   anything before the first heading). Each panel's FIRST media item becomes its "panel media" —
+   shown in the sticky left column while that panel is in view — exactly mirroring how the
+   original Journal always paired one section with one persistent side-panel visual. Any
+   additional media in the same panel stays in the scrolling text column instead of being
+   dropped, the same "preserve everything, degrade honestly" approach used throughout this
+   toolkit rather than silently discarding a second image a section happened to have. */
+
+function groupIntoPanels(startIdx) {
+  const panels = [];
+  let current = { heading: null, anchor: null, media: null, body: [] };
+  let hasContent = false;
+
+  function pushCurrentIfNonEmpty() {
+    if (hasContent) panels.push(current);
+  }
+
+  for (let idx = startIdx; idx < items.length; idx++) {
+    const item = items[idx];
+    if (item.level === 1) continue; // cover title, already rendered separately
+    if (item.media && item.media.kind === 'Background image (cover)') continue;
+    if (idx <= 2 && item.para) continue; // cover subtitle, already rendered on the cover
+
+    if (item.level !== undefined) {
+      pushCurrentIfNonEmpty();
+      current = { heading: item.text, anchor: item.anchor || null, media: null, body: [] };
+      hasContent = true;
+      continue;
+    }
+
+    hasContent = true;
+    if (item.media && !current.media) {
+      current.media = item.media; // first media in this panel -> the panel's fixed visual
+    } else {
+      current.body.push(item); // everything else (including any 2nd+ media) stays in the text flow
+    }
+  }
+  pushCurrentIfNonEmpty();
+  return panels;
+}
+
+function renderPanelBody(panel, panelIdx) {
+  const section = document.createElement('section');
+  section.className = 'sidepanel-panel';
+  section.dataset.panelIdx = panelIdx;
+  if (panel.heading) {
+    const h = document.createElement('h2');
+    h.textContent = panel.heading;
+    if (panel.anchor) h.id = panel.anchor;
+    section.appendChild(h);
+  }
+  panel.body.forEach(item => {
+    if (item.para) {
+      const p = document.createElement('p');
+      p.innerHTML = renderRuns(item.para);
+      section.appendChild(p);
+    } else if (item.media) {
+      section.appendChild(renderMedia(item.media));
+    } else if (item.credits) {
+      const box = document.createElement('div');
+      box.className = 'credits';
+      item.credits.forEach(([label, source, link]) => {
+        const e = document.createElement('div');
+        e.className = 'entry';
+        e.innerHTML = `<b>${esc(label)}</b>${source ? ' — ' + esc(source) : ''}` +
+          (link ? `<br><a href="${esc(link)}" target="_blank">${esc(link)}</a>` : '');
+        box.appendChild(e);
+      });
+      section.appendChild(box);
+    }
+  });
+  return section;
+}
+
+function renderSidePanelLayout(startIdx) {
+  const panels = groupIntoPanels(startIdx);
+  if (!panels.length) return; // nothing to show in this mode -- leave main empty rather than error
+
+  const layout = document.createElement('div');
+  layout.className = 'sidepanel-layout';
+  const mediaCol = document.createElement('div');
+  mediaCol.className = 'sidepanel-media';
+  mediaCol.id = 'sidepanelMedia';
+  const textCol = document.createElement('div');
+  textCol.className = 'sidepanel-text';
+
+  panels.forEach((panel, i) => textCol.appendChild(renderPanelBody(panel, i)));
+
+  layout.appendChild(mediaCol);
+  layout.appendChild(textCol);
+  const breakout = document.createElement('div');
+  breakout.className = 'sidepanel-breakout';
+  breakout.appendChild(layout);
+  main.appendChild(breakout);
+
+  // Lazily rendered per panel, the first time it's actually needed -- not upfront for all
+  // panels, which matters a lot for a story with a dozen map embeds: each map only actually
+  // loads once the reader has scrolled to the section it belongs to, same click-to-load spirit
+  // the rest of this template already uses for maps, just triggered by scroll instead of a click.
+  const renderedMediaCache = {};
+  let activePanelIdx = -1;
+
+  function showPanelMedia(panelIdx) {
+    if (panelIdx === activePanelIdx) return;
+    const panel = panels[panelIdx];
+    if (!panel.media) return; // no fresh visual for this panel -- keep showing whatever's already there
+    activePanelIdx = panelIdx;
+    const swap = () => {
+      mediaCol.innerHTML = '';
+      if (!renderedMediaCache[panelIdx]) renderedMediaCache[panelIdx] = renderMedia(panel.media);
+      mediaCol.appendChild(renderedMediaCache[panelIdx]);
+      mediaCol.classList.remove('is-swapping');
+    };
+    if (mediaCol.childElementCount === 0) {
+      swap(); // first paint -- no fade needed, nothing to fade from
+    } else {
+      mediaCol.classList.add('is-swapping');
+      setTimeout(swap, 220);
+    }
+  }
+
+  // Panel 0 shown immediately, synchronously, so there's no blank/empty left column on first
+  // paint while waiting for the reader to scroll or for the observer to fire.
+  showPanelMedia(0);
+
+  // A panel becomes "active" when it's crossing roughly the vertical middle of the viewport --
+  // a wide (-45%/-45%) band rather than a hard line, so ordinary scroll jitter near a panel
+  // boundary doesn't cause the image to flicker back and forth between two panels.
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) showPanelMedia(Number(entry.target.dataset.panelIdx));
+      });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    textCol.querySelectorAll('.sidepanel-panel').forEach(el => observer.observe(el));
+  }
+  // No IntersectionObserver support: panel 0's media (already shown above) simply stays fixed
+  // for the whole story rather than swapping -- a plain, working fallback, not a broken one.
+}
+
+if (navConfig.layout === 'sidepanel') {
+  renderSidePanelLayout(idx);
+} else {
+  renderStackedLayout(idx);
+}
+</script>
+</body>
+</html>
