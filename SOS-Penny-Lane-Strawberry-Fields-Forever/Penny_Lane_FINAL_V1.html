@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Penny Lane / Strawberry Fields Forever</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #0a5c8a;
+    --paper: #fdfdfb;
+    --media-bg: #f0efe9;
+    --body-font: Georgia, 'Iowan Old Style', serif;
+    --heading-font: -apple-system, 'Segoe UI', sans-serif;
+    --heading-weight: 600;
+    --nav-h: 76px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--body-font);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.65;
+  }
+  .banner {
+    background: #fff3cd;
+    color: #664d03;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 13px;
+    text-align: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #ffe69c;
+  }
+  .storynav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #111214;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    font-family: -apple-system, Segoe UI, sans-serif;
+  }
+  .storynav .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px 10px 0;
+    color: #fff;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .storynav .brand img { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
+  .storynav .tabs {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .storynav a.tab {
+    display: inline-block;
+    color: #cfcfcf;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 16px 12px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .storynav a.tab:hover { color: #fff; }
+  .storynav a.tab.active { color: #fff; border-bottom-color: #6fb7e8; }
+  .storynav .loadall-btn {
+    flex-shrink: 0;
+    margin-left: 8px;
+    padding: 6px 12px;
+    border: 1px solid #6fb7e8;
+    border-radius: 999px;
+    background: transparent;
+    color: #cfe8fa;
+    font: 600 13px -apple-system, Segoe UI, sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .storynav .loadall-btn:hover { background: #6fb7e8; color: #111214; }
+  .storynav .loadall-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .loadall-btn .count { }
+  /* Long bare URLs in body text otherwise push the whole page wider than a phone screen. */
+  p a, .credits a { overflow-wrap: anywhere; }
+  /* Phones: the brand name, tabs, credit and this button can't all fit on one row. Drop the
+     optional credit line and the button's count so the nav stays within the screen width. */
+  @media (max-width: 640px) {
+    .storynav .credit { display: none; }
+    .storynav .brand span { display: none; }
+    .loadall-btn .count { display: none; }
+  }
+  .storynav .credit {
+    color: #9a9a9a;
+    font-size: 13px;
+    padding-left: 16px;
+    flex-shrink: 0;
+  }
+
+  .cover {
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    padding: 48px 8vw 56px;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 100%);
+  }
+  .cover.cover-text-dark { color: var(--ink); }
+  .cover.cover-text-dark::before {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.6) 100%);
+  }
+  .cover-text { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+  .cover h1 {
+    font-family: var(--heading-font);
+    font-size: clamp(28px, 5vw, 48px);
+    margin: 0 0 8px;
+    font-weight: var(--heading-weight);
+  }
+  .cover .subtitle { font-style: italic; font-size: 18px; opacity: 0.9; }
+  .cover:not(.cover-text-dark) h1, .cover:not(.cover-text-dark) .subtitle { text-shadow: 0 2px 6px rgba(0,0,0,0.35); }
+  .cover.cover-box-light .cover-text, .cover.cover-box-dark .cover-text {
+    padding: 22px 30px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .cover.cover-box-light .cover-text { background: rgba(255,255,255,0.78); }
+  .cover.cover-box-dark .cover-text { background: rgba(0,0,0,0.55); }
+  .cover.cover-box-light:not(.cover-text-dark) h1, .cover.cover-box-light:not(.cover-text-dark) .subtitle,
+  .cover.cover-box-dark:not(.cover-text-dark) h1, .cover.cover-box-dark:not(.cover-text-dark) .subtitle {
+    text-shadow: none; /* a box behind the text makes the drop-shadow redundant and muddy */
+  }
+
+  main { max-width: 720px; margin: 0 auto; padding: 40px 24px 100px; }
+
+  .section-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--media-bg);
+    color: #fff;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: 56px;
+    margin-bottom: 32px;
+    padding: 32px 8vw;
+    overflow: hidden;
+  }
+  .section-banner::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
+  }
+  .section-banner-text { position: relative; z-index: 1; }
+  .section-banner h2, .section-banner h3 {
+    font-family: var(--heading-font);
+    color: #fff;
+    border-bottom: none;
+    margin: 0;
+    font-size: clamp(22px, 4vw, 36px);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  }
+  h2, h3 { scroll-margin-top: var(--nav-h); }
+  h2 {
+    font-family: var(--heading-font);
+    color: var(--accent);
+    font-size: 24px;
+    margin-top: 56px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e3e0d5;
+  }
+  p { font-size: 18px; margin: 0 0 18px; text-align: left; }
+  a { color: var(--accent); }
+  b { font-weight: 700; }
+
+  .media {
+    margin: 24px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--media-bg);
+  }
+  .media img { width: 100%; height: auto; display: block; }
+  .media iframe { width: 100%; border: 0; display: block; }
+  .media.size-small { max-width: 420px; margin-left: auto; margin-right: auto; }
+  .media.size-medium { max-width: 640px; margin-left: auto; margin-right: auto; }
+  .media.size-large { max-width: 100%; }
+  .media.size-full {
+    max-width: none;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0;
+  }
+  .media-caption {
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    padding: 8px 12px;
+  }
+  .map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: repeating-linear-gradient(135deg, #e2ebe6, #e2ebe6 12px, #d6e1da 12px, #d6e1da 24px);
+  }
+  .map-load-btn {
+    padding: 13px 26px;
+    border: none;
+    border-radius: 26px;
+    background: var(--accent);
+    color: #fff;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  }
+  .map-load-btn:hover { filter: brightness(1.08); }
+  .map-toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .map-toggle-btn:hover { background: rgba(0,0,0,0.8); }
+  .map-lock-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.05);
+  }
+  .map-lock-overlay.is-hidden { display: none; }
+  .map-explore-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 26px;
+    background: rgba(0,0,0,0.72);
+    color: #fff;
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+  .map-explore-btn:hover { background: rgba(0,0,0,0.85); }
+  .media.map-maximized {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .media.map-maximized iframe { width: 100% !important; height: 100% !important; }
+  .media.map-maximized .media-caption { display: none; }
+  html.map-lock-scroll, html.map-lock-scroll body { overflow: hidden; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px; padding: 4px; }
+  .gallery img { width: 100%; height: 160px; object-fit: cover; border-radius: 3px; }
+
+  .placeholder {
+    font-family: -apple-system, Segoe UI, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    padding: 16px;
+    border: 1px dashed var(--muted);
+    border-radius: 6px;
+    background: var(--media-bg);
+  }
+  .placeholder a { display: inline-block; margin-top: 6px; }
+
+  .credits { font-family: -apple-system, Segoe UI, sans-serif; font-size: 13px; color: var(--muted); }
+  .credits .entry { margin-bottom: 10px; }
+  .credits b { color: var(--ink); }
+
+  /* ---------- side-panel layout (Journal-style scroll sync) ---------- */
+  /* Media stays fixed in a left column while the reader scrolls a right-hand text column past
+     it; the media swaps to match whichever panel is currently in view. This is a genuinely
+     different reading pattern from the rest of this template (which is single-column, top to
+     bottom) — eye-tracking research on this exact layout (visual left, text right) is why it's
+     offered as an option rather than a replacement for the default. */
+  /* Breaks the whole two-column layout out of <main>'s own max-width:720px box (sized for
+     comfortable single-column reading, and otherwise applying regardless of what's inside it) so
+     it sizes against the real viewport instead — same full-bleed technique already used by
+     .section-banner elsewhere in this template. Two elements are needed: the outer one does the
+     breakout itself, uncapped; the inner one then re-applies a sane 1400px cap so it doesn't
+     stretch edge-to-edge on an ultra-wide monitor. Combining both jobs into a single element
+     doesn't work: width:100vw and max-width together would leave the negative breakout margins
+     computed against the wrong (uncapped) width once the cap actually kicks in, pulling the
+     whole thing off-centre exactly on the wide screens the cap exists for. */
+  .sidepanel-breakout { width: 100vw; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
+  .sidepanel-layout { display: flex; align-items: flex-start; gap: 0; max-width: 1400px; margin: 0 auto; }
+  .sidepanel-media {
+    position: sticky; top: var(--nav-h);
+    width: 62%; flex-shrink: 0;
+    height: calc(100vh - var(--nav-h));
+    background: var(--media-bg);
+    overflow: hidden;
+    transition: opacity 0.22s ease;
+  }
+  .sidepanel-media > * { height: 100%; margin: 0 !important; border-radius: 0 !important; }
+  .sidepanel-media .media { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  /* contain, not cover: a landscape photo in this tall, narrow column would otherwise have its
+     left/right edges cropped away to fill the full height. Showing the whole image letterboxed
+     (against --media-bg, the same fill colour already used elsewhere for "image doesn't perfectly
+     fill its frame") loses some vertical fill but never crops content out of view. */
+  .sidepanel-media .media img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; flex: 0 0 auto; }
+  .sidepanel-media .media iframe {
+    width: 100%; max-height: 100%; border: 0;
+    /* No stretching -- unlike an <img>, an iframe has no intrinsic aspect ratio and no
+       object-fit equivalent, so forcing it to fill the column's full height (as an earlier
+       version of this rule did) just squashes a normally landscape-shaped map or video into a
+       tall, narrow box with no aspect protection at all. Leaving its own height alone (already
+       set sensibly elsewhere, e.g. via the map height presets) and centring it, the same way an
+       image already centres via object-fit, keeps it at a natural, comfortable shape instead. */
+  }
+  .sidepanel-media .media .map-placeholder { max-height: 100%; }
+  .sidepanel-media.is-swapping { opacity: 0; }
+  .sidepanel-text { flex: 1; min-width: 0; padding: 40px clamp(24px, 4vw, 64px); }
+  .sidepanel-panel { padding-bottom: 64px; }
+  .sidepanel-panel:last-child { padding-bottom: 100px; }
+  .sidepanel-panel h2, .sidepanel-panel h3 { margin-top: 0; }
+  .sidepanel-panel .media { max-width: none; } /* extra (non-primary) media in a panel's own text column */
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidepanel-media { transition: none; }
+  }
+
+  /* Below this width there isn't room for a genuine side-by-side split, so the panel media
+     collapses to a single strip that sits above the (now full-width) scrolling text, rather
+     than trying to force two narrow columns. It still updates as you scroll past each panel —
+     just above the text instead of beside it, since sticky-beside-narrow-text doesn't work. */
+  @media (max-width: 880px) {
+    .sidepanel-layout { flex-direction: column; }
+    .sidepanel-media { position: static; width: 100%; height: 45vh; }
+    .sidepanel-text { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script id="story-data" type="application/json">[{"level":1,"text":"Penny Lane / Strawberry Fields Forever"},{"para":[["The geography of the greatest single ever",false,true,null]]},{"media":{"kind":"Background image (cover)","title":"Penny Lane - Beatles on location in Knole Park (tumblr_m1uw5gIoJ31qcx3szo1_1280)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20-%20Beatles%20on%20location%20in%20Knole%20Park%20(tumblr_m1uw5gIoJ31qcx3szo1_1280)__1484251262310.jpg"}},{"para":[["By 1967, The Beatles were at the peak of their creative powers. Their songwriting skills reached new heights. ",false,false,null]]},{"para":[["The inspiration of ",false,false,null],["places",true,false,null],[" had become an integral part of their music.  ",false,false,null]]},{"para":[["In early 1967, The Beatles released two of their greatest songs on one single. The geographical locations linked to these songs are explored in this Story Map.",false,false,null]]},{"level":2,"text":"\"There are places I remember...\"","anchor":"section-0"},{"media":{"kind":"Image","title":"Beatles in 1967 - George pointing (6a00e008dca1f08834017744b0a848970d-800wi)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Beatles%20in%201967%20-%20George%20pointing%20(6a00e008dca1f08834017744b0a848970d-800wi)__1483824642475.jpg","width":680,"height":479,"focal_x":0.7206271859102471,"focal_y":0.26997236772017047,"size":"large"}},{"para":[["In the years leading up to 1967, The Beatles' songwriting had been evolving rapidly.",false,false,null]]},{"para":[["There had been a distinct shift away from simple love songs to a more autobiographical, reflective style of songwriting.",false,false,null]]},{"para":[["Lennon and McCartney had considered writing a musical about their home town, but decided to rethink their plans when Alun Owen and Lionel Bart's Liverpool-based ",false,false,null],["Maggie May",false,true,"https://en.wikipedia.org/wiki/Maggie_May_(musical"],[") was produced in 1964. ",false,false,null]]},{"para":[["Source: Paul McCartney interview with Brian Matthew in ",false,false,null],["The Beatles - Alone: At the BBC Part 3 (BBC Radio 2)",false,true,null]]},{"media":{"kind":"Image","title":"Lionel Bart and John Lennon at the Dorchester Hotel, London in 1964 article-0-007F59EA00000258-346_634x500","caption":"Lionel Bart and John Lennon at the Dorchester Hotel, London in 1964","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Lionel%20Bart%20and%20John%20Lennon%20at%20the%20Dorchester%20Hotel%2C%20London%20in%201964%20article-0-007F59EA00000258-346_634x500__1529318755127.jpg","width":634,"height":500,"size":"large"}},{"para":[["The influence of Bob Dylan, The Beach Boys, Simon and Garfunkel and comments by critics such as ",false,false,null],["Kenneth Allsop",false,false,"https://www.beatlesbible.com/songs/im-a-loser/"],[" catalysed the changes.",false,false,null]]},{"para":[["Bob Dylan's 1965 song ",false,false,null],["Positively 4th Street",false,true,null],[", about an area of New York (or possibly Minneapolis), was one of ",false,false,null],["John Lennon's favourites",false,false,"https://en.wikipedia.org/wiki/John_Lennon%252527s_jukebox"],[".",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-4.7713,58.5588,-4.7313,58.5805],"extent_key":"-4.7713,58.5588,-4.7313,58.5805","size":"large"}},{"para":[["In 1965 John Lennon wrote his highly regarded song In My Life which starts with the line:",false,false,null]]},{"para":[["\"There are places I remember...\"",false,true,null]]},{"para":[["In My Life",false,true,null],["  recalled his childhood holidays in ",false,false,null],["Durness, northern Scotland",false,false,"https://www.theguardian.com/music/2008/oct/12/johnlennon-scotland"],[".",false,false,null]]},{"media":{"kind":"Video","title":"In My Life (Remastered 2009)","caption":"","url":"https://www.youtube.com/embed/YBcdt6DsLQA"}},{"media":{"kind":"Image","title":"Original lyrics for In My Life","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Original%20lyrics%20for%20In%20My%20Life__1499506433228.jpg","width":600,"height":789,"fit_color":"rgb(240, 229, 211)","size":"large"}},{"para":[["An ",false,false,null],["earlier version",false,false,"https://en.wikipedia.org/wiki/In_My_Life#cite_note-Spitz-7"],[" of ",false,false,null],["In My Life",false,true,null],[" was based on a Liverpool bus route John Lennon used to take, including places passed along the way, including Penny Lane.",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-14.7269,49.205,10.6296,56.1042],"extent_key":"-14.7269,49.2050,10.6296,56.1042","size":"large"}},{"para":[["Consequently, and unwittingly, The Beatles became champions of a fusion between pop music and geographical places, helping to pioneer a new psychogeographical approach to songwriting.",false,false,null]]},{"para":[["The influence of The Beatles' new approach on other songwriters was immediate and enduring.",false,false,null]]},{"para":[["In 1967 alone, several hits of the year demonstrated that other artists were choosing geographical or psychogeographical themes to good effect including The Kinks' Waterloo Sunset; Small Faces' Itchycoo Park; The Monkees' Pleasant Valley Sunday; Scott McKenzie's San Francisco.",false,false,null]]},{"media":{"kind":"Image gallery","caption":"","gallery":[{"title":"hoesje-kinks-waterloo-sunset cd","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/hoesje-kinks-waterloo-sunset%20cd__1483828410342.jpg","width":768,"height":769},{"title":"Itchycoo Park - Small Faces sleeve R-1283586-1206281195","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Itchycoo%20Park%20-%20Small%20Faces%20sleeve%20R-1283586-1206281195__1529319004375.jpg","width":500,"height":505},{"title":"The_Monkees_single_04_Pleasant_Valley_Sunday","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/The_Monkees_single_04_Pleasant_Valley_Sunday__1529319101072.jpg","width":300,"height":300},{"title":"San Francisco - Scott McKenzie sleeve R-540561-1387112591-3893","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/San%20Francisco%20-%20Scott%20McKenzie%20sleeve%20R-540561-1387112591-3893__1529319191750.jpg","width":600,"height":600}]}},{"level":2,"text":"\"I'm taking the time for a number of things...\"","anchor":"section-1"},{"media":{"kind":"Image","title":"140921_the_beatles_w-g_martin","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/140921_the_beatles_w-g_martin__1499445905056.jpg","width":1200,"height":800,"focal_x":0.36953125,"focal_y":0,"size":"large"}},{"para":[["In Paul McCartney's song ",false,false,null],["Fixing A Hole",false,true,null],[", recorded early in 1967, he sang:",false,false,null]]},{"para":[["\"I'm taking the time for a number of things, that weren't important yesterday.\"",false,true,null],[" ",false,false,null]]},{"para":[["When The Beatles had decided to stop touring in 1966, they gained time and 'thinkspace' to write even more creative songs.",false,false,null]]},{"media":{"kind":"Image","title":"John Lennon and George Martin in studio 1457505909_886524_1457514104_noticia_fotograma","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/John%20Lennon%20and%20George%20Martin%20in%20studio%201457505909_886524_1457514104_noticia_fotograma__1529319261987.jpg","width":980,"height":551,"size":"large"}},{"para":[["They also had more opportunities to develop innovative recording techniques in partnership with their legendary producer George Martin and his team.",false,false,null]]},{"level":2,"text":"\"It's wonderful to be here...\"","anchor":"section-2","title_style":{"shadow":false,"text":"dark","background":"light"}},{"media":{"kind":"Image","title":"1024px-1969_EMI_Recording_Studios","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/1024px-1969_EMI_Recording_Studios__1494671252080.JPG","width":1024,"height":648,"focal_x":0.5337666356286337,"focal_y":0.541297842603211,"size":"large"}},{"level":2,"text":"\"It's wonderful to be here...\"","anchor":"section-3"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-0.9717,51.31,0.6131,51.7534],"extent_key":"-0.9717,51.3100,0.6131,51.7534","size":"large"}},{"para":[["The Beatles recorded almost all of their music at EMI studios in Abbey Road, St John's Wood,  London.",false,false,null]]},{"para":[["This is where the magic happened.",false,false,null]]},{"media":{"kind":"Image","title":"Abbey_road_studios","caption":"Abbey Road studios, St John's Wood, London","url":"https://upload.wikimedia.org/wikipedia/commons/e/e9/Abbey_road_studios.jpg","width":1512,"height":1134,"size":"large"}},{"media":{"kind":"Image","title":"tumblr_mdqv6xBfZR1r19b3po1_1280","caption":"The Beatles in Abbey Road Studio 2","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/tumblr_mdqv6xBfZR1r19b3po1_1280__1483834926871.jpg","width":559,"height":368,"size":"large"}},{"level":2,"text":"Penny Lane / Strawberry Fields Forever","anchor":"section-4","title_style":{"shadow":false,"text":"dark","background":"light"}},{"media":{"kind":"Image","title":"Penny Lane Strawberry Fields map cover 1 (the-beatles-penny-lane-parlophone-4)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20Strawberry%20Fields%20map%20cover%201%20(the-beatles-penny-lane-parlophone-4)__1483824531599.jpg","width":600,"height":600,"focal_x":0.5049658487009447,"focal_y":0.170148283981615,"size":"large"}},{"para":[["The Beatles hit the ground running in 1967, releasing one of the greatest single records ever - a 'double-A side' of ",false,false,null],["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever.",false,true,null],["  Both were psychogeographical songs - suburban vignettes - evoking memories of places associated with their upbringing in Liverpool.",false,false,null]]},{"media":{"kind":"Image gallery","caption":"","gallery":[{"title":"Pennylaneproper","url":"https://upload.wikimedia.org/wikipedia/commons/9/9e/Pennylaneproper.jpg","width":996,"height":551},{"title":"Straberry_field_sign","url":"https://upload.wikimedia.org/wikipedia/commons/2/26/Straberry_field_sign.jpg"}]}},{"para":[["Consequently, both places have achieved worldwide cultural significance and are very much on the tourist trail for visitors to the UK.",false,false,null]]},{"media":{"kind":"Image","title":"Pan-ni Road (Penny Lane renamed by Chinese people)","caption":"A Chinese visitor to the UK re-names Penny Lane (see video Visit Britain: Great Chinese Names for Great Britain)","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Pan-ni%20Road%20(Penny%20Lane%20renamed%20by%20Chinese%20people)__1486906303761.png","width":1673,"height":995,"size":"large"}},{"level":2,"text":"Penny Lane","anchor":"section-5","title_style":{"shadow":false,"text":"light","background":"dark"}},{"media":{"kind":"Image","title":"Penny Lane (bus destination 1) cd","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20(bus%20destination%201)%20cd__1484052468693.png","width":1035,"height":740,"focal_x":0.4468263138172238,"focal_y":0.5661059509998526,"size":"large"}},{"para":[["Paul McCartney wrote ",false,false,null],["Penny Lane",false,true,null],[" and John Lennon wrote ",false,false,null],["Strawberry Fields Forever",false,true,null],[".  For each song, a promotional film ('promo') was made.  These films have had an enduring influence on the music videos which began to emerge from the mid-1970s onwards. ",false,false,null]]},{"para":[["Although The Beatles are seen in both promos, only a small amount of the footage for ",false,false,null],["Penny Lane",false,true,null],[" was filmed in Liverpool.  The Beatles only appear in the other sections.",false,false,null]]},{"media":{"kind":"Video","title":"The Beatles - Penny Lane","caption":"","url":"https://www.youtube.com/embed/S-rB0pHI9fU?wmode=opaque&rel=0"}},{"level":2,"text":"Penny Lane","anchor":"section-6"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-3.0601,53.2704,-2.7401,53.4693],"extent_key":"-3.0601,53.2704,-2.7401,53.4693","size":"large"}},{"para":[["Penny Lane",false,true,null],[" is a series of Paul McCartney's recollections of life in suburban Liverpool.",false,false,null]]},{"para":[["The road called ",false,false,null],["Penny Lane",false,true,null],[" is close to Paul McCartney's childhood home in Allerton.",false,false,null]]},{"para":[["Paul McCartney's childhood home was at 20 Forthlin Road, Allerton, about 1½ miles south-east from Penny Lane.  It is now a ",false,false,null],["National Trust Museum",false,false,"https://www.nationaltrust.org.uk/beatles-childhood-homes"],[".",false,false,null]]},{"media":{"kind":"Image","title":"20 Forthlin Road (Paul McCartney's childhood home)","caption":"National Trust Museum at 20 Forthlin Road, Liverpool (the house with a green hedge)","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/20%20Forthlin%20Road%20(Paul%20McCartney's%20childhood%20home)__1483828907889.png","width":1645,"height":799,"size":"large"}},{"para":[["Penny Lane",false,true,null],[" weaves together local imagery, ephemeral events, feelings and seemingly incompatible weather conditions (",false,false,null],["\"pouring rain...blue suburban skies\"",false,true,null],[") to create a surreal montage of life in the neighbourhood.",false,false,null]]},{"para":[["The ",false,false,null],["Penny Lane",false,true,null],[" promo film included some footage on location around Penny Lane in Liverpool, but the scenes featuring the Beatles themselves were filmed in London and Knole Park, Kent.",false,false,null]]},{"para":[["Film of Penny Lane and the nearby Elm Hall Drive was included - with scenes of green Liverpool buses at a major road junction in Allerton, Liverpool.",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane (bus destination 1)","caption":"A bus in the film shows destinations of Penny Lane, Grove Street and Smithdown Road.","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20(bus%20destination%201)__1483952488419.PNG","width":1920,"height":1080,"size":"large"}},{"para":[["The 'shelter in the middle of the roundabout' mentioned in ",false,false,null],["Penny Lane",false,true,null],[" was a bus shelter in Smithdown Place.  It became a Beatles themed cafe, but is now derelict, ",false,false,null],["awaiting new development",false,false,"https://www.liverpoolconfidential.co.uk/news-and-comment/penny-lane-bus-shelter-will-rise-as-stunning-new-restaurant"],[".",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane - Bus 'shelter in the middle of the roundabout'","caption":"Smithdown Place bus shelter in the Penny Lane promo.","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20-%20Bus%20'shelter%20in%20the%20middle%20of%20the%20roundabout'__1486477960393.jpg","width":679,"height":499,"size":"large"}},{"para":[["The ",false,false,null],["Penny Lane",false,true,null],[" street scenes featuring the Beatles were almost all filmed in and around Angel Lane in London's East End.  In one frame, a sign about the Theatre Royal in Stratford can be seen.",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane (Theatre Royal, Stratford) cd","caption":"The Beatles in Stratford, east London.","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20(Theatre%20Royal%2C%20Stratford)%20cd__1483830338079.png","width":651,"height":465,"size":"large"}},{"para":[["The ",false,false,null],["Penny Lane",false,true,null],[" promo's broken sequence of John Lennon walking alone was filmed on the King's Road (at Markham Square) in Chelsea, London.",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane (Markham Sq, King's Road)","caption":"John Lennon walking along King's Road at Markham Square, Chelsea, London.","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny%20Lane%20(Markham%20Sq%2C%20King's%20Road)%20__1483830167458.PNG","width":1920,"height":1080,"size":"large"}},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[0.1999,51.2618,0.2175,51.2668],"extent_key":"0.1999,51.2618,0.2175,51.2668","size":"large"}},{"para":[["Much of the ",false,false,null],["Penny Lane",false,true,null],[" promo was filmed 200 miles south-east from Liverpool in Knole Park, near Sevenoaks, Kent.",false,false,null]]},{"para":[["The Knole Park scenes featured The Beatles riding horses through a stone archway, then sitting at a table near some ponds which are now part of a golf course.",false,false,null]]},{"level":2,"text":"Penny Lane","anchor":"section-7"},{"media":{"kind":"Image","title":"Knole Park arch in Strawberry Fields Forever 1967 filming on horses 1","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Knole%20Park%20arch%20in%20Strawberry%20Fields%20Forever%201967%20filming%20on%20horses%201__1483830499790.jpg","width":736,"height":452,"fit_color":"rgb(35, 37, 33)","size":"large"}},{"para":[["One of the most distinctive features of Knole Park used in the ",false,false,null],["Penny Lane",false,true,null],[" promo is a stone archway, through which the band members ride horses.",false,false,null]]},{"media":{"kind":"Image","title":"Knole Park arch in Strawberry Fields Forever c1","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Knole%20Park%20arch%20in%20Strawberry%20Fields%20Forever%20c1__1483830577177.jpg","width":1600,"height":982,"fit_color":"rgb(27, 25, 14)","size":"large"}},{"para":[["The Knole Park archway as it is now.",false,false,null]]},{"level":2,"text":"Strawberry Fields Forever","anchor":"section-8","title_style":{"shadow":false,"text":"dark","background":"light"}},{"media":{"kind":"Image","title":"liverpool","caption":"","url":"https://media-cdn.tripadvisor.com/media/photo-s/01/68/0d/de/liverpool.jpg","width":550,"height":412,"focal_x":0.37705887195675875,"focal_y":0.323756996595516,"size":"large"}},{"media":{"kind":"Video","title":"Strawberry Fields Forever -  Restored HD Video","caption":"","url":"https://www.youtube.com/embed/8UQK-UcRezE?wmode=opaque&rel=0"}},{"level":2,"text":"Strawberry Fields Forever","anchor":"section-9"},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: 32e08ebb2d8f430081d2717ace9966e6","caption":"","url":"https://www.arcgis.com/home/item.html?id=32e08ebb2d8f430081d2717ace9966e6","webmap_id":"32e08ebb2d8f430081d2717ace9966e6","extent_lonlat":[-2.9014,53.3758,-2.8767,53.3832],"extent_key":"-2.9014,53.3758,-2.8767,53.3832","size":"large"}},{"para":[["Unlike McCartney's ",false,false,null],["Penny Lane",false,true,null],[", in ",false,false,null],["Strawberry Fields Forever",false,true,null],[", Lennon doesn't convey any detail about the place or events there. Instead, he provides a rather dreamy, ethereal and emotional perspective.",false,false,null]]},{"para":[["Strawberry Fields Forever",false,true,null],[" was inspired by John Lennon's memories of playing in the garden of Strawberry Field, a Salvation Army children's home near Woolton, a suburb of Liverpool. ",false,false,null]]},{"media":{"kind":"Image","title":"Strawberry Field Salvation Army Childrens home in Woolton in 1936. A young John Lennon, living nearby would wander into these grounds tp play and he immortalised the name in a 1967 so","caption":"Strawberry Field Salvation Army Children's home in 1936","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Strawberry%20Field%20Salvation%20Army%20Childrens%20home%20in%20Woolton%20in%201936.%20A%20young%20John%20Lennon%2C%20living%20nearby%20would%20wander%20into%20these%20grounds%20tp%20play%20and%20he%20immortalised%20the%20name%20in%20a%201967%20so__1529319337965.jpg","width":500,"height":370,"size":"large"}},{"para":[["John Lennon spent most of his childhood in the care of his Aunt Mimi who became his guardian. ",false,false,null]]},{"media":{"kind":"Interactive map (custom)","title":"AGOL web map item: bfe8339b7a204428adc8969e116dbdbe","caption":"","url":"https://www.arcgis.com/home/item.html?id=bfe8339b7a204428adc8969e116dbdbe","webmap_id":"bfe8339b7a204428adc8969e116dbdbe","extent_lonlat":[-2.9059,53.3753,-2.8751,53.3836],"extent_key":"-2.9059,53.3753,-2.8751,53.3836","size":"large"}},{"para":[["They lived just ½ a mile from Strawberry Field in a semi-detached house called Mendips at 251 Menlove Avenue, Woolton.",false,false,null]]},{"para":[["The house is now a ",false,false,null],["National Trust Museum.",false,false,"https://www.nationaltrust.org.uk/beatles-childhood-homes"]]},{"media":{"kind":"Image","title":"Mendips, 251 Menlove Ave - John Lennon's childhood home (54169400)","caption":"National Trust Museum at 251 Menlove Avenue, Liverpool","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Mendips%2C%20251%20Menlove%20Ave%20-%20John%20Lennon's%20childhood%20home%20(54169400)__1483830661048.jpg","width":1024,"height":768,"size":"large"}},{"para":[["With his childhood friends, John Lennon would roam the gardens of Strawberry Field. His guardian and Aunt Mimi (Mimi Smith) recalled how he would bounce for joy in anticipation of the annual summer garden party held at the grounds: “Mimi, come on. We're going to be late”",false,false,null]]},{"para":[["The Beatles Story",false,true,"http://www.beatlesstory.com/blog/2016/11/24/song-facts-strawberry-fields-forever-penny-lane/"]]},{"para":[["The Salvation Army plan to renovate Strawberry Fields as a training and work placement hub for young people with learning disabilities together with an exhibition centre exploring the story of the place, the song and John Lennon’s early life. ",false,false,null]]},{"para":[["Strawberry Fields Forever: a new vision",false,false,"http://www.beatlesstory.com/news/2017/02/17/strawberry-fields-forever-a-new-vision/#sthash.NajtjaZn.dpuf"]]},{"para":[["The psychedelic promo film for Strawberry Fields Forever was made at Knole Park in Sevenoaks, Kent on 30th and 31st January 1967.",false,false,null]]},{"media":{"kind":"Image","title":"Strawberry Fields (Knole Park piano 1)","caption":"The Beatles gather beside a tree and psychedelic piano","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Strawberry Fields (Knole Park piano 1)__1483832002014.PNG","width":1920,"height":1080,"size":"large"}},{"para":[["\"No one I think is in my tree; I mean it must be high or low; That is you can't, you know, tune in but it's all right...\"",false,true,null]]},{"media":{"kind":"Image","title":"Strawberry Fields (Knole Park piano 2)","caption":"McCartney leaps into a tree above a psychedelic piano","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Strawberry Fields (Knole Park piano 2)__1483832094784.PNG","width":1920,"height":1080,"size":"large"}},{"para":[["...That is I think it's not too bad\"",false,true,null]]},{"para":[["Not too bad at all!  The potent combination of ",false,false,null],["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever",false,true,null],[" signalled a significant change of direction for The Beatles and a statement of intent for 1967.  ",false,false,null]]},{"para":[["They had decided that their days of live performance were on hold.  As if to announce this, amid all the psychedelic imagery there are two significant scenes in the ",false,false,null],["Penny Lane",false,true,null],[" promo which seem to be telling us something:",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane promo (empty stage)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny Lane promo (empty stage)__1483884233491.PNG","width":1920,"height":1080,"focal_x":0.6207470561182776,"focal_y":0.12168650247821057,"size":"large"}},{"para":[["Firstly The Beatles are seen on horseback, approaching an empty stage with all their instruments set up for them, ready to play.",false,false,null]]},{"para":[["However, they pointedly don't stop but ride on past, completely ignoring the stage.",false,false,null]]},{"media":{"kind":"Image","title":"Penny Lane promo (table turned over 1)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Penny Lane promo (table turned over 1)__1483884864394.PNG","width":1920,"height":1080,"focal_x":0.5626075212345567,"focal_y":0.04608415687617548,"size":"large"}},{"para":[["Secondly, they sit down at an ostentatiously set dining table, perhaps representing the established order of their lives up to that point.",false,false,null]]},{"para":[["Waiters present them with their instruments but instead of playing them, they turn the table over. ",false,false,null]]},{"para":[["The message was clear: The Beatles were moving on.",false,false,null]]},{"para":[["Both songs were created during the early phase of recording material for their next album and may be regarded as an overture for their next project to be released at the start of June in the summer of 1967.  It would of course be their masterpiece: ",false,false,null],["Sgt. Pepper's Lonely Hearts Club Band",false,true,null],[".",false,false,null]]},{"level":2,"text":"\"In summer, meanwhile...\"","anchor":"section-10"},{"media":{"kind":"Image","title":"Beatles Sgt Pepper Inner photo (historythings.com)","caption":"","url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Beatles%20Sgt%20Pepper%20Inner%20photo%20(historythings.com)__1494671204185.jpg","width":1280,"height":720,"size":"large"}},{"para":[["Penny Lane",false,true,null],[" and ",false,false,null],["Strawberry Fields Forever",false,true,null],[" were just the beginning of an unforgettable year for The Beatles.",false,false,null]]},{"para":[["More great music would follow...",false,false,null]]},{"para":[["For details about geographical aspects of the rest of 1967 for The Beatles, look at the story map: ",false,false,null],["Sgt. Pepper's Places",false,true,"http://arcg.is/2q6NVMe"],[".",false,true,null]]},{"level":2,"text":"Sources & Credits","anchor":"section-11"},{"credits":[["Cover photo - Jane Bown","https://www.theguardian.com/gnmeducationcentre/2018/jan/05/jane-bown-photographs-of-the-beatles-in-colour","https://en.wikipedia.org/wiki/The_Beatles"],["Wikipedia: The Beatles","","https://en.wikipedia.org/wiki/The_Beatles"],["The Beatles - Alone: At the BBC","BBC Radio 2","https://www.bbc.co.uk/programmes/b03m75x3"],["YouTube GB","","https://www.youtube.com/"],["The Beatles Bible","","https://www.beatlesbible.com/"],["Rolling Stone Magazine","","https://www.rollingstone.com/music/music-lists/500-greatest-albums-of-all-time-156826/the-beatles-sgt-peppers-lonely-hearts-club-band-54555/"],["The Guardian","","https://www.theguardian.com"],["The Beatles Lyrics","","https://www.azlyrics.com/b/beatles.html/b/beatles.html"],["Kent Film Office: The Beatles in Kent (1967)","","https://kentfilmoffice.co.uk/filmed-in-kent/tag/strawberry-fields-forever/"],["The Beatle Source","","https://www.beatlesource.com/"],["There Are Places I Remember","","https://beatlesliverpoollocations.blogspot.com/"],["Songfacts: Penny Lane","","https://www.songfacts.com/facts/the-beatles/penny-lane"],["Songfacts: Strawberry Fields Forever","","https://www.songfacts.com/facts/the-beatles/strawberry-fields-forever"],["Paul McCartney: Many Years from Now (1998)","Paul McCartney and Barry Miles","https://www.amazon.co.uk/Paul-McCartney-Many-Years-Now/dp/0749386584"],["Teach Rock","Teach Rock","https://curriculum.teachrock.org/lessons/the-beatles-multitracking-and-the-1960s-counterculture"],["Proof-reading","Stephen Munday",""]]}]</script>
+<script id="story-nav" type="application/json">{"header_title":"A Story Map by BC","header_logo_url":"https://www.arcgis.com/sharing/rest/content/items/cee37df3d3ef411db2b2e7a2d0a08309/resources/Beatles%20button%201%20(Drum%20cover)__1484001111330.png","bookmarks":[{"anchor":"top","label":"Intro"},{"anchor":"section-5","label":"Penny Lane"},{"anchor":"section-8","label":"Strawberry Fields"}],"cover_text":"light","layout":"stacked"}</script>
+<script>
+const items = JSON.parse(document.getElementById('story-data').textContent);
+const navConfig = JSON.parse(document.getElementById('story-nav').textContent);
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderRuns(runs) {
+  return runs.map(([text, bold, italic, href]) => {
+    let t = esc(text);
+    if (bold) t = `<b>${t}</b>`;
+    if (italic) t = `<i>${t}</i>`;
+    if (href) t = `<a href="${esc(href)}" target="_blank" rel="noopener">${t}</a>`;
+    return t;
+  }).join('');
+}
+
+function toEmbedUrl(url) {
+  if (!url) return url;
+  if (url.startsWith('//')) return 'https:' + url;
+  return url;
+}
+
+function dimAttr(media) {
+  // Reserves layout space using the image's original AGOL dimensions (when known), so the
+  // browser doesn't reflow the page after images finish loading — which used to knock
+  // scroll position (and bookmark-tab targets) out from under the reader.
+  const w = media && media.width, h = media && media.height;
+  return (w && h) ? ` width="${w}" height="${h}"` : '';
+}
+
+function sizeClass(media) {
+  const s = (media && media.size) || 'large';
+  return 'size-' + (['small', 'medium', 'large', 'full'].includes(s) ? s : 'large');
+}
+function mapHeightFor(media) {
+  if (media && media.custom_height) return media.custom_height;
+  const size = media && media.size;
+  return ({ small: 280, medium: 400, large: 500, full: 640 })[size] || 400;
+}
+
+function renderMedia(media) {
+  const wrap = document.createElement('div');
+
+  if (media.kind && media.kind.startsWith('Background image')) {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<img src="${esc(toEmbedUrl(media.url))}"${dimAttr(media)} loading="lazy" alt="${esc(media.title||'')}">`
+      + `<div class="media-caption">Scene image — ${esc(media.title||'')}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Image') {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<img src="${esc(toEmbedUrl(media.url))}"${dimAttr(media)} loading="lazy" alt="${esc(media.title||'')}">`;
+    if (media.caption) wrap.innerHTML += `<div class="media-caption">${esc(media.caption)}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Image gallery') {
+    wrap.className = 'media ' + sizeClass(media);
+    const grid = document.createElement('div');
+    grid.className = 'gallery';
+    (media.gallery || []).forEach(g => {
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = toEmbedUrl(g.url);
+      img.alt = g.title || '';
+      if (g.width && g.height) { img.width = g.width; img.height = g.height; }
+      grid.appendChild(img);
+    });
+    wrap.appendChild(grid);
+    if (media.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'media-caption';
+      cap.textContent = media.caption;
+      wrap.appendChild(cap);
+    }
+    return wrap;
+  }
+
+  if (media.kind === 'Video' || media.kind === 'Video embed') {
+    wrap.className = 'media ' + sizeClass(media);
+    const src = toEmbedUrl(media.url);
+    wrap.innerHTML = `<iframe src="${esc(src)}" height="${mapHeightFor(media)}" frameborder="0" `
+      + `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" `
+      + `allowfullscreen loading="lazy"></iframe>`;
+    let cap = media.title ? esc(media.title) : '';
+    // Extract just the video ID before swapping in watch?v= — a naive string-replace left any
+    // tracking/player query string (e.g. ?si=..., ?wmode=opaque&rel=0) stuck onto the ID, producing
+    // a broken watch?v=ID?wmode=... link with two "?" in it.
+    const embedMatch = media.url.match(/youtube\.com\/embed\/([^?&]+)/);
+    const watchUrl = embedMatch
+      ? `https://www.youtube.com/watch?v=${embedMatch[1]}`
+      : media.url;
+    cap += `${cap ? ' — ' : ''}<a href="${esc(watchUrl)}" target="_blank" rel="noopener">Open on YouTube ↗</a>`;
+    wrap.innerHTML += `<div class="media-caption">${cap}</div>`;
+    return wrap;
+  }
+
+  if (media.kind === 'Spotify embed') {
+    wrap.className = 'media ' + sizeClass(media);
+    wrap.innerHTML = `<iframe src="${esc(toEmbedUrl(media.url))}" height="80" frameborder="0" `
+      + `allow="encrypted-media" loading="lazy"></iframe>`;
+    let cap = media.title ? esc(media.title) : '';
+    cap += `${cap ? ' — ' : ''}<a href="${esc(media.url)}" target="_blank" rel="noopener">Open on Spotify ↗</a>`;
+    wrap.innerHTML += `<div class="media-caption">${cap}</div>`;
+    return wrap;
+  }
+
+  if (media.kind && media.kind.startsWith('Interactive map')) {
+    wrap.className = 'media ' + sizeClass(media);
+    const mh = mapHeightFor(media);
+    let embedSrc = '', label = '';
+    if (media.custom_link_url) { embedSrc = media.custom_link_url; label = 'Custom map view'; }
+    else if (media.webmap_id) {
+      embedSrc = `https://www.arcgis.com/apps/Embed/index.html?webmap=${encodeURIComponent(media.webmap_id)}&zoom=true&scale=true&theme=light&disable_scroll=true`;
+      if (media.extent_lonlat) embedSrc += `&extent=${media.extent_lonlat.join(',')}`;
+      label = 'Live ArcGIS web map';
+    }
+    if (embedSrc) {
+      // Click-to-load rather than embedding the iframe immediately: some map embeds (custom
+      // GeoMapper/Gist links in particular) show their own blocking "loaded" dialog on mount —
+      // with several such maps in one story that becomes unusable while editing. Not loading
+      // until asked also means a genuinely lighter first paint for readers who skip a given map.
+      const holder = document.createElement('div');
+      holder.className = 'map-placeholder';
+      holder.style.height = mh + 'px';
+      holder.innerHTML = `<button class="map-load-btn" type="button">▶ Load interactive map</button>`;
+      holder.querySelector('.map-load-btn').addEventListener('click', () => {
+        // Tells the editor (if this page is embedded in one) that this specific map is now
+        // loaded, by its position in the story — lets the editor silently reload it again after
+        // its own refreshes, instead of every map you've already set up going back to a blank
+        // "Load interactive map" button each time you edit something unrelated elsewhere.
+        try { window.parent.postMessage({ type: 'sos-map-loaded', docIdx: wrap.dataset.docIdx }, '*'); } catch (e0) {}
+
+        function buildIframe() {
+          const f = document.createElement('iframe');
+          f.src = embedSrc;
+          f.height = mh;
+          f.setAttribute('frameborder', '0');
+          f.loading = 'lazy';
+          return f;
+        }
+
+        // Listens for the embedded map's own "I'm ready" signal (bookmarks load asynchronously,
+        // so this can't just fire immediately on iframe load) — see gm-ready / gm-loadBookmark in
+        // Geo Mapper's own code. Always listens, not just when a bookmark name is already set:
+        // this is also how the SOS editor discovers the map's actual bookmark names to offer as
+        // a pick-list, rather than requiring anyone to type one by hand. Relayed one level up so
+        // the editor (this iframe's own parent) can see it, since postMessage doesn't bubble.
+        function wireGmReady(fr) {
+          const onGmReady = (ev) => {
+            if (ev.source !== fr.contentWindow) return;
+            if (!ev.data || ev.data.type !== 'gm-ready') return;
+            if (media.bookmark_name) {
+              fr.contentWindow.postMessage({ type: 'gm-loadBookmark', name: media.bookmark_name }, '*');
+            }
+            try {
+              window.parent.postMessage({ type: 'sos-gm-ready', docIdx: wrap.dataset.docIdx, bookmarkNames: ev.data.bookmarkNames || [] }, '*');
+            } catch (e2) {}
+            window.removeEventListener('message', onGmReady);
+          };
+          window.addEventListener('message', onGmReady);
+        }
+
+        let iframe = buildIframe();
+        holder.replaceWith(iframe);
+        wireGmReady(iframe);
+
+        // Lets anyone reading the published story — not just the person editing it — expand a
+        // map to fill the screen when a pop-up (or anything else) needs more room than whatever
+        // fixed height was set for it, then collapse it back down again.
+        wrap.style.position = 'relative';
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'map-toggle-btn';
+        toggleBtn.title = 'Maximise map';
+        toggleBtn.innerHTML = '⛶';
+        toggleBtn.addEventListener('click', () => {
+          const maximized = wrap.classList.toggle('map-maximized');
+          document.documentElement.classList.toggle('map-lock-scroll', maximized);
+          toggleBtn.innerHTML = maximized ? '✕' : '⛶';
+          toggleBtn.title = maximized ? 'Restore map size' : 'Maximise map';
+        });
+        wrap.appendChild(toggleBtn);
+
+        // Locked-view behaviour, modelled on what Classic Cascade did: the map opens fixed to
+        // the editor's chosen view, on a scroll-past page that's mostly text — without a lock,
+        // an accidental wheel-scroll or drag over a full-width map changes ITS view instead of
+        // scrolling the page, so the next reader (or the same reader scrolling back down) finds
+        // it drifted away from the framing that was actually intended. This is enforced from
+        // outside the map entirely (an overlay blocking interaction), the same way Cascade's own
+        // app controlled it rather than the map's own bookmark data — so it works identically
+        // regardless of what's embedded underneath.
+        if (media.allow_explore === false) {
+          // Editor has said this map should never be pannable/zoomable by readers at all.
+          iframe.style.pointerEvents = 'none';
+        } else {
+          const lockOverlay = document.createElement('div');
+          lockOverlay.className = 'map-lock-overlay';
+          const exploreBtn = document.createElement('button');
+          exploreBtn.type = 'button';
+          exploreBtn.className = 'map-explore-btn';
+          exploreBtn.textContent = '🔓 Explore this map';
+          lockOverlay.appendChild(exploreBtn);
+          wrap.appendChild(lockOverlay);
+          let unlocked = false;
+          // Only the button itself unlocks — the overlay still covers (and blocks) the whole
+          // map underneath, but clicking anywhere else on it just absorbs the click and does
+          // nothing, rather than treating a tap near one of the map's own icons as "unlock".
+          exploreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            unlocked = true;
+            lockOverlay.classList.add('is-hidden');
+          });
+
+          // Once scrolled mostly out of view after being explored, silently reload back to the
+          // locked, editor-chosen view — so it's never left wherever a reader happened to leave
+          // it. A fresh iframe load is what actually resets the view; it works for any embed
+          // (Geo Mapper bookmark, ArcGIS custom link, or the generic fallback) without needing to
+          // know anything about what's inside it.
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting && unlocked) {
+                unlocked = false;
+                lockOverlay.classList.remove('is-hidden');
+                const fresh = buildIframe();
+                iframe.replaceWith(fresh);
+                iframe = fresh;
+                wireGmReady(iframe);
+              }
+            });
+          }, { threshold: 0 });
+          io.observe(wrap);
+        }
+      });
+      wrap.appendChild(holder);
+      const cap = document.createElement('div');
+      cap.className = 'media-caption';
+      cap.innerHTML = `${label} — <a href="${esc(media.custom_link_url || media.url)}" target="_blank" rel="noopener">open full map ↗</a>`;
+      wrap.appendChild(cap);
+    } else {
+      wrap.className = 'placeholder';
+      wrap.innerHTML = `Interactive map — no embeddable ID found.<br><a href="${esc(media.url)}" target="_blank">${esc(media.title||media.url)}</a>`;
+    }
+    return wrap;
+  }
+
+  wrap.className = 'placeholder';
+  wrap.innerHTML = `${esc(media.kind||'Media')}: <a href="${esc(media.url)}" target="_blank">${esc(media.title||media.url||'')}</a>`;
+  return wrap;
+}
+
+const app = document.getElementById('app');
+
+function buildNav() {
+  if (!navConfig.bookmarks || !navConfig.bookmarks.length) return;
+  const nav = document.createElement('div');
+  nav.className = 'storynav';
+  let brandHtml = '';
+  if (navConfig.header_logo_url) brandHtml += `<img src="${esc(navConfig.header_logo_url)}" alt="">`;
+  brandHtml += `<span>${esc(document.title)}</span>`;
+  const tabsHtml = navConfig.bookmarks.map((b, i) =>
+    `<a class="tab${i === 0 ? ' active' : ''}" data-anchor="${esc(b.anchor)}" href="#${esc(b.anchor)}">${esc(b.label)}</a>`
+  ).join('');
+  nav.innerHTML = `<div class="brand">${brandHtml}</div><div class="tabs">${tabsHtml}</div>`
+    + (navConfig.header_title ? `<div class="credit">${esc(navConfig.header_title)}</div>` : '');
+  app.appendChild(nav);
+
+  // Measure the real, rendered nav height (varies by theme/font/logo) instead of guessing a
+  // fixed pixel offset — used both to keep clicked headings from landing hidden behind the
+  // sticky bar (via scroll-margin-top) and to keep the scroll-spy active-tab detection in sync.
+  const navH = nav.offsetHeight || 76;
+  document.documentElement.style.setProperty('--nav-h', navH + 'px');
+
+  nav.querySelectorAll('a.tab').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(a.dataset.anchor);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    const anchors = navConfig.bookmarks.map(b => document.getElementById(b.anchor)).filter(Boolean);
+    let current = anchors[0];
+    for (const el of anchors) {
+      if (el.getBoundingClientRect().top - navH - 4 <= 0) current = el;
+    }
+    nav.querySelectorAll('a.tab').forEach(a => {
+      a.classList.toggle('active', current && a.dataset.anchor === current.id);
+    });
+  }, { passive: true });
+}
+
+let idx = 0;
+if (items[0] && items[0].level === 1) {
+  const cover = document.createElement('div');
+  cover.className = 'cover';
+  if (navConfig.cover_text === 'dark') cover.classList.add('cover-text-dark');
+  if (navConfig.cover_box === 'light') cover.classList.add('cover-box-light');
+  else if (navConfig.cover_box === 'dark') cover.classList.add('cover-box-dark');
+  cover.id = 'top';
+  cover.dataset.docIdx = 'cover';
+  let bgUrl = '', bgMedia = null;
+  let subtitle = '';
+  for (let i = 1; i < Math.min(items.length, 4); i++) {
+    if (items[i].media && items[i].media.kind === 'Background image (cover)') { bgUrl = toEmbedUrl(items[i].media.url); bgMedia = items[i].media; }
+    if (items[i].para && !subtitle) subtitle = renderRuns(items[i].para);
+  }
+  if (bgUrl) {
+    cover.style.backgroundImage = `url('${bgUrl}')`;
+    // The author's real focal point from Cascade, when known — otherwise fall back to a plain
+    // centred crop rather than guessing.
+    if (bgMedia && typeof bgMedia.focal_x === 'number' && typeof bgMedia.focal_y === 'number') {
+      cover.style.backgroundPosition = `${(bgMedia.focal_x * 100).toFixed(1)}% ${(bgMedia.focal_y * 100).toFixed(1)}%`;
+    }
+    if (bgMedia && bgMedia.fit_color) cover.style.backgroundColor = bgMedia.fit_color;
+  }
+  cover.innerHTML = `<div class="cover-text"><h1>${esc(items[0].text)}</h1><div class="subtitle">${subtitle}</div></div>`;
+  app.appendChild(cover);
+  idx = 1;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('.media.map-maximized').forEach(el => {
+    el.classList.remove('map-maximized');
+    const btn = el.querySelector('.map-toggle-btn');
+    if (btn) { btn.innerHTML = '⛶'; btn.title = 'Maximise map'; }
+  });
+  document.documentElement.classList.remove('map-lock-scroll');
+});
+
+buildNav();
+
+const main = document.createElement('main');
+app.appendChild(main);
+
+function renderSectionBanner(headingItem, mediaItem, headingIdx) {
+  const m = mediaItem.media;
+  const div = document.createElement('div');
+  div.className = 'section-banner';
+  div.dataset.docIdx = headingIdx;
+  const bgUrl = toEmbedUrl(m.url);
+  if (bgUrl) div.style.backgroundImage = `url('${bgUrl}')`;
+  if (typeof m.focal_x === 'number' && typeof m.focal_y === 'number') {
+    div.style.backgroundPosition = `${(m.focal_x * 100).toFixed(1)}% ${(m.focal_y * 100).toFixed(1)}%`;
+  }
+  if (m.fit_color) div.style.backgroundColor = m.fit_color;
+  div.style.minHeight = (m.banner_height_px || 340) + 'px';
+  const textWrap = document.createElement('div');
+  textWrap.className = 'section-banner-text';
+  const h = document.createElement(headingItem.level === 2 ? 'h2' : 'h3');
+  h.textContent = headingItem.text;
+  if (headingItem.anchor) h.id = headingItem.anchor;
+  textWrap.appendChild(h);
+  div.appendChild(textWrap);
+  return div;
+}
+
+function renderStackedLayout(startIdx) {
+  for (let idx = startIdx; idx < items.length; idx++) {
+    const item = items[idx];
+
+    if (item.level === 1) continue;
+    if (item.media && item.media.kind === 'Background image (cover)') continue;
+    if (idx <= 2 && item.para) continue;
+
+    // "Leitmotif" section banners: a heading with its own themed background image behind it,
+    // opted into per-image (not automatic) — mirrors the cover's own treatment, just scoped to
+    // one section rather than the whole story. Only kicks in when the very next item is an image
+    // explicitly marked for this.
+    if (item.level !== undefined && items[idx + 1] && items[idx + 1].media && items[idx + 1].media.use_as_banner) {
+      main.appendChild(renderSectionBanner(item, items[idx + 1], idx));
+      idx++; // this consumed the following image item too
+      continue;
+    }
+
+    if (item.level !== undefined) {
+      const h = document.createElement(item.level === 2 ? 'h2' : 'h3');
+      h.textContent = item.text;
+      if (item.anchor) h.id = item.anchor;
+      h.dataset.docIdx = idx;
+      main.appendChild(h);
+    } else if (item.para) {
+      const p = document.createElement('p');
+      p.innerHTML = renderRuns(item.para);
+      p.dataset.docIdx = idx;
+      main.appendChild(p);
+    } else if (item.media) {
+      const m = renderMedia(item.media);
+      m.dataset.docIdx = idx;
+      main.appendChild(m);
+    } else if (item.credits) {
+      const box = document.createElement('div');
+      box.className = 'credits';
+      box.dataset.docIdx = idx;
+      item.credits.forEach(([label, source, link]) => {
+        const e = document.createElement('div');
+        e.className = 'entry';
+        e.innerHTML = `<b>${esc(label)}</b>${source ? ' — ' + esc(source) : ''}` +
+          (link ? `<br><a href="${esc(link)}" target="_blank">${esc(link)}</a>` : '');
+        box.appendChild(e);
+      });
+      main.appendChild(box);
+    }
+  }
+}
+
+/* ==================== side-panel layout (Journal-style scroll sync) ====================
+   Groups the flat items[] into panels (one per heading, plus a leading intro panel for
+   anything before the first heading). Each panel's FIRST media item becomes its "panel media" —
+   shown in the sticky left column while that panel is in view — exactly mirroring how the
+   original Journal always paired one section with one persistent side-panel visual. Any
+   additional media in the same panel stays in the scrolling text column instead of being
+   dropped, the same "preserve everything, degrade honestly" approach used throughout this
+   toolkit rather than silently discarding a second image a section happened to have. */
+
+function groupIntoPanels(startIdx) {
+  const panels = [];
+  let current = { heading: null, anchor: null, media: null, body: [] };
+  let hasContent = false;
+
+  function pushCurrentIfNonEmpty() {
+    if (hasContent) panels.push(current);
+  }
+
+  for (let idx = startIdx; idx < items.length; idx++) {
+    const item = items[idx];
+    if (item.level === 1) continue; // cover title, already rendered separately
+    if (item.media && item.media.kind === 'Background image (cover)') continue;
+    if (idx <= 2 && item.para) continue; // cover subtitle, already rendered on the cover
+
+    if (item.level !== undefined) {
+      pushCurrentIfNonEmpty();
+      current = { heading: item.text, anchor: item.anchor || null, media: null, body: [] };
+      hasContent = true;
+      continue;
+    }
+
+    hasContent = true;
+    if (item.media && !current.media) {
+      current.media = item.media; // first media in this panel -> the panel's fixed visual
+    } else {
+      current.body.push(item); // everything else (including any 2nd+ media) stays in the text flow
+    }
+  }
+  pushCurrentIfNonEmpty();
+  return panels;
+}
+
+function renderPanelBody(panel, panelIdx) {
+  const section = document.createElement('section');
+  section.className = 'sidepanel-panel';
+  section.dataset.panelIdx = panelIdx;
+  if (panel.heading) {
+    const h = document.createElement('h2');
+    h.textContent = panel.heading;
+    if (panel.anchor) h.id = panel.anchor;
+    section.appendChild(h);
+  }
+  panel.body.forEach(item => {
+    if (item.para) {
+      const p = document.createElement('p');
+      p.innerHTML = renderRuns(item.para);
+      section.appendChild(p);
+    } else if (item.media) {
+      section.appendChild(renderMedia(item.media));
+    } else if (item.credits) {
+      const box = document.createElement('div');
+      box.className = 'credits';
+      item.credits.forEach(([label, source, link]) => {
+        const e = document.createElement('div');
+        e.className = 'entry';
+        e.innerHTML = `<b>${esc(label)}</b>${source ? ' — ' + esc(source) : ''}` +
+          (link ? `<br><a href="${esc(link)}" target="_blank">${esc(link)}</a>` : '');
+        box.appendChild(e);
+      });
+      section.appendChild(box);
+    }
+  });
+  return section;
+}
+
+function renderSidePanelLayout(startIdx) {
+  const panels = groupIntoPanels(startIdx);
+  if (!panels.length) return; // nothing to show in this mode -- leave main empty rather than error
+
+  const layout = document.createElement('div');
+  layout.className = 'sidepanel-layout';
+  const mediaCol = document.createElement('div');
+  mediaCol.className = 'sidepanel-media';
+  mediaCol.id = 'sidepanelMedia';
+  const textCol = document.createElement('div');
+  textCol.className = 'sidepanel-text';
+
+  panels.forEach((panel, i) => textCol.appendChild(renderPanelBody(panel, i)));
+
+  layout.appendChild(mediaCol);
+  layout.appendChild(textCol);
+  const breakout = document.createElement('div');
+  breakout.className = 'sidepanel-breakout';
+  breakout.appendChild(layout);
+  main.appendChild(breakout);
+
+  // Lazily rendered per panel, the first time it's actually needed -- not upfront for all
+  // panels, which matters a lot for a story with a dozen map embeds: each map only actually
+  // loads once the reader has scrolled to the section it belongs to, same click-to-load spirit
+  // the rest of this template already uses for maps, just triggered by scroll instead of a click.
+  const renderedMediaCache = {};
+  let activePanelIdx = -1;
+
+  function showPanelMedia(panelIdx) {
+    if (panelIdx === activePanelIdx) return;
+    const panel = panels[panelIdx];
+    if (!panel.media) return; // no fresh visual for this panel -- keep showing whatever's already there
+    activePanelIdx = panelIdx;
+    const swap = () => {
+      mediaCol.innerHTML = '';
+      if (!renderedMediaCache[panelIdx]) renderedMediaCache[panelIdx] = renderMedia(panel.media);
+      mediaCol.appendChild(renderedMediaCache[panelIdx]);
+      mediaCol.classList.remove('is-swapping');
+    };
+    if (mediaCol.childElementCount === 0) {
+      swap(); // first paint -- no fade needed, nothing to fade from
+    } else {
+      mediaCol.classList.add('is-swapping');
+      setTimeout(swap, 220);
+    }
+  }
+
+  // Panel 0 shown immediately, synchronously, so there's no blank/empty left column on first
+  // paint while waiting for the reader to scroll or for the observer to fire.
+  showPanelMedia(0);
+
+  // A panel becomes "active" when it's crossing roughly the vertical middle of the viewport --
+  // a wide (-45%/-45%) band rather than a hard line, so ordinary scroll jitter near a panel
+  // boundary doesn't cause the image to flicker back and forth between two panels.
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) showPanelMedia(Number(entry.target.dataset.panelIdx));
+      });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    textCol.querySelectorAll('.sidepanel-panel').forEach(el => observer.observe(el));
+  }
+  // No IntersectionObserver support: panel 0's media (already shown above) simply stays fixed
+  // for the whole story rather than swapping -- a plain, working fallback, not a broken one.
+}
+
+if (navConfig.layout === 'sidepanel') {
+  renderSidePanelLayout(idx);
+} else {
+  renderStackedLayout(idx);
+}
+
+// "Load all maps": maps are click-to-load so a story with dozens of them doesn't open 30+ embeds at
+// once, but readers of a long story shouldn't have to click each one. This adds one optional button
+// to the nav bar that loads every map on the page in one go. Stacked layout only: the side-panel
+// layout shows a single map at a time, so there is nothing to load in bulk.
+function addLoadAllMapsButton() {
+  if (navConfig.layout === 'sidepanel') return;
+  const nav = document.querySelector('.storynav');
+  if (!nav) return;
+  const remaining = () => document.querySelectorAll('.map-load-btn');
+  if (remaining().length < 2) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'loadall-btn';
+  btn.title = 'Load every interactive map in this story at once';
+  const credit = nav.querySelector('.credit');
+  nav.insertBefore(btn, credit || null);
+  function refresh() {
+    const n = remaining().length;
+    if (n < 2) { btn.remove(); return; }   // one or none left: the individual buttons are enough
+    btn.innerHTML = '\u25B6 Load all maps <span class="count">(' + n + ')</span>';
+  }
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    btn.textContent = 'Loading maps\u2026';
+    // Staggered a little rather than all in the same instant, so the browser isn't asked to start
+    // dozens of map embeds in one frame.
+    Array.from(remaining()).forEach((b, i) => setTimeout(() => b.click(), i * 120));
+    setTimeout(() => btn.remove(), remaining().length * 120 + 200);
+  });
+  document.addEventListener('click', () => setTimeout(refresh, 0));
+  refresh();
+}
+addLoadAllMapsButton();
+</script>
+</body>
+</html>
