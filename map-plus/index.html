@@ -510,7 +510,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geo Mapper Plus v0.4.132</title>
+    <title>Geo Mapper Plus v0.4.133</title>
     <!-- Geo Mapper Plus 13 — BUGFIX (BC: a shared "View only" link's
          preview thumbnail/card showed raw internal changelog text —
          "tag, JS READY message, and HTML comment now all updated
@@ -545,6 +545,48 @@
     <!-- ============================================================
          GEO MAPPER PLUS — beta, forked from Geo Mapper 2D v2.10.431
          Standalone project — see geo-mapper-plus-initiation-brief.md
+         v0.4.133 - FEATURE (Session 19, BC request: "add NASA Earth at
+         night as a basemap or overlay... different resolutions available.
+         Perhaps HQ version as a tileset?"). Researched the actual public
+         tile options before wiring anything in (two independent working
+         examples confirmed the URL template) rather than guessing: NASA
+         GIBS publishes the VIIRS Day/Night Band composite from Suomi NPP —
+         the famous 2012 "Black Marble" image — as free, key-less XYZ tiles
+         at gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/
+         default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg. On the "HQ
+         version" question: checked Esri's own Living Atlas "Earth at
+         Night" layer (tiles.arcgis.com/.../Earth_at_Night_WM) as a possible
+         higher-res alternative — its service metadata shows it's actually
+         OLDER/LOWER-resolution DMSP OLS imagery (pre-VIIRS) despite
+         exposing more zoom levels in its tile pyramid; those extra levels
+         are artificial upsampling, not real detail, so it would have been
+         a worse "HQ" choice despite looking like one. GIBS's own cap of
+         zoom 8 for VIIRS_CityLights_2012 lines up almost exactly with
+         VIIRS's true ~500m/pixel ground resolution (confirmed against
+         Esri's own LOD table: zoom 8 = ~611m/pixel) — so zoom 8 isn't an
+         arbitrary limit, it's genuinely where the real detail runs out. A
+         true higher-resolution "Black Marble HD" product exists from NASA
+         but isn't published as a general-purpose global XYZ tile pyramid
+         (only via specific disaster-response regional map services), so
+         nothing better was available to wire in. Shipped as BOTH a
+         basemap ('earth-at-night' in the basemaps object + all 3 basemap
+         dropdowns — works as a complete standalone map on its own, same as
+         the real Black Marble image) AND an Overlays-panel toggle
+         ('overlay-earth-at-night', loadEarthAtNightOverlay()) so it can
+         also sit semi-transparently on top of any other basemap (e.g. to
+         compare city-light locations against roads/borders/population data
+         already on screen) — BC's question offered a choice between the
+         two and both were cheap to support from the existing architecture,
+         so did both rather than picking one. maxZoom 19 / maxNativeZoom 8
+         on both (Leaflet upsamples past 8 rather than the layer vanishing,
+         same convention as 'esri-physical'/'topo' above). The overlay
+         version required one small addition to updateOverlayOpacity():
+         that function only knew how to adjust vector-layer opacity
+         (setStyle/fillOpacity) via the shared "All Overlays Visibility"
+         slider — added an setOpacity() branch alongside it so the same
+         slider now also reaches a raster tile overlay, wrapped in a
+         single-layer L.layerGroup() to match the "group with eachLayer()"
+         shape every overlay returns.
          v0.4.132 - FIX (Session 19, same day as v0.4.131). v0.4.131's zoom-
          curve-based inward migration for the Decimal Degree Sign Guide
          captions wasn't enough: BC zoomed in past the curve's tuned range
@@ -4937,7 +4979,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Geo Mapper Plus <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v0.4.132 beta</span></h1>
+        <h1>📍 Geo Mapper Plus <span style="font-size: 0.5em; color: #95a5a6; font-weight: normal;">v0.4.133 beta</span></h1>
         <button onclick="toggleSearch()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: #3498db; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;" title="Search location">🔍</button>
     </div>
     
@@ -5264,6 +5306,7 @@
                         <option value="esri-ocean">ESRI Ocean Basemap</option>
                         <option value="esri-ocean-labels">ESRI Ocean Feature Labels</option>
                         <option value="cyclosm">CyclOSM</option>
+                        <option value="earth-at-night">🌃 Earth at Night (NASA Black Marble, 2012)</option>
                         <optgroup label="─── OS Current Maps (GB) ───">
                         <option value="os-outdoor">🗺️ OS Outdoor / Explorer (current 1:25,000)</option>
                         <option value="os-road">🗺️ OS Road (current 1:250,000)</option>
@@ -5415,6 +5458,10 @@
                         <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
                             <input type="checkbox" id="overlay-earthquakes" value="earthquakes" onchange="toggleOverlay('earthquakes')" style="width: auto; margin-right: 0.5rem;">
                             <span>🔴 USGS Earthquakes (Last 30 Days)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e0e0e0;">
+                            <input type="checkbox" id="overlay-earth-at-night" value="earth-at-night" onchange="toggleOverlay('earth-at-night')" style="width: auto; margin-right: 0.5rem;">
+                            <span>🌃 Earth at Night (NASA Black Marble)</span>
                         </label>
                     </div>
                 </div>
@@ -5591,6 +5638,7 @@
                                 <option value="esri-ocean">Esri Ocean Basemap</option>
                                 <option value="esri-ocean-labels">Esri Ocean Feature Labels</option>
                                 <option value="cyclosm">CyclOSM</option>
+                                <option value="earth-at-night">Earth at Night (NASA Black Marble)</option>
                             </optgroup>
                             <optgroup label="OS Current Maps (GB)">
                                 <option value="os-outdoor">OS Outdoor / Explorer (1:25,000)</option>
@@ -5688,6 +5736,7 @@
                                 <option value="esri-ocean">Esri Ocean Basemap</option>
                                 <option value="esri-ocean-labels">Esri Ocean Feature Labels</option>
                                 <option value="cyclosm">CyclOSM</option>
+                                <option value="earth-at-night">Earth at Night (NASA Black Marble)</option>
                             </optgroup>
                             <optgroup label="OS Current Maps (GB)">
                                 <option value="os-outdoor">OS Outdoor / Explorer (1:25,000)</option>
@@ -11553,6 +11602,27 @@ For image URLs, mark the field as an 'Image Field' below."></textarea>
                 url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
                 attribution: '© OpenStreetMap contributors. Tiles courtesy of CyclOSM',
                 maxZoom: 20
+            },
+            // Session 19 (BC request): NASA's "Earth at Night" — the VIIRS
+            // Day/Night Band composite from Suomi NPP, commonly known as the
+            // 2012 "Black Marble" image, served as public XYZ tiles by NASA
+            // GIBS (no API key). Verified via GIBS's own published tile
+            // template and two independent working-example sources before
+            // shipping — see the matching Overlays-panel entry below for
+            // the "different resolutions / HQ tileset" research notes (no
+            // code comment duplication; see changelog + architecture-
+            // learnings.md for the full writeup). maxNativeZoom 8 is this
+            // layer's TRUE native resolution ceiling (its ~500m/pixel VIIRS
+            // source data), not an arbitrary cap — Leaflet over-zooms
+            // (upsamples) beyond it up to maxZoom so the basemap never just
+            // disappears at high zoom, same pattern as esri-physical/topo
+            // above.
+            'earth-at-night': {
+                url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg',
+                attribution: 'Imagery © NASA Earth Observatory / NASA GIBS — VIIRS Day/Night Band, Suomi NPP ("Black Marble" 2012)',
+                maxZoom: 19,
+                maxNativeZoom: 8,
+                label: '🌃 Earth at Night (NASA Black Marble, 2012)'
             },
             // === NLS Historical Maps (National Library of Scotland) ===
             // Free S3-hosted tilesets — no API key required — CC-BY
@@ -36952,6 +37022,11 @@ Total rows: ${csvData.length}${corsNote}`);
                             html += '<div style="font-size: 0.75rem; color: #2c3e50;">+/− captions in each quadrant</div>';
                             break;
 
+                        case 'earth-at-night':
+                            html += '<div class="legend-section-title">🌃 Earth at Night</div>';
+                            html += '<div style="font-size: 0.75rem; color: #2c3e50;">NASA Black Marble — VIIRS city lights, 2012</div>';
+                            break;
+
                         case 'os-national-grid':
                             html += '<div class="legend-section-title">🗺️ OS National Grid</div>';
                             html += '<div style="display:grid;grid-template-columns:1fr;gap:0.3rem;font-size:0.72rem;">';
@@ -37222,6 +37297,9 @@ Total rows: ${csvData.length}${corsNote}`);
                     break;
                 case 'decimal-degree-signs':
                     layer = await loadDecimalDegreeSignsLayer();
+                    break;
+                case 'earth-at-night':
+                    layer = await loadEarthAtNightOverlay();
                     break;
                 case 'os-national-grid':
                     layer = loadOSNationalGridLayer();
@@ -38588,6 +38666,35 @@ Total rows: ${csvData.length}${corsNote}`);
             return group;
         }
 
+        // Overlay 5: Earth at Night (Session 19, BC request: "add NASA Earth
+        // at night as a basemap or overlay"). Same NASA GIBS VIIRS Day/Night
+        // Band tile source as the 'earth-at-night' basemap entry above
+        // (see its comment for the research/verification notes) — offered
+        // here too as an OVERLAY so it can be laid semi-transparently over
+        // any other basemap (e.g. over CartoDB Dark or a political map, to
+        // compare city-light locations against borders/roads/population
+        // data already on screen) rather than only as a full-screen
+        // standalone basemap. A plain L.tileLayer has no eachLayer() method,
+        // so it's wrapped in a single-layer L.layerGroup() to match the
+        // "group with eachLayer" shape every other overlay returns — see
+        // the matching subLayer.setOpacity branch added to
+        // updateOverlayOpacity() so the shared "All Overlays Visibility"
+        // slider actually reaches it (tile layers use Leaflet's
+        // setOpacity(), not the setStyle()/fillOpacity used by the vector
+        // overlays that function was written for). No settings panel of
+        // its own — like rivers/lakes/urban-areas above, it relies on that
+        // same shared slider rather than a dedicated one.
+        async function loadEarthAtNightOverlay() {
+            const cfg = basemaps['earth-at-night'];
+            const tileLayer = L.tileLayer(cfg.url, {
+                attribution: cfg.attribution,
+                maxZoom: cfg.maxZoom,
+                maxNativeZoom: cfg.maxNativeZoom,
+                opacity: overlayOpacity
+            });
+            return L.layerGroup([tileLayer]);
+        }
+
         // ORPHANED by the three-way split above (Session 19) — no longer
         // called from loadOverlayLayer()'s switch, left in place rather than
         // deleted per this file's own convention for inert code (see
@@ -39299,11 +39406,16 @@ Total rows: ${csvData.length}${corsNote}`);
                                 if (type === 'tectonic-boundaries' || type === 'lat-long-grid') {
                                     subLayer.setStyle({ opacity: overlayOpacity });
                                 } else {
-                                    subLayer.setStyle({ 
+                                    subLayer.setStyle({
                                         opacity: overlayOpacity,
-                                        fillOpacity: overlayOpacity 
+                                        fillOpacity: overlayOpacity
                                     });
                                 }
+                            } else if (subLayer.setOpacity) {
+                                // Raster tile overlay (e.g. 'earth-at-night') — an
+                                // L.TileLayer has no setStyle(), it uses Leaflet's
+                                // own opacity API instead.
+                                subLayer.setOpacity(overlayOpacity);
                             }
                             // Update tectonic names labels
                             if (type === 'tectonic-names' && subLayer.getElement) {
@@ -40871,7 +40983,8 @@ Total rows: ${csvData.length}${corsNote}`);
                             'grid-5deg-zoom': 'Lat/Long Grid (5° — use zoom)',
                             'decimal-degree-signs': 'Decimal Degree Sign Guide',
                             'os-national-grid': 'OS National Grid',
-                            'major-cities': 'Major Cities'
+                            'major-cities': 'Major Cities',
+                            'earth-at-night': 'Earth at Night (NASA Black Marble)'
                         };
                         overlayStatus += `• ${overlayNames[overlay] || overlay}\n`;
                     });
@@ -42244,7 +42357,7 @@ Press OK to copy full config to console.`;
             
             // Add startup diagnostic
             setTimeout(() => {
-                addDiagnostic('=== GEO MAPPER PLUS v0.4.132 READY ===', 'success');
+                addDiagnostic('=== GEO MAPPER PLUS v0.4.133 READY ===', 'success');
                 addDiagnostic('✅ Charts work automatically!');
                 addDiagnostic('✅ Animation respects symbol sizing!');
                 document.getElementById('diagnosticSection').style.display = 'block';
